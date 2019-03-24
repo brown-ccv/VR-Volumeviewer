@@ -55,24 +55,56 @@ public:
 		return m_image_g;
 	}
 
+	std::vector<cv::Mat> &image_b()
+	{
+		return m_image_b;
+	}
+
+	std::vector<cv::Mat> &image_rgb()
+	{
+		return m_image_rgb;
+	}
+
 	std::unique_ptr< Volume <T> > &volume(){
 		return m_volume;
 	}
-
-	void generateVolume()
+//0.645, 0.645, 5
+	void generateVolume(float * resolution)
 	{
-		m_volume.reset(new Volume<unsigned short>(m_image_r[0].cols, m_image_r[0].rows, m_image_r.size(), 0.645, 0.645, 5, 3)); //TODO offset variable 
-	
+		if (!m_image_r.empty())
+			m_volume.reset(new Volume<unsigned short>(m_image_r[0].cols, m_image_r[0].rows, m_image_r.size(), resolution[0], resolution[1], resolution[2], 3)); //TODO offset variable 
+		else if (!m_image_g.empty())
+			m_volume.reset(new Volume<unsigned short>(m_image_g[0].cols, m_image_g[0].rows, m_image_g.size(), resolution[0], resolution[1], resolution[2], 3));
+		else if (!m_image_b.empty())
+			m_volume.reset(new Volume<unsigned short>(m_image_b[0].cols, m_image_b[0].rows, m_image_b.size(), resolution[0], resolution[1], resolution[2], 3));
+		else if (!m_image_rgb.empty())
+			m_volume.reset(new Volume<unsigned short>(m_image_rgb[0].cols, m_image_rgb[0].rows, m_image_rgb.size() , resolution[0], resolution[1], resolution[2], 3));
+		
+
 		//fill vol and points
-		for (int x = 0; x < m_volume->get_width(); x++)
+		for (int z = 0; z < m_volume->get_depth(); z++)
 		{
-			for (int y = 0; y < m_volume->get_height(); y++)
+			for (int x = 0; x < m_volume->get_width(); x++)
 			{
-				for (int z = 0; z < m_volume->get_depth(); z++)
-				{
-					*(m_volume->get(x, y, z, 0)) = m_image_r[z].at<unsigned short>(y, x);
-					*(m_volume->get(x, y, z, 1)) = m_image_g[z].at<unsigned short>(y, x);
+				//std::cerr << x << " , " << z << " , " << m_image_rgb.size() << std::endl;
+				for (int y = 0; y < m_volume->get_height(); y++)
+				{			
+					if (!m_image_r.empty())
+						*(m_volume->get(x, y, z, 0)) = m_image_r[z].at<unsigned short>(y, x);
+					if (!m_image_g.empty())
+						*(m_volume->get(x, y, z, 1)) = m_image_g[z].at<unsigned short>(y, x);
+					if (!m_image_b.empty())
+						*(m_volume->get(x, y, z, 2)) = m_image_b[z].at<unsigned short>(y, x);
+					if (!m_image_rgb.empty())
+					{
+						cv::Vec3b rgb = m_image_rgb[z].at<cv::Vec3b>(y, x);		
+						*(m_volume->get(x, y, z, 0)) = rgb[0] * 256;
+						*(m_volume->get(x, y, z, 1)) = rgb[1] * 256;
+						*(m_volume->get(x, y, z, 2)) = rgb[2] * 256;
+					}
 				}
+				//std::cerr << "End " << x << " , " << z << " , " << m_image_rgb.size() << std::endl;
+
 			}
 		}	
 	}
@@ -94,6 +126,10 @@ private:
 	std::vector <cv::Mat> m_image_r;
 
 	std::vector <cv::Mat> m_image_g;
+
+	std::vector <cv::Mat> m_image_b;
+
+	std::vector <cv::Mat> m_image_rgb;
 
 private:
 	unsigned int m_texture_id;

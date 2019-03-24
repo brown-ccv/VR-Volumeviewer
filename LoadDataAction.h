@@ -36,7 +36,7 @@ class LoadDataAction
 	{
 		
 	public:
-		LoadDataAction(std::string folder, Data<unsigned short> * data);
+		LoadDataAction(std::string folder, Data<unsigned short> * data, float* res);
 		void run();
 
 		private:
@@ -46,6 +46,7 @@ class LoadDataAction
 
 			std::string m_folder;
 			Data<unsigned short> * m_data;
+			float* m_res;
 	};
 
 #endif // LOADDATAACTION_H

@@ -66,26 +66,35 @@ private:
 	int width;
 	int height;
 
-	//GLuint textureID;
-	float m_texture_scale[3];
-
 	glm::mat4 P;
 	glm::mat4 MV;
 
 	float m_scale;
 
 	bool m_grab;
+	bool m_threshold_mod;
+	bool m_multiplier_mod;
+
 	glm::mat4 m_controller_pose;
 	glm::mat4 m_object_pose;
 	glm::mat4 m_to_volume;
 	glm::mat4 m_headpose;
 
 	std::vector <std::string> m_models_filenames;
-	std::vector <unsigned int> m_displayLists;
-	GLfloat light_pos[4];
+	std::vector <unsigned int> m_models_displayLists;
+	std::vector<pt> m_models_position;
+	std::vector<int> m_models_volumeID;
+	std::vector<glm::mat4> m_models_MV;
+
+	GLfloat m_light_pos[4];
 	
-	std::vector<Data<unsigned short> *> volumes;
-	std::vector<pt> position;
+	std::vector<Data<unsigned short> *> m_volumes;
+	std::vector<pt> m_volume_position;
+	std::vector<pt> m_volume_scale;
+	std::vector<glm::mat4> m_volume_MV;
+
+	float m_multiplier;
+	float m_threshold;
 
 	VolumeSliceRender m_slice_render;
 };

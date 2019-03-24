@@ -35,24 +35,24 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-VolumeSliceRenderShader::VolumeSliceRenderShader(): m_threshold{ 0.0f }, m_multiplier{ 10 }
+VolumeSliceRenderShader::VolumeSliceRenderShader() : m_threshold{ 0.0f }, m_multiplier{ 0.5 }
 {
 	m_shader = "VolumeSliceRender";
 
 	m_vertexShader = "#version 330 core\n"
-	"layout(location = 0) in vec3 vVertex; \n" //object space vertex position
+		"layout(location = 0) in vec3 vVertex; \n" //object space vertex position
 		"uniform mat4 MVP; \n"   //combined modelview projection matrix
 		"smooth out vec3 vUV; \n" //3D texture coordinates for texture lookup in the fragment shader
 		"void main()\n"
 		"{\n"
-	//get the clipspace position 
-	"gl_Position = MVP*vec4(vVertex.xyz, 1); \n"
-	//get the 3D texture coordinates by adding (0.5,0.5,0.5) to the object space 
-	//vertex position. Since the unit cube is at origin (min: (-0.5,-0.5,-0.5) and max: (0.5,0.5,0.5))
-	//adding (0.5,0.5,0.5) to the unit cube object space position gives us values from (0,0,0) to 
-	//(1,1,1)
-	"vUV = vVertex + vec3(0.5); \n"
-	"}\n";
+			//get the clipspace position 
+			"gl_Position = MVP*vec4(vVertex.xyz, 1); \n"
+			//get the 3D texture coordinates by adding (0.5,0.5,0.5) to the object space 
+			//vertex position. Since the unit cube is at origin (min: (-0.5,-0.5,-0.5) and max: (0.5,0.5,0.5))
+			//adding (0.5,0.5,0.5) to the unit cube object space position gives us values from (0,0,0) to 
+			//(1,1,1)
+			"vUV = vVertex + vec3(0.5); \n"
+		"}\n";
 
 	m_fragmentShader = "#version 330 core\n"
 		"layout(location = 0) out vec4 vFragColor; \n"	//fragment shader output
@@ -62,19 +62,22 @@ VolumeSliceRenderShader::VolumeSliceRenderShader(): m_threshold{ 0.0f }, m_multi
 		"uniform float multiplier;\n"
 		"void main()\n"
 		"{\n"
-		//Here we sample the volume dataset using the 3D texture coordinates from the vertex shader.
-		//Note that since at the time of texture creation, we gave the internal format as GL_RED
-		//we can get the sample value from the texture using the red channel. Here, we set all 4
-		//components as the sample value in the texture which gives us a shader of grey.
-		//"vFragColor = vec4(1,1,0,0.1); \n"
-		"vec4 c_out = texture(volume, vUV) ; \n"
-		"c_out.a = 0.5f * (c_out.r + c_out.g) ; "
-		"c_out.a = (c_out.a > threshold) ? c_out.a : 0.0f ;\n"
-		"if (c_out.a == 0.0f) discard;" 
-		"c_out.b = (c_out.g > 0.0f) ? c_out.r/c_out.g : 0; "
-		"c_out.rgb = c_out.rgb * multiplier;\n"
-		"c_out.b = 0;\n"
-		"vFragColor = c_out;\n"
+			//Here we sample the volume dataset using the 3D texture coordinates from the vertex shader.
+			//Note that since at the time of texture creation, we gave the internal format as GL_RED
+			//we can get the sample value from the texture using the red channel. Here, we set all 4
+			//components as the sample value in the texture which gives us a shader of grey.
+			//"vFragColor = vec4(1,1,0,0.1); \n"
+			"vec4 c_out = texture(volume, vUV) ; \n"
+			"c_out.rgb = c_out.rgb * multiplier;\n"
+	
+			"c_out.a = max(c_out.r, max(c_out.g,c_out.b)) ; "
+			"c_out.a = (c_out.a > threshold) ? c_out.a : 0.0f ;\n"
+
+				//remove fragments for correct depthbuffer
+			"if (c_out.a == 0.0f)"
+				"discard;" 
+
+			"vFragColor = c_out;\n"
 		"}\n";
 }
 

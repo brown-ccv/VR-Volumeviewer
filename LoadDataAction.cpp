@@ -43,10 +43,11 @@
 
 #include <iostream>
 
-LoadDataAction::LoadDataAction(std::string folder, Data <unsigned short> * data) : m_folder(folder), m_data(data)
+LoadDataAction::LoadDataAction(std::string folder, Data <unsigned short> * data, float * res) : m_folder(folder), m_data(data), m_res(res)
 {
-
+	
 }
+
 
 void LoadDataAction::run()
 {
@@ -64,9 +65,19 @@ void LoadDataAction::run()
 			std::cerr << "Load Image " << m_data->image_g().size() << " Channel 2 - " << name << std::endl;
 			m_data->image_g().push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_ANYDEPTH)));
 		}
+		else if (contains_string(name, "ch3"))
+		{
+			std::cerr << "Load Image " << m_data->image_b().size() << " Channel 3 - " << name << std::endl;
+			m_data->image_b().push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_ANYDEPTH)));
+		}
+		else
+		{
+			std::cerr << "Load Image " << m_data->image_rgb().size() << " RGB - " << name << std::endl;
+			m_data->image_rgb().push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_COLOR)));
+		}
 	}
 	
-	m_data->generateVolume();
+	m_data->generateVolume(m_res);
 }
 
 
@@ -88,7 +99,7 @@ std::vector<std::string> LoadDataAction::readTiffs(std::string foldername)
 	if ((dir = opendir(foldername.c_str())) != NULL) {
 		/* print all the files and directories within directory */
 		while ((ent = readdir(dir)) != NULL) {
-			if (ends_with_string(ent->d_name, "tiff"))
+			if (ends_with_string(ent->d_name, "tiff") || ends_with_string(ent->d_name, "png"))
 			{
 				out_vector.push_back(foldername + OS_SLASH + ent->d_name);
 			}
