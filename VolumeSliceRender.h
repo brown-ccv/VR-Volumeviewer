@@ -63,6 +63,7 @@
 
 		void set_threshold(float threshold);
 		void set_multiplier(float multiplier);
+		void set_viewport(float width, float height);
 
 	private:
 		//function to get the max (abs) dimension of the given vertex v

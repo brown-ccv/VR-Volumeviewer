@@ -55,12 +55,12 @@ void LoadDataAction::run()
 	
 	for( auto name : filenames)
 	{
-		if (contains_string(name, "ch2"))
+		if (contains_string(name, "ch1"))
 		{
 			std::cerr << "Load Image " << m_data->image_r().size() << " Channel 1 - " << name << std::endl;
 			m_data->image_r().push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_ANYDEPTH)));
 		}
-		else if (contains_string(name, "ch1"))
+		else if (contains_string(name, "ch2"))
 		{
 			std::cerr << "Load Image " << m_data->image_g().size() << " Channel 2 - " << name << std::endl;
 			m_data->image_g().push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_ANYDEPTH)));

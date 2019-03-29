@@ -20,76 +20,58 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file VolumeSliceRenderShader.h
+///\file FrameBufferObject.h
 ///\author Benjamin Knorlein
-///\date 11/30/2017
+///\date 3/23/2019
 
 #pragma once
 
-#ifndef VOLUMESLICERENDERSHADER_H
-#define VOLUMESLICERENDERSHADER_H
+#ifndef FRAMEBUFFEROBJECT_H
+#define FRAMEBUFFEROBJECT_H
 
-#include "Shader.h"
 
-#include "GL/glew.h"
-
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#include <windows.h>
-#include <GL/gl.h>
-#include <gl/GLU.h>
-#define M_PI 3.14159265358979323846
-#elif defined(__APPLE__)
-#include <OpenGL/OpenGL.h>
-#include <OpenGL/glu.h>
-#else
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
-
-#include <glm/glm.hpp>
-
-	class VolumeSliceRenderShader : public Shader
+	class FrameBufferObject
 	{
-		
 	public:
-		VolumeSliceRenderShader();
-		virtual ~VolumeSliceRenderShader();
+		FrameBufferObject();
+		~FrameBufferObject();
 
-		void render(glm::mat4 &MVP, GLsizei count);
-		void initGL();
+		void bind(bool clipping_on);
+		void unbind();
 
-		void set_threshold(float threshold)
+		unsigned int depth_texture()
 		{
-			m_threshold = threshold;
+			return m_nDepthBufferId;
+		};
+
+		const unsigned& width() const
+		{
+			return m_width;
 		}
 
-		void set_multiplier(float multiplier)
+		const unsigned& height() const
 		{
-			m_multiplier = multiplier;
-		}
-
-		void set_viewport(float width,float height)
-		{
-			m_viewport[0] = width;
-			m_viewport[1] = height;
+			return m_height;
 		}
 
 	private:
-		float m_threshold;
-		float m_multiplier;
-		float m_viewport[2];
+		void create();
 
-		GLuint m_volume_uniform;
-		GLuint m_vVertex_attribute;
-		GLuint m_MVP_uniform;
+		unsigned int m_width;
+		unsigned int m_height;
 
-		GLuint m_threshold_uniform;
-		GLuint m_multiplier_uniform;
-		GLuint m_depth_uniform;
-		GLuint m_viewport_uniform;
+		unsigned int m_nDepthBufferId;
+		//unsigned int m_nResolveTextureId;
+		unsigned int m_nRenderFramebufferId;
 
+		int m_pdrawFboId;
+		int m_preadFboId;
+		int m_pReadBuffer;
+		int m_pDrawBuffer;
+		int m_pDepthTest;
+		float m_pClearDepth;
 
+		bool m_isInitialized;
 	};
-#endif // VOLUMESLICERENDERSHADER_H
+
+#endif // FRAMEBUFFEROBJECT_H

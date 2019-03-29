@@ -42,6 +42,7 @@ set(source_files
   VolumeSliceRender.cpp
   VolumeSliceRenderShader.cpp
   glm.cpp
+  FrameBufferObject.cpp
 )
 
 set(header_files
@@ -53,6 +54,7 @@ set(header_files
   VolumeSliceRender.h
   VolumeSliceRenderShader.h
   glm.h
+  FrameBufferObject.h
 )
 
 

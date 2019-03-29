@@ -133,6 +133,12 @@ void VolumeSliceRender::set_multiplier(float multiplier)
 	shader.set_multiplier(multiplier);
 }
 
+void VolumeSliceRender::set_viewport(float width, float height)
+{
+
+	shader.set_viewport(width, height);
+}
+
 int VolumeSliceRender::FindAbsMax(glm::vec3 v)
 {
 	v = glm::abs(v);

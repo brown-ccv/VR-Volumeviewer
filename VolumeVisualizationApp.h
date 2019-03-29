@@ -5,6 +5,7 @@
 
 #include <api/MinVR.h>
 #include "Data.h"
+#include "FrameBufferObject.h"
 using namespace MinVR;
 
 #include <vector>
@@ -72,8 +73,8 @@ private:
 	float m_scale;
 
 	bool m_grab;
-	bool m_threshold_mod;
-	bool m_multiplier_mod;
+	bool m_shader_modifiers;
+	bool m_clipping;
 
 	glm::mat4 m_controller_pose;
 	glm::mat4 m_object_pose;
@@ -97,6 +98,8 @@ private:
 	float m_threshold;
 
 	VolumeSliceRender m_slice_render;
+	std::vector <FrameBufferObject *> m_framebuffers;
+	unsigned int m_rendercount;
 };
 
 
