@@ -96,6 +96,7 @@ std::vector<std::string> LoadDataAction::readTiffs(std::string foldername)
 	std::vector <std::string> out_vector;
 	DIR *dir;
 	struct dirent *ent;
+	std::cerr << "Open Folder " << foldername << std::endl;
 	if ((dir = opendir(foldername.c_str())) != NULL) {
 		/* print all the files and directories within directory */
 		while ((ent = readdir(dir)) != NULL) {

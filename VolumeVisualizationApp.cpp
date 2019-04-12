@@ -135,8 +135,9 @@ void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event) {
     // to see exactly which analog input has been changed, and then access the
     // new value with event->getValue().
 	//std::cerr <<"onAnalogChange " << event.getName() << std::endl;
-	if (event.getName() == "HTC_Controller_Right_Joystick0_Y" || event.getName() == "HTC_Controller_1_Joystick0_Y" || 
-		event.getName() == "HTC_Controller_Right_TrackPad0_Y" || event.getName() == "HTC_Controller_1_TrackPad0_Y")
+	if (event.getName() == "HTC_Controller_Right_Joystick2_Y" || event.getName() == "HTC_Controller_1_Joystick2_Y" 
+		//|| event.getName() == "HTC_Controller_Right_TrackPad0_Y" || event.getName() == "HTC_Controller_1_TrackPad0_Y"
+			)
 	{
 		if (event.getValue() > 0.5) {
 			if (m_shader_modifiers)
@@ -164,8 +165,9 @@ void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event) {
 			}
 		}
 	}
-	if (event.getName() == "HTC_Controller_Right_Joystick0_X" || event.getName() == "HTC_Controller_1_Joystick0_X" ||
-		event.getName() == "HTC_Controller_Right_TrackPad0_X" || event.getName() == "HTC_Controller_1_TrackPad0_X")
+	if (event.getName() == "HTC_Controller_Right_Joystick2_X" || event.getName() == "HTC_Controller_1_Joystick2_X" 
+		// || event.getName() == "HTC_Controller_Right_TrackPad0_X" || event.getName() == "HTC_Controller_1_TrackPad0_X"
+		)
 	{
 		if (event.getValue() > 0.5) {
 			if (m_shader_modifiers)
@@ -200,7 +202,7 @@ void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event) {
 void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
     // This routine is called for all Button_Down events.  Check event->getName()
     // to see exactly which button has been pressed down.
-	//std::cerr << "onButtonDown " << event.getName() << std::endl;
+	std::cerr << "onButtonDown " << event.getName() << std::endl;
 	if (event.getName() == "KbdEsc_Down")
 	{
 		exit(0);
@@ -214,8 +216,9 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 		m_shader_modifiers = true;
 		std::cerr << "multiplier mod on" << std::endl;
 	}
-	if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
-	{
+	//if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
+	if (event.getName() == "HTC_Controller_Right_Axis0Button_Down" || event.getName() == "HTC_Controller_1_Right_Axis0Button_Down")
+		{
 		m_clipping = true;
 	}
 }
@@ -234,9 +237,11 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 		m_shader_modifiers = false;
 		std::cerr << "multiplier mod" << std::endl;
 	}
-	if (event.getName() == "HTC_Controller_Right_AButton_Up" || event.getName() == "HTC_Controller_1_AButton_Up")
+	//if (event.getName() == "HTC_Controller_Right_AButton_Up" || event.getName() == "HTC_Controller_1_AButton_Up")
+	if (event.getName() == "HTC_Controller_Right_Axis0Button_Up" || event.getName() == "HTC_Controller_1_Axis0Button_Up")
 	{
 		m_clipping = false;
+		std::cerr << "clipping" << std::endl;
 	}
 
 }
