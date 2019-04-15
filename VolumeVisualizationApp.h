@@ -75,6 +75,11 @@ private:
 	bool m_grab;
 	bool m_shader_modifiers;
 	bool m_clipping;
+	bool m_animated;
+	bool m_tune;
+
+	unsigned int m_framerepeat;
+	unsigned int m_framecounter;
 
 	glm::mat4 m_controller_pose;
 	glm::mat4 m_object_pose;
