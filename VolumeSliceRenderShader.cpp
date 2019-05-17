@@ -74,11 +74,11 @@ VolumeSliceRenderShader::VolumeSliceRenderShader() : m_threshold{ 0.0f }, m_mult
 
 		//Here. we sample the volume dataset using the 3D texture coordinates from the vertex shader.
 		"vec4 c_out = texture(volume, vUV) ; \n"
-		"c_out.rgb = c_out.rgb * multiplier;\n"
-
-		"c_out.a = max(c_out.r, max(c_out.g,c_out.b)) ; "
+		"c_out.a = pow(max(c_out.r, max(c_out.g,c_out.b)),multiplier) ; "
 		"c_out.a = (c_out.a > threshold) ? c_out.a : 0.0f ;\n"
 
+		//"c_out.rgb = c_out.rgb * multiplier;\n"
+		
 		//remove fragments for correct depthbuffer
 		"if (c_out.a == 0.0f)"
 			"discard;"
