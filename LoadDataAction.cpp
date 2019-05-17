@@ -37,49 +37,247 @@
 #endif
 
 #include "LoadDataAction.h"
-#include "Data.h"
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
 #include <iostream>
 
-LoadDataAction::LoadDataAction(std::string folder, Data <unsigned short> * data, float * res) : m_folder(folder), m_data(data), m_res(res)
+LoadDataAction::LoadDataAction(std::string folder, float * res) : m_folder(folder),  m_res(res)
 {
 	
 }
 
 
-void LoadDataAction::run()
+Volume* LoadDataAction::run()
 {
 	std::vector <std::string> filenames = readTiffs(m_folder);
-	
+
+	std::vector <cv::Mat> image_r;
+	std::vector <cv::Mat> image_g;
+	std::vector <cv::Mat> image_b;
+	std::vector <cv::Mat> images;
+
 	for( auto name : filenames)
 	{
 		if (contains_string(name, "ch1"))
 		{
-			std::cerr << "Load Image " << m_data->image_r().size() << " Channel 1 - " << name << std::endl;
-			m_data->image_r().push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_ANYDEPTH)));
+			std::cerr << "Load Image " << image_r.size() << " Channel 1 - " << name << std::endl;
+			image_r.push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_GRAYSCALE)));
 		}
 		else if (contains_string(name, "ch2"))
 		{
-			std::cerr << "Load Image " << m_data->image_g().size() << " Channel 2 - " << name << std::endl;
-			m_data->image_g().push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_ANYDEPTH)));
+			std::cerr << "Load Image " << image_g.size() << " Channel 2 - " << name << std::endl;
+			image_g.push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_GRAYSCALE)));
 		}
 		else if (contains_string(name, "ch3"))
 		{
-			std::cerr << "Load Image " << m_data->image_b().size() << " Channel 3 - " << name << std::endl;
-			m_data->image_b().push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_ANYDEPTH)));
+			std::cerr << "Load Image " <<image_b.size() << " Channel 3 - " << name << std::endl;
+			image_b.push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_GRAYSCALE)));
 		}
 		else
 		{
-			std::cerr << "Load Image " << m_data->image_rgb().size() << " RGB - " << name << std::endl;
-			m_data->image_rgb().push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_COLOR)));
+			std::cerr << "Load Image " << images.size() << " RGB - " << name << std::endl;
+			images.push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_ANYCOLOR)));
 		}
 	}
-	
-	m_data->generateVolume(m_res);
+
+	if (!image_r.empty() || !image_g.empty() || !image_b.empty())
+	{
+		mergeRGB(image_r, image_g, image_b, images);
+	}
+
+	unsigned int channels = images[0].channels();
+	unsigned int depth = images[0].depth();
+	unsigned int w = images[0].cols;
+	unsigned int h = images[0].rows;
+	unsigned int d = images.size();
+
+	Volume* volume;
+	switch (depth)
+	{
+		case CV_8U:
+			volume = new Volume(w, h, d, m_res[0], m_res[1], m_res[2], 1, channels);
+			uploadDataCV_8U(images, volume);
+			break;
+		case CV_16U:
+			volume = new Volume(w, h, d, m_res[0], m_res[1], m_res[2], 2, channels);
+			uploadDataCV_16U(images, volume);
+			break;
+		/*case CV_32F:
+			volume = new Volume(w, h, d, m_res[0], m_res[1], m_res[2], 4, channels);
+			uploadDataCV_32F(images, volume);
+			break;*/
+	}
+	return volume;
 }
 
+void LoadDataAction::mergeRGB(std::vector <cv::Mat> &image_r, std::vector <cv::Mat> &image_g, std::vector <cv::Mat> &image_b, std::vector <cv::Mat> &image)
+{
+	int d;
+	cv::Mat B;
+	if (!image_r.empty())
+	{
+		d = image_r.size();
+		B = cv::Mat::zeros(image_r[0].rows, image_r[0].cols, image_r[0].depth());
+	}
+	else if (!image_g.empty())
+	{
+		d = image_g.size();
+		B = cv::Mat::zeros(image_g[0].rows, image_g[0].cols, image_g[0].depth());
+	}
+	else if (!image_b.empty())
+	{
+		d = image_b.size();
+		B = cv::Mat::zeros(image_b[0].rows, image_b[0].cols, image_b[0].depth());
+	}
+
+	for (int z = 0; z < d; z++)
+	{
+		std::vector<cv::Mat> array_to_merge;
+		if (!image_r.empty())
+		{
+			array_to_merge.push_back(image_r[z]);
+		} 
+		else
+		{
+			array_to_merge.push_back(B);
+		}
+		if (!image_g.empty())
+		{
+			array_to_merge.push_back(image_g[z]);
+		}
+		else
+		{
+			array_to_merge.push_back(B);
+		}
+		if (!image_b.empty())
+		{
+			array_to_merge.push_back(image_b[z]);
+		}
+		else
+		{
+			array_to_merge.push_back(B);
+		}
+		cv::Mat image_merged;
+		cv::merge(array_to_merge, image_merged);
+		image.push_back(image_merged);
+	}
+}
+
+void LoadDataAction::uploadDataCV_8U(std::vector <cv::Mat> image, Volume* volume)
+{
+	
+	unsigned char* ptr = reinterpret_cast <unsigned char*> (volume->get_data());
+	//fill vol and points
+	for (int z = 0; z < image.size(); z++)
+	{
+		std::cerr << image[z].channels() << " - ";
+		if (image[z].channels() == 1){
+			cv::MatConstIterator_<uchar> it1 = image[z].begin<uchar>();
+			cv::MatConstIterator_<uchar> it1_end = image[z].end<uchar>();
+			for (; it1 != it1_end; ++it1)
+			{
+				*ptr++ = *it1;
+			}
+		}
+		else if (image[z].channels() == 3){
+			cv::MatConstIterator_<cv::Vec3b> it1 = image[z].begin<cv::Vec3b>();
+			cv::MatConstIterator_<cv::Vec3b> it1_end = image[z].end<cv::Vec3b>();
+			for (; it1 != it1_end; ++it1)
+			{
+				*ptr++ = (*it1)[0];
+				*ptr++ = (*it1)[1];
+				*ptr++ = (*it1)[2];
+				
+			}
+		}
+		else if (image[z].channels() == 4){
+			cv::MatConstIterator_<cv::Vec4b> it1 = image[z].begin<cv::Vec4b>();
+			cv::MatConstIterator_<cv::Vec4b> it1_end = image[z].end<cv::Vec4b>();
+			for (; it1 != it1_end; ++it1)
+			{
+				*ptr++ = (*it1)[0];
+				*ptr++ = (*it1)[1];
+				*ptr++ = (*it1)[2];
+				*ptr++ = (*it1)[3];
+			}
+		}
+	}
+}
+void LoadDataAction::uploadDataCV_16U(std::vector <cv::Mat> image, Volume* volume)
+{
+	unsigned short* ptr = reinterpret_cast <unsigned short*> (volume->get_data());
+	//fill vol and points
+	for (int z = 0; z < volume->get_depth(); z++)
+	{
+		if (image[z].channels() == 1){
+			cv::MatConstIterator_<unsigned short> it1 = image[z].begin<unsigned short>();
+			cv::MatConstIterator_<unsigned short> it1_end = image[z].end<unsigned short>();
+			for (; it1 != it1_end; ++it1)
+			{
+				*ptr++ = *it1;
+			}
+		}
+		else if (image[z].channels() == 3){
+			cv::MatConstIterator_<cv::Vec3w> it1 = image[z].begin<cv::Vec3w>();
+			cv::MatConstIterator_<cv::Vec3w> it1_end = image[z].end<cv::Vec3w>();
+			for (; it1 != it1_end; ++it1)
+			{
+				*ptr++ = (*it1)[0];
+				*ptr++ = (*it1)[1];
+				*ptr++ = (*it1)[2];
+			}
+		}
+		else if (image[z].channels() == 4){
+			cv::MatConstIterator_<cv::Vec4w> it1 = image[z].begin<cv::Vec4w>();
+			cv::MatConstIterator_<cv::Vec4w> it1_end = image[z].end<cv::Vec4w>();
+			for (; it1 != it1_end; ++it1)
+			{
+				*ptr++ = (*it1)[0];
+				*ptr++ = (*it1)[1];
+				*ptr++ = (*it1)[2];
+				*ptr++ = (*it1)[3];
+			}
+		}
+	}
+}
+//void LoadDataAction::uploadDataCV_32F(std::vector <cv::Mat> image, Volume* volume)
+//{
+//	float* ptr = reinterpret_cast <float*> (volume->get_data());
+//	//fill vol and points
+//	for (int z = 0; z < volume->get_depth(); z++)
+//	{
+//		if (image[z].depth() == 1){
+//			cv::MatConstIterator_<float> it1 = image[z].begin<float>();
+//			cv::MatConstIterator_<float> it1_end = image[z].end<float>();
+//			for (; it1 != it1_end; ++it1)
+//			{
+//				*ptr++ = *it1;
+//			}
+//		}
+//		else if (image[z].depth() == 3){
+//			cv::MatConstIterator_<cv::Vec3f> it1 = image[z].begin<cv::Vec3f>();
+//			cv::MatConstIterator_<cv::Vec3f> it1_end = image[z].end<cv::Vec3f>();
+//			for (; it1 != it1_end; ++it1)
+//			{
+//				*ptr++ = (*it1)[0];
+//				*ptr++ = (*it1)[1];
+//				*ptr++ = (*it1)[2];
+//			}
+//		}
+//		else if (image[z].depth() == 4){
+//			cv::MatConstIterator_<cv::Vec4f> it1 = image[z].begin<cv::Vec4f>();
+//			cv::MatConstIterator_<cv::Vec4f> it1_end = image[z].end<cv::Vec4f>();
+//			for (; it1 != it1_end; ++it1)
+//			{
+//				*ptr++ = (*it1)[0];
+//				*ptr++ = (*it1)[1];
+//				*ptr++ = (*it1)[2];
+//				*ptr++ = (*it1)[3];
+//			}
+//		}
+//	}
+//}
 
 bool LoadDataAction::ends_with_string(std::string const& str, std::string const& what) {
 	return what.size() <= str.size()

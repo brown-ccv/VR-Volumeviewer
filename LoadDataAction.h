@@ -30,23 +30,30 @@
 #define LOADDATAACTION_H
 #include <string>
 #include <vector>
-#include "Data.h"
+#include "Volume.h"
+#include <opencv2/core/mat.hpp>
 
 class LoadDataAction
 	{
 		
 	public:
-		LoadDataAction(std::string folder, Data<unsigned short> * data, float* res);
-		void run();
+		LoadDataAction(std::string folder, float* res);
+		Volume* run();
 
 		private:
 			bool ends_with_string(std::string const& str, std::string const& what);
 			bool contains_string(std::string const& str, std::string const& what);
 			std::vector<std::string> readTiffs(std::string foldername);
 
+
 			std::string m_folder;
-			Data<unsigned short> * m_data;
 			float* m_res;
+
+			void mergeRGB(std::vector <cv::Mat> &image_r, std::vector <cv::Mat> &image_g, std::vector <cv::Mat> &image_b, std::vector <cv::Mat> &image);
+			static void uploadDataCV_8U(std::vector <cv::Mat> image, Volume* volume);
+			static void uploadDataCV_16U(std::vector <cv::Mat> image, Volume* volume);
+			//static void uploadDataCV_32F(std::vector <cv::Mat> image, Volume* volume);
 	};
+
 
 #endif // LOADDATAACTION_H

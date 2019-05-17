@@ -3,7 +3,6 @@
 
 #include <cmath>
 #include <cctype>
-#include "Data.h"
 #include "LoadDataAction.h"
 #include <glm/gtc/type_ptr.inl>
 #include <glm/gtc/matrix_transform.hpp>
@@ -14,7 +13,7 @@ float ambient[] = { 0.5f, 0.5f, 0.5f, 1.0f };
 float diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
 
 VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(argc, argv), m_grab{ false }
-, m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_texture_update{ false }, m_texture_loaded{ false }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }, m_shader_modifiers{false}
+, m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_texture_loaded{ false }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }, m_shader_modifiers{false}
 , m_clipping{ false }, m_animated(false), m_framerepeat{ 60 }, m_framecounter{ 0 }, m_tune{ false }
 {
 	int argc_int = this->getLeftoverArgc();
@@ -66,15 +65,14 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 					std::cerr << "Position " << vals[5] << " , " << vals[6] << " , " << vals[7] << std::endl;
 					std::cerr << "Resolution " << vals[2] << " , " << vals[3] << " , " << vals[4] << std::endl;
 
-					m_volumes.push_back(new Data<unsigned short>());
 					float t_res[3];
 					t_res[0] = stof(vals[2]);
 					t_res[1] = stof(vals[3]);
 					t_res[2] = stof(vals[4]);
-					LoadDataAction(vals[1], m_volumes.back(), &t_res[0]).run();
-					m_volume_position.push_back({ stof(vals[5]), stof(vals[6]), stof(vals[7]) });
-					m_volume_scale.push_back({ 0.0, 0.0, 0.0 });
-					m_volume_MV.push_back(glm::mat4());
+					m_volumes.push_back(LoadDataAction(vals[1], &t_res[0]).run());
+					m_volumes.back()->set_volume_position({ stof(vals[5]), stof(vals[6]), stof(vals[7]) });
+					m_volumes.back()->set_volume_scale({ 0.0, 0.0, 0.0 });
+					m_volumes.back()->set_volume_mv(glm::mat4());
 				}
 			}
 		}
@@ -85,7 +83,6 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 	//LoadDataAction("D:\\Test_images_for_Ben_Knorlein\\GPA_test_Images_E5\\out").run();
 	//LoadDataAction("D:\\data\\Beth\\row6\\row6\\r06c03f04").run();
 
-	m_texture_update = true;
 	m_object_pose = glm::mat4(1.0f);
 
 	m_light_pos[0] = 0.0;
@@ -97,48 +94,17 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 VolumeVisualizationApp::~VolumeVisualizationApp()
 {
 	for (int i = 0; i < m_volumes.size(); i++){
-		if (m_volumes[i]->texture_id() != 0)
-			glDeleteTextures(1, &m_volumes[i]->texture_id());
 		delete m_volumes[i];
 	}
+	m_volumes.clear();
 }
 
 void VolumeVisualizationApp::updateTexture()
 {
 	for (int i = 0; i < m_volumes.size(); i++){
 		std::cerr << "Update Texture " << i << std::endl;
-		if (m_volumes[i]->texture_id() != 0)
-			glDeleteTextures(1, &m_volumes[i]->texture_id());
-
-		glGenTextures(1, &m_volumes[i]->texture_id());
-		glBindTexture(GL_TEXTURE_3D, m_volumes[i]->texture_id());
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S,
-			GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T,
-			GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R,
-			GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER,
-			GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER,
-			GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_BASE_LEVEL, 0);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, 4);
-		glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB,
-			m_volumes[i]->volume()->get_width(),
-			m_volumes[i]->volume()->get_height(),
-			m_volumes[i]->volume()->get_depth(),
-			0, GL_RGB, GL_UNSIGNED_SHORT, m_volumes[i]->volume()->get(0, 0, 0, 0));
-
-		glGenerateMipmap(GL_TEXTURE_3D);
-
-		m_volume_scale[i].x = 1.0f / (m_volumes[i]->volume()->get_x_scale() * m_volumes[i]->volume()->get_width());
-		m_volume_scale[i].y = 1.0f / (m_volumes[i]->volume()->get_y_scale() * m_volumes[i]->volume()->get_height());
-		m_volume_scale[i].z = 1.0f / (m_volumes[i]->volume()->get_z_scale() * m_volumes[i]->volume()->get_depth());
-		//std::cerr << m_volume_scale[i].x << " , " << m_volume_scale[i].y << " , " << m_volume_scale[i].z << std::endl;
+		m_volumes[i]->createTexture();
 	}
-
-	m_texture_update = false;
 	m_texture_loaded = true;
 	std::cerr << "End Update Textures" << std::endl;
 }
@@ -149,7 +115,7 @@ void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event) {
     // new value with event->getValue().
 	//std::cerr <<"onAnalogChange " << event.getName() << std::endl;
 	if (event.getName() == "HTC_Controller_Right_Joystick2_Y" || event.getName() == "HTC_Controller_1_Joystick2_Y" 
-	//	|| event.getName() == "HTC_Controller_Right_TrackPad0_Y" || event.getName() == "HTC_Controller_1_TrackPad0_Y"
+		|| event.getName() == "HTC_Controller_Right_TrackPad0_Y" || event.getName() == "HTC_Controller_1_TrackPad0_Y"
 			)
 	{
 		if (event.getValue() > 0.5) {
@@ -184,7 +150,7 @@ void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event) {
 	}
 	if (m_tune){
 		if (event.getName() == "HTC_Controller_Right_Joystick2_X" || event.getName() == "HTC_Controller_1_Joystick2_X"
-		//	|| event.getName() == "HTC_Controller_Right_TrackPad0_X" || event.getName() == "HTC_Controller_1_TrackPad0_X"
+			|| event.getName() == "HTC_Controller_Right_TrackPad0_X" || event.getName() == "HTC_Controller_1_TrackPad0_X"
 			)
 		{
 			if (event.getValue() > 0.5) {
@@ -206,15 +172,6 @@ void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event) {
 			}
 		}
 	}
-
-	/*onAnalogChange HTC_Controller_Left_Joystick0_X
-		onAnalogChange HTC_Controller_Left_Joystick0_Y
-		onAnalogChange HTC_Controller_Left_Trigger1
-		onAnalogChange HTC_Controller_Left_Trigger2
-		onAnalogChange HTC_Controller_Right_Joystick0_X
-		onAnalogChange HTC_Controller_Right_Joystick0_Y
-		onAnalogChange HTC_Controller_Right_Trigger1
-		onAnalogChange HTC_Controller_Right_Trigger2*/
 }
 
 
@@ -354,6 +311,9 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 	glLoadIdentity();
 	glLightfv(GL_LIGHT0, GL_POSITION, m_light_pos);
 
+	if (!m_texture_loaded)
+		updateTexture();
+
 	if (m_animated)
 	{
 		m_framecounter++;
@@ -364,9 +324,6 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &renderState) {
     // This routine is called once per eye.  This is the place to actually
     // draw the scene.
-	if (m_texture_update)
-		updateTexture();
-
 	if (renderState.isInitialRenderCall())
 	{
 		m_framebuffers.push_back(new FrameBufferObject());
@@ -380,19 +337,18 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 
 	//setup Modelview for volumes
 	for (int i = 0; i < m_volumes.size(); i++){
-		m_volume_MV[i] = MV;
-		m_volume_MV[i] = m_volume_MV[i] * m_object_pose;
-		m_volume_MV[i] = glm::scale(m_volume_MV[i], glm::vec3(m_scale, m_scale, m_scale));
-		m_volume_MV[i] = glm::scale(m_volume_MV[i], glm::vec3(m_volume_scale[i].x / m_volume_scale[i].x, m_volume_scale[i].x / m_volume_scale[i].y, m_volume_scale[i].x / m_volume_scale[i].z));
+		glm::mat4 tmp = MV;
+		tmp = tmp* m_object_pose;
+		tmp = glm::scale(tmp, glm::vec3(m_scale, m_scale, m_scale));
 		if(!m_animated) 
-			m_volume_MV[i] = glm::translate(m_volume_MV[i], glm::vec3(m_volume_position[i].x, m_volume_position[i].y, m_volume_position[i].z));
+			tmp = glm::translate(tmp, glm::vec3(m_volumes[i]->get_volume_position().x, m_volumes[i]->get_volume_position().y, m_volumes[i]->get_volume_position().z));
+		m_volumes[i]->set_volume_mv(tmp);
 	}
 
 	//setup Modelview for meshes
 	for (int i = 0; i < m_models_displayLists.size(); i++){
-		m_models_MV[i] = m_volume_MV[m_models_volumeID[i]];
+		m_models_MV[i] = m_volumes[m_models_volumeID[i]]->get_volume_mv();
 		m_models_MV[i] = glm::translate(m_models_MV[i], glm::vec3(-0.5f, -0.5f, -0.5f));
-		m_models_MV[i] = glm::scale(m_models_MV[i], glm::vec3(m_volume_scale[m_models_volumeID[i]].x, m_volume_scale[m_models_volumeID[i]].y, m_volume_scale[m_models_volumeID[i]].z));
 	}
 
 	//Render cuttingplane
@@ -437,13 +393,13 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 
 			glDepthMask(GL_FALSE);
 			glActiveTexture(GL_TEXTURE0 + 0);
-			glBindTexture(GL_TEXTURE_3D, m_volumes[active_volume]->texture_id());
+			glBindTexture(GL_TEXTURE_3D, m_volumes[active_volume]->get_texture_id());
 
 			glActiveTexture(GL_TEXTURE0 + 1);
 			glBindTexture(GL_TEXTURE_2D, m_framebuffers[m_rendercount]->depth_texture());
 
 			m_slice_render.set_viewport(m_framebuffers[m_rendercount]->width(), m_framebuffers[m_rendercount]->height());
-			m_slice_render.render(m_volume_MV[active_volume], P);
+			m_slice_render.render(m_volumes[active_volume]->get_volume_mv(), P, m_volumes[active_volume]->get_volume_scale().x / m_volumes[active_volume]->get_volume_scale().z);
 
 			glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -456,7 +412,7 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 			//check order
 			std::vector<std::pair< float, int> > order;
 			for (int i = 0; i < m_volumes.size(); i++){
-				glm::vec4 center = m_volume_MV[i] * glm::vec4(0, 0, 0, 1);
+				glm::vec4 center = m_volumes[i]->get_volume_mv() * glm::vec4(0, 0, 0, 1);
 				float l = glm::length(center);
 				order.push_back(std::make_pair(l, i));
 			}
@@ -465,13 +421,13 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 			for (int i = order.size() - 1; i >= 0; i--){
 				glDepthMask(GL_FALSE);
 				glActiveTexture(GL_TEXTURE0 + 0);
-				glBindTexture(GL_TEXTURE_3D, m_volumes[order[i].second]->texture_id());
+				glBindTexture(GL_TEXTURE_3D, m_volumes[order[i].second]->get_texture_id());
 
 				glActiveTexture(GL_TEXTURE0 + 1);
 				glBindTexture(GL_TEXTURE_2D, m_framebuffers[m_rendercount]->depth_texture());
 
 				m_slice_render.set_viewport(m_framebuffers[m_rendercount]->width(), m_framebuffers[m_rendercount]->height());
-				m_slice_render.render(m_volume_MV[order[i].second], P);
+				m_slice_render.render(m_volumes[order[i].second]->get_volume_mv(), P, m_volumes[order[i].second]->get_volume_scale().x / m_volumes[order[i].second]->get_volume_scale().z);
 
 				glBindTexture(GL_TEXTURE_2D, 0);
 

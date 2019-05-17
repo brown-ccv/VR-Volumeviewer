@@ -34,6 +34,7 @@
 #include "VolumeSliceRender.h"
 #include <ostream>
 #include <iostream>
+#include <glm/gtc/matrix_transform.hpp>
 
 //for floating point inaccuracy
 const float EPSILON = 0.0001f;
@@ -62,7 +63,7 @@ const int VolumeSliceRender::edgeList[8][12] = {
 
 const int VolumeSliceRender::edges[12][2] = { { 0, 1 }, { 1, 2 }, { 2, 3 }, { 3, 0 }, { 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 }, { 4, 5 }, { 5, 6 }, { 6, 7 }, { 7, 4 } };
 
-VolumeSliceRender::VolumeSliceRender() : num_slices{ 256 }
+VolumeSliceRender::VolumeSliceRender() : num_slices{ MAX_SLICES }
 {
 
 }
@@ -95,13 +96,14 @@ void VolumeSliceRender::initGL()
 	glBindVertexArray(0);
 }
 
-void VolumeSliceRender::render(glm::mat4 &MV, glm::mat4 &P)
+void VolumeSliceRender::render(const glm::mat4 &MV, glm::mat4 &P, float z_scale)
 {
-	//get the combined modelview projection matrix
-	glm::mat4 MVP = P*MV;
-
 	//get the current view direction vector
-	glm::vec3 new_viewDir = -glm::vec3(MV[0][2], MV[1][2], MV[2][2]);
+	glm::vec4 tmp = MV * glm::vec4(0, 0, 0, 1);
+	tmp[3] = 0;
+	tmp = inverse(MV) * tmp;
+	glm::vec3 new_viewDir = glm::vec3(tmp[0], tmp[1], tmp[2]);
+	glm::normalize(new_viewDir);
 
 	if (new_viewDir != viewDir)
 	{
@@ -112,6 +114,11 @@ void VolumeSliceRender::render(glm::mat4 &MV, glm::mat4 &P)
 	//enable alpha blending (use over operator)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	//now do the z_scaling
+	glm::mat4 MV_tmp = glm::scale(MV, glm::vec3(1, 1, z_scale));
+	//get the combined modelview projection matrix
+	glm::mat4 MVP = P*MV_tmp;
 
 	//bind volume vertex array object
 	glBindVertexArray(volumeVAO);
@@ -316,7 +323,9 @@ void VolumeSliceRender::SliceVolume()
 		for (int j = 0; j<12; j++)
 			vTextureSlices[count++] = intersection[indices[j]];
 	}
-	
+	while (count < MAX_SLICES * 12){
+		vTextureSlices[count++] = glm::vec3(0,0,0);
+	}
 
 	//update buffer object with the new vertices
 	glBindBuffer(GL_ARRAY_BUFFER, volumeVBO);

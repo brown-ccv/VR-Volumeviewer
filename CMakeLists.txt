@@ -35,7 +35,6 @@ message(STATUS "Using install prefix: ${CMAKE_INSTALL_PREFIX}")
 set(source_files
   main.cpp
   VolumeVisualizationApp.cpp
-  Data.cpp
   LoadDataAction.cpp
   Shader.cpp
   Volume.cpp
@@ -47,7 +46,6 @@ set(source_files
 
 set(header_files
   VolumeVisualizationApp.h
-  Data.h
   LoadDataAction.h
   Shader.h
   Volume.h

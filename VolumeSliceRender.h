@@ -58,7 +58,7 @@
 		~VolumeSliceRender();
 
 		void initGL();
-		void render(glm::mat4 &MV, glm::mat4 &P);
+		void render(const glm::mat4 &MV, glm::mat4 &P, float z_scale);
 
 
 		void set_threshold(float threshold);
@@ -80,7 +80,7 @@
 		static const int edges[12][2];
 
 		//sliced vertices
-		static const int MAX_SLICES = 1024;
+		static const int MAX_SLICES = 256;
 		glm::vec3 vTextureSlices[MAX_SLICES * 12];
 
 		//total number of slices current used

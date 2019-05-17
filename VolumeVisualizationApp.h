@@ -4,8 +4,8 @@
 #include "GL/glew.h"
 
 #include <api/MinVR.h>
-#include "Data.h"
 #include "FrameBufferObject.h"
+#include "Volume.h"
 using namespace MinVR;
 
 #include <vector>
@@ -27,12 +27,7 @@ using namespace MinVR;
 
 #include "VolumeSliceRender.h"
 
-struct pt
-{
-	float x;
-	float y;
-	float z;
-};
+
 
 class VolumeVisualizationApp : public VRApp {
 public:
@@ -61,7 +56,6 @@ public:
 private:
 	void updateTexture();
 
-	bool m_texture_update;
 	bool m_texture_loaded;
 
 	int width;
@@ -94,11 +88,8 @@ private:
 
 	GLfloat m_light_pos[4];
 	
-	std::vector<Data<unsigned short> *> m_volumes;
-	std::vector<pt> m_volume_position;
-	std::vector<pt> m_volume_scale;
-	std::vector<glm::mat4> m_volume_MV;
-
+	std::vector< Volume * > m_volumes;
+	
 	float m_multiplier;
 	float m_threshold;
 

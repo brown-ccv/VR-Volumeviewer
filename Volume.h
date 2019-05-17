@@ -29,71 +29,40 @@
 #ifndef VOLUME_H
 #define VOLUME_H
 
-#include <cmath>
+#include "GL/glew.h"
 
-	template <class T>
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#include <windows.h>
+#include <GL/gl.h>
+#include <gl/GLU.h>
+#define M_PI 3.14159265358979323846
+#elif defined(__APPLE__)
+#include <OpenGL/OpenGL.h>
+#include <OpenGL/glu.h>
+#else
+#define GL_GLEXT_PROTOTYPES
+#include <GL/gl.h>
+#include <GL/glu.h>
+#endif
+
+#include <cmath>
+#include <glm/gtc/matrix_transform.hpp>
+
+struct pt
+{
+	float x;
+	float y;
+	float z;
+};
+
 	class Volume
 	{
 	public:
-		Volume(unsigned int width, unsigned int height, unsigned int depth, double x_scale, double y_scale, double z_scale, unsigned int channel = 1)
-			: m_width{ width }, m_height{ height }, m_depth{ depth }, m_channels{ channel }
-		, m_x_scale{ x_scale }, m_y_scale{ y_scale }, m_z_scale{ z_scale }
-		{
-			data = new T[m_width*m_height*m_depth * m_channels]();
-		}
+		Volume(unsigned int width, unsigned int height, unsigned int depth, double x_scale, double y_scale, double z_scale, unsigned int datatypesize, unsigned int channel = 1);
 
-		~Volume()
-		{
-			delete[] data;
-		}
-
-		T *get(int x, int y, int z, int channel = 0)
-		{
-			return &data[(x + (y + z * m_height)* m_width) * m_channels + channel];
-		}
-
-		double getNonInterpolated(int x, int y, int z, int channel = 0)
-		{
-			double x_s = x / m_x_scale;
-			double y_s = y / m_y_scale;
-			double z_s = z / m_z_scale;
-
-			if (x_s < 0 || y_s < 0 || z_s < 0
-				|| x_s >(m_width - 1) || y_s > m_height - 1 || z_s > m_depth - 1)
-				return 0;
-
-			return *get(x_s, y_s, z_s, channel);
-
-		}
-
-		double getInterpolated(double x, double y, double z, int channel = 0)
-		{
-			double x_s = x / m_x_scale;
-			double y_s = y / m_y_scale;
-			double z_s = z / m_z_scale;
-
-			if (x_s < 0 || y_s < 0 || z_s < 0
-				|| x_s >(m_width - 1) || y_s > m_height - 1 || z_s > m_depth - 1)
-				return 0;
-
-			unsigned int x_0 = floor(x_s);
-			unsigned int y_0 = floor(y_s);
-			unsigned int z_0 = floor(z_s);
-
-			double x_d = (x_s - x_0);
-			double y_d = (y_s - y_0);
-			double z_d = (z_s - z_0);
-
-			double c_00 = *get(x_0, y_0, z_0, channel) * (1 - x_d) + *get(x_0 + 1, y_0, z_0, channel) * x_d;
-			double c_01 = *get(x_0, y_0, z_0 + 1, channel) * (1 - x_d) + *get(x_0 + 1, y_0, z_0 + 1, channel) * x_d;
-			double c_10 = *get(x_0, y_0 + 1, z_0, channel) * (1 - x_d) + *get(x_0 + 1, y_0 + 1, z_0, channel) * x_d;
-			double c_11 = *get(x_0, y_0 + 1, z_0 + 1, channel) * (1 - x_d) + *get(x_0 + 1, y_0 + 1, z_0 + 1, channel) * x_d;
-
-			double c_0 = c_00 * (1 - y_d) + c_10 * y_d;
-			double c_1 = c_01 * (1 - y_d) + c_11 * y_d;
-
-			return c_0 * (1 - z_d) + c_1 * z_d;
-		}
+		~Volume();
+		
 
 		unsigned get_width() const
 		{
@@ -130,6 +99,54 @@
 			return m_z_scale;
 		}
 
+		unsigned& get_texture_id() 
+		{
+			return m_texture_id;
+		}
+
+		void set_texture_id(const unsigned texture_id)
+		{
+			m_texture_id = texture_id;
+		}
+
+		const pt& get_volume_position() const
+		{
+			return m_volume_position;
+		}
+
+		void set_volume_position(const pt pt)
+		{
+			m_volume_position = pt;
+		}
+
+		const pt& get_volume_scale() const
+		{
+			return m_volume_scale;
+		}
+
+		void set_volume_scale(const pt pt)
+		{
+			m_volume_scale = pt;
+		}
+
+		const glm::mat4& get_volume_mv() const
+		{
+			return m_volume_MV;
+		}
+
+		void set_volume_mv(const glm::mat4 highp_mat4_x4)
+		{
+			m_volume_MV = highp_mat4_x4;
+		}
+
+		unsigned char* get_data()
+		{
+			return data;
+		}
+
+		void createTexture();
+		
+
 	private:
 		unsigned int m_width;
 		unsigned int m_height;
@@ -141,7 +158,15 @@
 		double m_y_scale;
 		double m_z_scale;
 
-		T * data;
+		unsigned int m_texture_id;
+
+		pt m_volume_position;
+		pt m_volume_scale;
+		glm::mat4 m_volume_MV;
+
+		
+		unsigned int m_datatypesize;
+		unsigned char * data;
 	};
 
 #endif // VOLUME_H
