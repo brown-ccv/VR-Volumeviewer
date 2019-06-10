@@ -20,76 +20,38 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file VolumeSliceRenderShader.h
+///\file VolumeRenderer.h
 ///\author Benjamin Knorlein
-///\date 11/30/2017
+///\date 5/24/2019
 
 #pragma once
 
-#ifndef VOLUMESLICERENDERSHADER_H
-#define VOLUMESLICERENDERSHADER_H
+#ifndef VOLUMERENDER_H
+#define VOLUMERENDER_H
 
-#include "Shader.h"
+#include "FrameBufferObject.h"
+#include "Volume.h"
 
-#include "GL/glew.h"
-
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#include <windows.h>
-#include <GL/gl.h>
-#include <gl/GLU.h>
-#define M_PI 3.14159265358979323846
-#elif defined(__APPLE__)
-#include <OpenGL/OpenGL.h>
-#include <OpenGL/glu.h>
-#else
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
-
-#include <glm/glm.hpp>
-
-	class VolumeSliceRenderShader : public Shader
+class VolumeRenderer
 	{
-		
 	public:
-		VolumeSliceRenderShader();
-		virtual ~VolumeSliceRenderShader();
+		VolumeRenderer(){};
+		virtual ~VolumeRenderer(){};
 
-		void render(glm::mat4 &MVP, GLsizei count);
-		void initGL();
+		virtual void initGL() = 0;
+		virtual void render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale) = 0;
 
-		void set_threshold(float threshold)
+		virtual void set_threshold(float threshold) = 0;
+		virtual void set_multiplier(float multiplier) = 0;
+		void setClipping(bool isClipping, glm::mat4 * clipPlane)
 		{
-			m_threshold = threshold;
-		}
+			m_clipping = isClipping;
+			if (m_clipping)
+				m_clipPlane = *clipPlane;
+		};
 
-		void set_multiplier(float multiplier)
-		{
-			m_multiplier = multiplier;
-		}
-
-		void set_viewport(float width,float height)
-		{
-			m_viewport[0] = width;
-			m_viewport[1] = height;
-		}
-
-	private:
-		float m_threshold;
-		float m_multiplier;
-		float m_viewport[2];
-
-		GLuint m_volume_uniform;
-		GLuint m_vVertex_attribute;
-		GLuint m_MVP_uniform;
-
-		GLuint m_threshold_uniform;
-		GLuint m_multiplier_uniform;
-		GLuint m_depth_uniform;
-		GLuint m_viewport_uniform;
-
-
+	protected:
+		bool m_clipping;
+		glm::mat4 m_clipPlane; 
 	};
-#endif // VOLUMESLICERENDERSHADER_H
+#endif // VOLUMERENDER_H

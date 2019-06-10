@@ -64,11 +64,11 @@ void Volume::createTexture()
 		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER,
 			GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_BASE_LEVEL, 0);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, 4);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, 0);
 
 		if (m_channels == 3){
 			if (m_datatypesize == 1){
-				glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_BYTE, get_data());
+			glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_BYTE, get_data());
 			}
 			if (m_datatypesize == 2){
 				glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_SHORT, get_data());

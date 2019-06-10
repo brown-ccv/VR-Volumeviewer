@@ -31,7 +31,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "VolumeSliceRender.h"
+#include "VolumeSliceRenderer.h"
 #include <ostream>
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
@@ -39,7 +39,7 @@
 //for floating point inaccuracy
 const float EPSILON = 0.0001f;
 
-const glm::vec3 VolumeSliceRender::vertexList[8] = { glm::vec3(-0.5, -0.5, -0.5),
+const glm::vec3 VolumeSliceRenderer::vertexList[8] = { glm::vec3(-0.5, -0.5, -0.5),
 												glm::vec3(0.5, -0.5, -0.5),
 												glm::vec3(0.5, 0.5, -0.5),
 												glm::vec3(-0.5, 0.5, -0.5),
@@ -50,7 +50,7 @@ const glm::vec3 VolumeSliceRender::vertexList[8] = { glm::vec3(-0.5, -0.5, -0.5)
 
 
 ////unit cube edges
-const int VolumeSliceRender::edgeList[8][12] = {
+const int VolumeSliceRenderer::edgeList[8][12] = {
 												{ 0, 1, 5, 6, 4, 8, 11, 9, 3, 7, 2, 10 }, // v0 is front
 												{ 0, 4, 3, 11, 1, 2, 6, 7, 5, 9, 8, 10 }, // v1 is front
 												{ 1, 5, 0, 8, 2, 3, 7, 4, 6, 10, 9, 11 }, // v2 is front
@@ -61,20 +61,20 @@ const int VolumeSliceRender::edgeList[8][12] = {
 												{ 10, 9, 6, 5, 7, 2, 3, 1, 11, 4, 8, 0 }  // v7 is front
 };
 
-const int VolumeSliceRender::edges[12][2] = { { 0, 1 }, { 1, 2 }, { 2, 3 }, { 3, 0 }, { 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 }, { 4, 5 }, { 5, 6 }, { 6, 7 }, { 7, 4 } };
+const int VolumeSliceRenderer::edges[12][2] = { { 0, 1 }, { 1, 2 }, { 2, 3 }, { 3, 0 }, { 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 }, { 4, 5 }, { 5, 6 }, { 6, 7 }, { 7, 4 } };
 
-VolumeSliceRender::VolumeSliceRender() : num_slices{ MAX_SLICES }
+VolumeSliceRenderer::VolumeSliceRenderer() : num_slices{ MAX_SLICES }
 {
 
 }
 
-VolumeSliceRender::~VolumeSliceRender()
+VolumeSliceRenderer::~VolumeSliceRenderer()
 {
 	glDeleteVertexArrays(1, &volumeVAO);
 	glDeleteBuffers(1, &volumeVBO);
 }
 
-void VolumeSliceRender::initGL()
+void VolumeSliceRenderer::initGL()
 {
 	//Load and init the texture slicing shader
 	shader.initGL();
@@ -96,8 +96,12 @@ void VolumeSliceRender::initGL()
 	glBindVertexArray(0);
 }
 
-void VolumeSliceRender::render(const glm::mat4 &MV, glm::mat4 &P, float z_scale)
+void VolumeSliceRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale)
 {
+	glDepthMask(GL_FALSE);
+	glActiveTexture(GL_TEXTURE0 + 0);
+	glBindTexture(GL_TEXTURE_3D, volume->get_texture_id());
+
 	//get the current view direction vector
 	glm::vec4 tmp = MV * glm::vec4(0, 0, 0, 1);
 	tmp[3] = 0;
@@ -119,34 +123,41 @@ void VolumeSliceRender::render(const glm::mat4 &MV, glm::mat4 &P, float z_scale)
 	glm::mat4 MV_tmp = glm::scale(MV, glm::vec3(1, 1, z_scale));
 	//get the combined modelview projection matrix
 	glm::mat4 MVP = P*MV_tmp;
+	glm::mat4 clipPlane;
+	if (m_clipping){
+		clipPlane = glm::translate(m_clipPlane * MV_tmp, glm::vec3(-0.5f));
+		shader.set_clipping(true);
+	}
+	else
+	{
+		shader.set_clipping(false);
+	}
 
 	//bind volume vertex array object
 	glBindVertexArray(volumeVAO);
 	//use the volume shader
-	shader.render(MVP, sizeof(vTextureSlices) / sizeof(vTextureSlices[0]));
+	shader.render(MVP, clipPlane, sizeof(vTextureSlices) / sizeof(vTextureSlices[0]));
 
 	//disable blending
 	glBindVertexArray(0);
 	glDisable(GL_BLEND);
+
+	glBindTexture(GL_TEXTURE_3D, 0);
+
+	glDepthMask(GL_TRUE);
 }
 
-void VolumeSliceRender::set_threshold(float threshold)
+void VolumeSliceRenderer::set_threshold(float threshold)
 {
 	shader.set_threshold(threshold);
 }
 
-void VolumeSliceRender::set_multiplier(float multiplier)
+void VolumeSliceRenderer::set_multiplier(float multiplier)
 {
 	shader.set_multiplier(multiplier);
 }
 
-void VolumeSliceRender::set_viewport(float width, float height)
-{
-
-	shader.set_viewport(width, height);
-}
-
-int VolumeSliceRender::FindAbsMax(glm::vec3 v)
+int VolumeSliceRenderer::FindAbsMax(glm::vec3 v)
 {
 	v = glm::abs(v);
 	int max_dim = 0;
@@ -162,7 +173,7 @@ int VolumeSliceRender::FindAbsMax(glm::vec3 v)
 	return max_dim;
 }
 
-void VolumeSliceRender::SliceVolume()
+void VolumeSliceRenderer::SliceVolume()
 {
 	//get the max and min distance of each vertex of the unit cube
 	//in the viewing direction

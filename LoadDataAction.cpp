@@ -171,7 +171,6 @@ void LoadDataAction::uploadDataCV_8U(std::vector <cv::Mat> image, Volume* volume
 	//fill vol and points
 	for (int z = 0; z < image.size(); z++)
 	{
-		std::cerr << image[z].channels() << " - ";
 		if (image[z].channels() == 1){
 			cv::MatConstIterator_<uchar> it1 = image[z].begin<uchar>();
 			cv::MatConstIterator_<uchar> it1_end = image[z].end<uchar>();
@@ -298,7 +297,7 @@ std::vector<std::string> LoadDataAction::readTiffs(std::string foldername)
 	if ((dir = opendir(foldername.c_str())) != NULL) {
 		/* print all the files and directories within directory */
 		while ((ent = readdir(dir)) != NULL) {
-			if (ends_with_string(ent->d_name, "tiff") || ends_with_string(ent->d_name, "png"))
+			if (ends_with_string(ent->d_name, "tif") || ends_with_string(ent->d_name, "tiff") || ends_with_string(ent->d_name, "png"))
 			{
 				out_vector.push_back(foldername + OS_SLASH + ent->d_name);
 			}

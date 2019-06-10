@@ -38,8 +38,10 @@ set(source_files
   LoadDataAction.cpp
   Shader.cpp
   Volume.cpp
-  VolumeSliceRender.cpp
-  VolumeSliceRenderShader.cpp
+  VolumeSliceRenderer.cpp
+  VolumeSliceShader.cpp
+  VolumeRaycastRenderer.cpp
+  VolumeRaycastShader.cpp
   glm.cpp
   FrameBufferObject.cpp
 )
@@ -49,8 +51,10 @@ set(header_files
   LoadDataAction.h
   Shader.h
   Volume.h
-  VolumeSliceRender.h
-  VolumeSliceRenderShader.h
+  VolumeSliceRenderer.h
+  VolumeSliceShader.h
+  VolumeRaycastRenderer.h
+  VolumeRaycastShader.h
   glm.h
   FrameBufferObject.h
 )

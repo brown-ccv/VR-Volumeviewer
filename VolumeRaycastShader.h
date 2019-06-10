@@ -20,15 +20,17 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file VolumeSliceRender.h
+///\file VolumeRaycastShader.h
 ///\author Benjamin Knorlein
-///\date 11/29/2017
+///\date 05/24/2019
 /// Based on the book : OpenGL Development Cookbook  by Muhammad Mobeen Movania
 
 #pragma once
 
-#ifndef VOLUMESLICERENDER_H
-#define VOLUMESLICERENDER_H
+#ifndef VOLUMERAYCASTSHADER_H
+#define VOLUMERAYCASTSHADER_H
+
+#include "Shader.h"
 
 #include "GL/glew.h"
 
@@ -48,52 +50,55 @@
 #endif
 
 #include <glm/glm.hpp>
-#include "VolumeSliceRenderShader.h"
 
-
-	class VolumeSliceRender
+	class VolumeRaycastShader : public Shader
 	{
+		
 	public:
-		VolumeSliceRender();
-		~VolumeSliceRender();
+		VolumeRaycastShader();
+		virtual ~VolumeRaycastShader();
 
+		void render(glm::mat4 &MVP, glm::mat4 &clipPlane, glm::vec3 &camPos);
 		void initGL();
-		void render(const glm::mat4 &MV, glm::mat4 &P, float z_scale);
 
+		void set_stepSize(float x, float y, float z)
+		{
+			m_stepSize[0] = x;
+			m_stepSize[1] = y;
+			m_stepSize[2] = z;
+		}
 
-		void set_threshold(float threshold);
-		void set_multiplier(float multiplier);
-		void set_viewport(float width, float height);
+		void set_threshold(float threshold)
+		{
+			m_threshold = threshold;
+		}
+
+		void set_multiplier(float multiplier)
+		{
+			m_multiplier = multiplier;
+		}
+
+		void set_clipping(bool clipping)
+		{
+			m_clipping = clipping;
+		}
 
 	private:
-		//function to get the max (abs) dimension of the given vertex v
-		int FindAbsMax(glm::vec3 v);
 		
-		//main slicing function
-		void SliceVolume();
+		float m_stepSize[3];
+		GLuint m_volume_uniform;
+		GLuint m_vVertex_attribute;
+		GLuint m_MVP_uniform;
+		GLuint m_clipPlane_uniform;
 
-		//unit cube vertices
-		static const glm::vec3 vertexList[8];
+		GLuint m_camPos_uniform;
+		GLuint m_step_size_uniform;
+		GLuint m_clipping_uniform;
+		GLuint m_threshold_uniform;
+		GLuint m_multiplier_uniform;
 
-		////unit cube edges
-		static const int edgeList[8][12];
-		static const int edges[12][2];
-
-		//sliced vertices
-		static const int MAX_SLICES = 256;
-		glm::vec3 vTextureSlices[MAX_SLICES * 12];
-
-		//total number of slices current used
-		int num_slices = 1024;
-
-		//current viewing direction
-		glm::vec3 viewDir;
-
-		//volume vertex array and buffer objects
-		GLuint volumeVBO;
-		GLuint volumeVAO;
-
-		//3D texture slicing shader
-		VolumeSliceRenderShader shader;
+		float m_threshold;
+		float m_multiplier;
+		bool m_clipping;
 	};
-#endif // VOLUMESLICERENDER_H
+#endif // VOLUMERAYCASTSHADER_H

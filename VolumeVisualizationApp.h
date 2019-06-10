@@ -6,6 +6,7 @@
 #include <api/MinVR.h>
 #include "FrameBufferObject.h"
 #include "Volume.h"
+#include "VolumeRaycastRenderer.h"
 using namespace MinVR;
 
 #include <vector>
@@ -25,7 +26,7 @@ using namespace MinVR;
 #include <GL/glu.h>
 #endif
 
-#include "VolumeSliceRender.h"
+#include "VolumeSliceRenderer.h"
 
 
 
@@ -93,9 +94,7 @@ private:
 	float m_multiplier;
 	float m_threshold;
 
-	VolumeSliceRender m_slice_render;
-	std::vector <FrameBufferObject *> m_framebuffers;
-	unsigned int m_rendercount;
+	std::vector <VolumeRenderer*> m_renders;
 };
 
 

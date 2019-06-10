@@ -20,7 +20,7 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file VolumeSliceRenderShader.cpp
+///\file VolumeSliceShader.cpp
 ///\author Benjamin Knorlein
 ///\date 11/30/2017
 
@@ -30,17 +30,13 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "VolumeSliceRenderShader.h"
+#include "VolumeSliceShader.h"
 #include <GL/glew.h>
 
 #include <glm/gtc/type_ptr.hpp>
 
-VolumeSliceRenderShader::VolumeSliceRenderShader() : m_threshold{ 0.0f }, m_multiplier{ 0.5 }
+VolumeSliceShader::VolumeSliceShader() : m_threshold{ 0.0f }, m_multiplier{ 0.5 }
 {
-
-	m_viewport[0] = 1.0;
-	m_viewport[1] = 1.0;
-
 	m_shader = "VolumeSliceRender";
 
 	m_vertexShader = "#version 330 core\n"
@@ -62,15 +58,18 @@ VolumeSliceRenderShader::VolumeSliceRenderShader() : m_threshold{ 0.0f }, m_mult
 		"layout(location = 0) out vec4 vFragColor; \n"	//fragment shader output
 		"smooth in vec3 vUV; \n"						//3D texture coordinates form vertex shader interpolated by rasterizer
 		"uniform sampler3D volume;\n"					//volume dataset
-		"uniform sampler2D depth;\n"
-		"uniform vec2 viewport;\n"
+		"uniform mat4 clipPlane; \n"
+		"uniform bool clipping;\n"
 		"uniform float threshold;\n"
 		"uniform float multiplier;\n"
 		"void main()\n"
 		"{\n"
 
-		"if (gl_FragCoord.z < texture(depth, vec2(gl_FragCoord.x/viewport.x,gl_FragCoord.y/viewport.y)).r )"
-		"discard;"
+		"if(clipping){ \n"
+			"vec4 p = clipPlane * vec4(vUV, 1);\n"
+			"if(p.y > 0.0f)\n"
+			"discard; \n"
+		"}\n"
 
 		//Here. we sample the volume dataset using the 3D texture coordinates from the vertex shader.
 		"vec4 c_out = texture(volume, vUV) ; \n"
@@ -86,18 +85,19 @@ VolumeSliceRenderShader::VolumeSliceRenderShader() : m_threshold{ 0.0f }, m_mult
 		"}\n";
 }
 
-VolumeSliceRenderShader::~VolumeSliceRenderShader()
+VolumeSliceShader::~VolumeSliceShader()
 {
 }
 
-void VolumeSliceRenderShader::render(glm::mat4& MVP, GLsizei count)
+void VolumeSliceShader::render(glm::mat4& MVP, glm::mat4 &clipPlane, GLsizei count)
 {
 	bindProgram();
 	////pass the shader uniform
 	glUniformMatrix4fv(m_MVP_uniform, 1, GL_FALSE, glm::value_ptr(MVP));
+	glUniformMatrix4fv(m_clipPlane_uniform, 1, GL_FALSE, glm::value_ptr(clipPlane));
 	glUniform1f(m_threshold_uniform, m_threshold);
 	glUniform1f(m_multiplier_uniform, m_multiplier);
-	glUniform2f(m_viewport_uniform, m_viewport[0],m_viewport[1]);
+	glUniform1i(m_clipping_uniform, m_clipping);
 
 	////draw the triangles
 	glDrawArrays(GL_TRIANGLES, 0, count);
@@ -105,7 +105,7 @@ void VolumeSliceRenderShader::render(glm::mat4& MVP, GLsizei count)
 	unbindProgram();
 }
 
-void VolumeSliceRenderShader::initGL()
+void VolumeSliceShader::initGL()
 {
 	bindProgram();
 	//add attributes and uniforms
@@ -114,11 +114,11 @@ void VolumeSliceRenderShader::initGL()
 	m_vVertex_attribute = glGetAttribLocation(m_programID, "vVertex");
 	m_threshold_uniform = glGetUniformLocation(m_programID, "threshold");
 	m_multiplier_uniform = glGetUniformLocation(m_programID, "multiplier");
-	m_depth_uniform = glGetUniformLocation(m_programID, "depth");
 	m_viewport_uniform = glGetUniformLocation(m_programID, "viewport");
+	m_clipping_uniform = glGetUniformLocation(m_programID, "clipping");
+	m_clipPlane_uniform = glGetUniformLocation(m_programID, "clipPlane");
 
 	//pass constant uniforms at initialization
 	glUniform1i(m_volume_uniform, 0);
-	glUniform1i(m_depth_uniform, 1);
 	unbindProgram();
 }

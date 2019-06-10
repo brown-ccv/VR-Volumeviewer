@@ -56,6 +56,13 @@ struct pt
 	float z;
 };
 
+enum RenderType
+{
+	SLICE_RENDERER_RGB,
+	RAYCAST_RENDERER_RGB
+
+};
+
 	class Volume
 	{
 	public:
@@ -144,6 +151,16 @@ struct pt
 			return data;
 		}
 
+		const RenderType& render_type() const
+		{
+			return m_renderType;
+		}
+
+		void set_render_type(const RenderType render)
+		{
+			m_renderType = render;
+		}
+
 		void createTexture();
 		
 
@@ -167,6 +184,9 @@ struct pt
 		
 		unsigned int m_datatypesize;
 		unsigned char * data;
+
+		RenderType m_renderType;
+	
 	};
 
 #endif // VOLUME_H

@@ -22,6 +22,9 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 	if (argc_int < 2){
 		std::cerr << "You need to provide a dataset to load" << std::endl;
 		exit(EXIT_FAILURE);
+	} else
+	{
+		std::cerr << "Loading " << argv_int[1] << std::endl;
 	}
 
 	std::ifstream inFile;
@@ -69,10 +72,37 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 					t_res[0] = stof(vals[2]);
 					t_res[1] = stof(vals[3]);
 					t_res[2] = stof(vals[4]);
+
 					m_volumes.push_back(LoadDataAction(vals[1], &t_res[0]).run());
 					m_volumes.back()->set_volume_position({ stof(vals[5]), stof(vals[6]), stof(vals[7]) });
 					m_volumes.back()->set_volume_scale({ 0.0, 0.0, 0.0 });
 					m_volumes.back()->set_volume_mv(glm::mat4());
+
+					if (vals.size() > 8)
+					{
+						if (vals[8] == "raycast")
+						{
+							std::cerr << "Set RenderMethod raycast" << std::endl;
+							m_volumes.back()->set_render_type(RAYCAST_RENDERER_RGB);
+
+						} 
+						else if(vals[8] == "slice")
+						{
+							std::cerr << "Set RenderMethod slices" << std::endl;
+							m_volumes.back()->set_render_type(SLICE_RENDERER_RGB);
+						} 
+						else
+						{
+							std::cerr << "Could not interpret rendermethod, use slice or raycast. Using raycast as default." << std::endl;
+							m_volumes.back()->set_render_type(RAYCAST_RENDERER_RGB);
+						}
+
+					}
+					else
+					{
+						std::cerr << "No RenderMethod defined, using raycast." << std::endl;
+						m_volumes.back()->set_render_type(RAYCAST_RENDERER_RGB);
+					}
 				}
 			}
 		}
@@ -80,15 +110,15 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 	std::cerr << " Done loading" << std::endl;
 	inFile.close();
 
-	//LoadDataAction("D:\\Test_images_for_Ben_Knorlein\\GPA_test_Images_E5\\out").run();
-	//LoadDataAction("D:\\data\\Beth\\row6\\row6\\r06c03f04").run();
-
 	m_object_pose = glm::mat4(1.0f);
 
 	m_light_pos[0] = 0.0;
 	m_light_pos[1] = 4.0;
 	m_light_pos[2] = 0.0;
 	m_light_pos[3] = 1.0;
+
+	m_renders.push_back(new VolumeSliceRenderer());
+	m_renders.push_back(new VolumeRaycastRenderer());
 }
 
 VolumeVisualizationApp::~VolumeVisualizationApp()
@@ -273,7 +303,6 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
     // rendering process.  So, this is the place to initialize textures,
     // load models, or do other operations that you only want to do once per
     // frame when in stereo mode.
-	m_rendercount = 0;
     if (renderState.isInitialRenderCall()) {
        #ifndef __APPLE__
             glewExperimental = GL_TRUE;
@@ -283,8 +312,9 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
             }
         #endif        
 
-		m_slice_render.initGL();
-
+		for (auto ren : m_renders)
+			ren->initGL();
+	
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
 		glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
@@ -324,10 +354,6 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &renderState) {
     // This routine is called once per eye.  This is the place to actually
     // draw the scene.
-	if (renderState.isInitialRenderCall())
-	{
-		m_framebuffers.push_back(new FrameBufferObject());
-	}
 
 	//setup projection
 	P = glm::make_mat4(renderState.getProjectionMatrix());	
@@ -351,28 +377,16 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 		m_models_MV[i] = glm::translate(m_models_MV[i], glm::vec3(-0.5f, -0.5f, -0.5f));
 	}
 
-	//Render cuttingplane
-	m_framebuffers[m_rendercount]->bind(m_clipping);
+	//Set cuttingplane
 	if (m_clipping){
-		glMatrixMode(GL_PROJECTION);
-		glLoadMatrixf(glm::value_ptr(P));
-
-		glMatrixMode(GL_MODELVIEW);
-		glLoadMatrixf(glm::value_ptr(MV));
-
-		glPushMatrix();
-		glMultMatrixf(glm::value_ptr(m_controller_pose));
-
-		glBegin(GL_QUADS);
-		//glColor3f(1.0, 0, 0);
-		glVertex3f(-100.0, 0.0, 100.0);
-		glVertex3f(-100.0, 0.0, -100.0);
-		glVertex3f(100.0, 0.0, -100.0);
-		glVertex3f(100.0, 0.0, 100.0);
-		glEnd();
-		glPopMatrix();
+		glm::mat4 clipPlane = inverse(m_controller_pose) * inverse(MV);
+		for (auto ren : m_renders)
+			ren->setClipping(true, &clipPlane);
+	} else
+	{
+		for (auto ren : m_renders)
+			ren->setClipping(false, nullptr);
 	}
-	m_framebuffers[m_rendercount]->unbind();
 
 	//Render meshes
 	for (int i = 0; i < m_models_displayLists.size(); i++){
@@ -383,30 +397,15 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 
 	//render volumes
 	if (m_texture_loaded){
-		m_slice_render.set_multiplier(m_multiplier);
-		m_slice_render.set_threshold(m_threshold);
-
+		for (auto ren : m_renders){
+			ren->set_multiplier(m_multiplier);
+			ren->set_threshold(m_threshold);
+		}
+		
 		if (m_animated)
 		{
-			
 			unsigned int active_volume = (m_framecounter / m_framerepeat) % m_volumes.size();
-
-			glDepthMask(GL_FALSE);
-			glActiveTexture(GL_TEXTURE0 + 0);
-			glBindTexture(GL_TEXTURE_3D, m_volumes[active_volume]->get_texture_id());
-
-			glActiveTexture(GL_TEXTURE0 + 1);
-			glBindTexture(GL_TEXTURE_2D, m_framebuffers[m_rendercount]->depth_texture());
-
-			m_slice_render.set_viewport(m_framebuffers[m_rendercount]->width(), m_framebuffers[m_rendercount]->height());
-			m_slice_render.render(m_volumes[active_volume]->get_volume_mv(), P, m_volumes[active_volume]->get_volume_scale().x / m_volumes[active_volume]->get_volume_scale().z);
-
-			glBindTexture(GL_TEXTURE_2D, 0);
-
-			glActiveTexture(GL_TEXTURE0 + 0);
-			glBindTexture(GL_TEXTURE_3D, 0);
-
-			glDepthMask(GL_TRUE);
+			m_renders[m_volumes[active_volume]->render_type()]->render(m_volumes[active_volume], m_volumes[active_volume]->get_volume_mv(), P, m_volumes[active_volume]->get_volume_scale().x / m_volumes[active_volume]->get_volume_scale().z);
 		}
 		else{
 			//check order
@@ -419,26 +418,10 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 			std::sort(order.begin(), order.end());
 
 			for (int i = order.size() - 1; i >= 0; i--){
-				glDepthMask(GL_FALSE);
-				glActiveTexture(GL_TEXTURE0 + 0);
-				glBindTexture(GL_TEXTURE_3D, m_volumes[order[i].second]->get_texture_id());
-
-				glActiveTexture(GL_TEXTURE0 + 1);
-				glBindTexture(GL_TEXTURE_2D, m_framebuffers[m_rendercount]->depth_texture());
-
-				m_slice_render.set_viewport(m_framebuffers[m_rendercount]->width(), m_framebuffers[m_rendercount]->height());
-				m_slice_render.render(m_volumes[order[i].second]->get_volume_mv(), P, m_volumes[order[i].second]->get_volume_scale().x / m_volumes[order[i].second]->get_volume_scale().z);
-
-				glBindTexture(GL_TEXTURE_2D, 0);
-
-				glActiveTexture(GL_TEXTURE0 + 0);
-				glBindTexture(GL_TEXTURE_3D, 0);
-
-				glDepthMask(GL_TRUE);
+				m_renders[m_volumes[order[i].second]->render_type()]->render(m_volumes[order[i].second], m_volumes[order[i].second]->get_volume_mv(), P, m_volumes[order[i].second]->get_volume_scale().x / m_volumes[order[i].second]->get_volume_scale().z);
 			}
 		}
 	}
 
 	glFlush();
-	m_rendercount++;
 }
