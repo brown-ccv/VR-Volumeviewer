@@ -88,6 +88,8 @@ class VolumeSliceRenderer : public  VolumeRenderer
 		//current viewing direction
 		glm::vec3 viewDir;
 
+		void setChannel(Volume* volume);
+
 		//volume vertex array and buffer objects
 		GLuint volumeVBO;
 		GLuint volumeVAO;

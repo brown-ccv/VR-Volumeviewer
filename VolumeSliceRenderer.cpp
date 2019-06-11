@@ -101,6 +101,16 @@ void VolumeSliceRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat4 
 	glDepthMask(GL_FALSE);
 	glActiveTexture(GL_TEXTURE0 + 0);
 	glBindTexture(GL_TEXTURE_3D, volume->get_texture_id());
+	if (volume->transfer_function() != nullptr)
+	{
+		glActiveTexture(GL_TEXTURE0 + 1);
+		glBindTexture(GL_TEXTURE_1D, volume->transfer_function()->texture_id());
+		shader.set_useLut(true);
+	}
+	else
+	{
+		shader.set_useLut(false);
+	}
 
 	//get the current view direction vector
 	glm::vec4 tmp = MV * glm::vec4(0, 0, 0, 1);
@@ -133,6 +143,8 @@ void VolumeSliceRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat4 
 		shader.set_clipping(false);
 	}
 
+	setChannel(volume);
+
 	//bind volume vertex array object
 	glBindVertexArray(volumeVAO);
 	//use the volume shader
@@ -142,6 +154,11 @@ void VolumeSliceRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat4 
 	glBindVertexArray(0);
 	glDisable(GL_BLEND);
 
+	if (volume->transfer_function() != nullptr)
+	{
+		glBindTexture(GL_TEXTURE_1D, 0);
+		glActiveTexture(GL_TEXTURE0 + 0);
+	}
 	glBindTexture(GL_TEXTURE_3D, 0);
 
 	glDepthMask(GL_TRUE);
@@ -341,4 +358,27 @@ void VolumeSliceRenderer::SliceVolume()
 	//update buffer object with the new vertices
 	glBindBuffer(GL_ARRAY_BUFFER, volumeVBO);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vTextureSlices), &(vTextureSlices[0].x));
+}
+
+void VolumeSliceRenderer::setChannel(Volume* volume)
+{
+	if (volume->render_channel() == -1)
+	{
+		if (volume->get_channels() == 1)
+		{
+			shader.set_channel(1);
+		}
+		else if (volume->get_channels() == 3)
+		{
+			shader.set_channel(-1);
+		}
+		else if (volume->get_channels() == 4)
+		{
+			shader.set_channel(5);
+		}
+	} 
+	else
+	{
+		shader.set_channel(volume->render_channel());
+	}
 }

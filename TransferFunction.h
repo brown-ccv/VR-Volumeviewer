@@ -20,58 +20,41 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file VolumeSliceRcastRender.h
+///\file Trans ferFunction.h
 ///\author Benjamin Knorlein
-///\date 05/24/2019
-/// Based on the book : OpenGL Development Cookbook  by Muhammad Mobeen Movania
+///\date 6/11/2019
 
 #pragma once
 
-#ifndef VOLUMESLICERCASTRENDER_H
-#define VOLUMESLICERCASTRENDER_H
+#ifndef TRANSFERFUNCTION_H
+#define TRANSFERFUNCTION_H
 
-#include "GL/glew.h"
 
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#include <windows.h>
-#include <GL/gl.h>
-#include <gl/GLU.h>
-#define M_PI 3.14159265358979323846
-#elif defined(__APPLE__)
-#include <OpenGL/OpenGL.h>
-#include <OpenGL/glu.h>
-#else
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
+class TransferFunction
+{
+public:
+	TransferFunction();
+	TransferFunction(float* data, unsigned int dataLength);
+	~TransferFunction();
 
-#include <glm/glm.hpp>
-#include "VolumeRaycastShader.h"
-#include "VolumeRenderer.h"
+	void initGL();
 
-class VolumeRaycastRenderer : public  VolumeRenderer
+	unsigned& texture_id()
 	{
-	public:
-		VolumeRaycastRenderer();
-		~VolumeRaycastRenderer();
+		return m_texture_id;
+	}
 
-		virtual void initGL() override;
-		virtual void render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale) override;
+	void set_texture_id(const unsigned texture_id)
+	{
+		m_texture_id = texture_id;
+	}
 
-		virtual void set_threshold(float threshold) override;
-		virtual void set_multiplier(float multiplier) override;
-		
-	private:
-		void setChannel(Volume* volume);
+private:
+	void computeJetFunction();
 
-		////volume vertex array and buffer objects
-		GLuint cubeVBOID;
-		GLuint cubeVAOID;
-		GLuint cubeIndicesID;
+	unsigned int m_texture_id;
+	float* m_data;
+	unsigned int m_dataLength;
+};
 
-		//3D texture slicing shader
-		VolumeRaycastShader shader;
-	};
-#endif // VOLUMESLICERCASTRENDER_H
+#endif // TRANSFERFUNCTION_H

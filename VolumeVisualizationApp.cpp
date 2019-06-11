@@ -78,30 +78,37 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 					m_volumes.back()->set_volume_scale({ 0.0, 0.0, 0.0 });
 					m_volumes.back()->set_volume_mv(glm::mat4());
 
+					m_volumes.back()->set_transfer_function(new TransferFunction());
+
 					if (vals.size() > 8)
 					{
 						if (vals[8] == "raycast")
 						{
 							std::cerr << "Set RenderMethod raycast" << std::endl;
-							m_volumes.back()->set_render_type(RAYCAST_RENDERER_RGB);
+							m_volumes.back()->set_render_type(RAYCAST_RENDERER);
 
 						} 
 						else if(vals[8] == "slice")
 						{
 							std::cerr << "Set RenderMethod slices" << std::endl;
-							m_volumes.back()->set_render_type(SLICE_RENDERER_RGB);
+							m_volumes.back()->set_render_type(SLICE_RENDERER);
 						} 
 						else
 						{
 							std::cerr << "Could not interpret rendermethod, use slice or raycast. Using raycast as default." << std::endl;
-							m_volumes.back()->set_render_type(RAYCAST_RENDERER_RGB);
+							m_volumes.back()->set_render_type(RAYCAST_RENDERER);
 						}
-
 					}
 					else
 					{
 						std::cerr << "No RenderMethod defined, using raycast." << std::endl;
-						m_volumes.back()->set_render_type(RAYCAST_RENDERER_RGB);
+						m_volumes.back()->set_render_type(RAYCAST_RENDERER);
+					}
+
+					if (vals.size() > 9)
+					{
+						std::cerr << "Set render channel to " << vals[9] << std::endl;
+						m_volumes.back()->set_render_channel(std::stoi(vals[9]));
 					}
 				}
 			}
@@ -129,12 +136,13 @@ VolumeVisualizationApp::~VolumeVisualizationApp()
 	m_volumes.clear();
 }
 
-void VolumeVisualizationApp::updateTexture()
+void VolumeVisualizationApp::initTexture()
 {
 	for (int i = 0; i < m_volumes.size(); i++){
-		std::cerr << "Update Texture " << i << std::endl;
-		m_volumes[i]->createTexture();
+		std::cerr << "Init Texture " << i << std::endl;
+		m_volumes[i]->initGL();
 	}
+
 	m_texture_loaded = true;
 	std::cerr << "End Update Textures" << std::endl;
 }
@@ -342,7 +350,7 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 	glLightfv(GL_LIGHT0, GL_POSITION, m_light_pos);
 
 	if (!m_texture_loaded)
-		updateTexture();
+		initTexture();
 
 	if (m_animated)
 	{

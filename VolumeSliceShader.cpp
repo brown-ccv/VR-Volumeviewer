@@ -37,7 +37,7 @@
 
 VolumeSliceShader::VolumeSliceShader() : m_threshold{ 0.0f }, m_multiplier{ 0.5 }
 {
-	m_shader = "VolumeSliceRender";
+	m_shader = "VolumeSliceShader";
 
 	m_vertexShader = "#version 330 core\n"
 		"layout(location = 0) in vec3 vVertex; \n" //object space vertex position
@@ -62,26 +62,47 @@ VolumeSliceShader::VolumeSliceShader() : m_threshold{ 0.0f }, m_multiplier{ 0.5 
 		"uniform bool clipping;\n"
 		"uniform float threshold;\n"
 		"uniform float multiplier;\n"
+		"uniform int channel;\n"
+		"uniform sampler1D lut;\n"					//transferfunction
+		"uniform bool useLut;\n"
 		"void main()\n"
 		"{\n"
 
-		"if(clipping){ \n"
-			"vec4 p = clipPlane * vec4(vUV, 1);\n"
-			"if(p.y > 0.0f)\n"
-			"discard; \n"
-		"}\n"
+			"if(clipping){ \n"
+				"vec4 p = clipPlane * vec4(vUV, 1);\n"
+				"if(p.y > 0.0f)\n"
+					"discard; \n"
+			"}\n"
 
-		//Here. we sample the volume dataset using the 3D texture coordinates from the vertex shader.
-		"vec4 c_out = texture(volume, vUV) ; \n"
-		"c_out.a = pow(max(c_out.r, max(c_out.g,c_out.b)),multiplier) ; "
-		"c_out.a = (c_out.a > threshold) ? c_out.a : 0.0f ;\n"
+			//Here. we sample the volume dataset using the 3D texture coordinates from the vertex shader.
+			"vec4 c_out = texture(volume, vUV); \n"
+			"if (channel == 1){ \n"
+				"c_out = texture(volume, vUV).rrrr; \n"
+			"}else if (channel == 2){ \n"
+				"c_out = texture(volume, vUV).gggg; \n"
+			"}else if (channel == 3){ \n"
+				"c_out = texture(volume, vUV).bbbb; \n"
+			"}else if (channel == 4){ \n"
+				"c_out = texture(volume, vUV).aaaa; \n"
+			"}else if (channel == 5){ \n"
+				"c_out = texture(volume, vUV); \n"
+			"}else{ \n"
+				"c_out = texture(volume, vUV); \n"
+				"c_out.a = max(c_out.r, max(c_out.g,c_out.b)) ; "
+			"}"
 
-		//"c_out.rgb = c_out.rgb * multiplier;\n"
+			"if(useLut) \n"
+				"c_out = texture(lut, c_out.a);"
+
+			"c_out.a = (c_out.a > threshold) ? c_out.a : 0.0f ;\n"
+			"c_out.a = pow(c_out.a,multiplier) ; "
+
+			//"c_out.rgb = c_out.rgb * multiplier;\n"
 		
-		//remove fragments for correct depthbuffer
-		"if (c_out.a == 0.0f)"
-			"discard;"
-		"vFragColor = c_out;\n"
+			//remove fragments for correct depthbuffer
+			"if (c_out.a == 0.0f)"
+				"discard;"
+			"vFragColor = c_out;\n"
 		"}\n";
 }
 
@@ -98,6 +119,8 @@ void VolumeSliceShader::render(glm::mat4& MVP, glm::mat4 &clipPlane, GLsizei cou
 	glUniform1f(m_threshold_uniform, m_threshold);
 	glUniform1f(m_multiplier_uniform, m_multiplier);
 	glUniform1i(m_clipping_uniform, m_clipping);
+	glUniform1i(m_channel_uniform, m_channel);
+	glUniform1i(m_useLut_uniform, m_useLut);
 
 	////draw the triangles
 	glDrawArrays(GL_TRIANGLES, 0, count);
@@ -117,8 +140,12 @@ void VolumeSliceShader::initGL()
 	m_viewport_uniform = glGetUniformLocation(m_programID, "viewport");
 	m_clipping_uniform = glGetUniformLocation(m_programID, "clipping");
 	m_clipPlane_uniform = glGetUniformLocation(m_programID, "clipPlane");
+	m_channel_uniform = glGetUniformLocation(m_programID, "channel");
+	m_lut_uniform = glGetUniformLocation(m_programID, "lut");
+	m_useLut_uniform = glGetUniformLocation(m_programID, "useLut");
 
 	//pass constant uniforms at initialization
 	glUniform1i(m_volume_uniform, 0);
+	glUniform1i(m_lut_uniform, 1);
 	unbindProgram();
 }

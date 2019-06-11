@@ -44,6 +44,7 @@ set(source_files
   VolumeRaycastShader.cpp
   glm.cpp
   FrameBufferObject.cpp
+  TransferFunction.cpp
 )
 
 set(header_files
@@ -57,6 +58,7 @@ set(header_files
   VolumeRaycastShader.h
   glm.h
   FrameBufferObject.h
+  TransferFunction.h
 )
 
 

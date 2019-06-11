@@ -28,6 +28,7 @@
 
 #include "Shader.h"
 #include <iostream>
+#include <vector>
 
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
@@ -110,6 +111,16 @@ unsigned int Shader::compileShader()
 	if (shaderCompiled != GL_TRUE)
 	{
 		std::cerr << "Error compiling vertex shader " << m_shader << std::endl;
+		
+		GLint maxLength = 0;
+		glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
+
+		// The maxLength includes the NULL character
+		std::vector<GLchar> errorLog(maxLength);
+		glGetShaderInfoLog(vertexShader, maxLength, &maxLength, &errorLog[0]);
+		std::string s(errorLog.begin(), errorLog.end());
+		std::cerr << s.c_str() << std::endl;
+
 		glDeleteProgram(programID);
 		glDeleteShader(vertexShader);
 		return 0;
@@ -127,6 +138,16 @@ unsigned int Shader::compileShader()
 	if (shaderCompiled != GL_TRUE)
 	{
 		std::cerr << "Error compiling fragment shader " << m_shader << std::endl;
+
+		GLint maxLength = 0;
+		glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &maxLength);
+
+		// The maxLength includes the NULL character
+		std::vector<GLchar> errorLog(maxLength);
+		glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, &errorLog[0]);
+		std::string s(errorLog.begin(), errorLog.end());
+		std::cerr << s.c_str() << std::endl;
+
 		glDeleteProgram(programID);
 		glDeleteShader(fragmentShader);
 		return 0;

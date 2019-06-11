@@ -103,6 +103,17 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat
 	glActiveTexture(GL_TEXTURE0 + 0);
 	glBindTexture(GL_TEXTURE_3D, volume->get_texture_id());
 
+	if (volume->transfer_function() != nullptr)
+	{
+		glActiveTexture(GL_TEXTURE0 + 1);
+		glBindTexture(GL_TEXTURE_1D, volume->transfer_function()->texture_id());
+		shader.set_useLut(true);
+	} 
+	else
+	{
+		shader.set_useLut(false);
+	}
+
 	////enable alpha blending (use over operator)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -116,12 +127,15 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat
 	if (m_clipping){
 		clipPlane = glm::translate(m_clipPlane * MV_tmp, glm::vec3(-0.5f));
 		shader.set_clipping(true);
-	} else
+	} 
+	else
 	{
 		shader.set_clipping(false);
 	}
 	glm::vec3 camPos = glm::vec4(glm::inverse(MV_tmp)*glm::vec4(0, 0, 0, 1));
 	
+	setChannel(volume);
+
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
 	glBindVertexArray(cubeVAOID);
@@ -134,7 +148,13 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat
 	glBindVertexArray(0);
 	glDisable(GL_BLEND);
 
-	glBindTexture(GL_TEXTURE_2D, 0);
+	if (volume->transfer_function() != nullptr)
+	{
+		glBindTexture(GL_TEXTURE_1D, 0);
+		glActiveTexture(GL_TEXTURE0 + 0);
+	}
+
+	glBindTexture(GL_TEXTURE_3D, 0);
 
 	glDepthMask(GL_TRUE);
 }
@@ -147,4 +167,27 @@ void VolumeRaycastRenderer::set_threshold(float threshold)
 void VolumeRaycastRenderer::set_multiplier(float multiplier)
 {
 	shader.set_multiplier(multiplier);
+}
+
+void VolumeRaycastRenderer::setChannel(Volume* volume)
+{
+	if (volume->render_channel() == -1)
+	{
+		if (volume->get_channels() == 1)
+		{
+			shader.set_channel(1);
+		}
+		else if (volume->get_channels() == 3)
+		{
+			shader.set_channel(-1);
+		}
+		else if (volume->get_channels() == 4)
+		{
+			shader.set_channel(5);
+		}
+	}
+	else
+	{
+		shader.set_channel(volume->render_channel());
+	}
 }

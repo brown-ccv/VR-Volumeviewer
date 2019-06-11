@@ -55,7 +55,7 @@ public:
     virtual void onRenderGraphicsContext(const VRGraphicsState& state);
       
 private:
-	void updateTexture();
+	void initTexture();
 
 	bool m_texture_loaded;
 

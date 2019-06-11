@@ -83,6 +83,16 @@
 			m_clipping = clipping;
 		}
 
+		void set_channel(int channel)
+		{
+			m_channel = channel;
+		}
+
+		void set_useLut(bool useLUT)
+		{
+			m_useLut = useLUT;
+		}
+
 	private:
 		
 		float m_stepSize[3];
@@ -96,9 +106,15 @@
 		GLuint m_clipping_uniform;
 		GLuint m_threshold_uniform;
 		GLuint m_multiplier_uniform;
+		GLuint m_channel_uniform;
+
+		GLuint m_lut_uniform;
+		GLuint m_useLut_uniform;
 
 		float m_threshold;
 		float m_multiplier;
 		bool m_clipping;
+		int m_channel;
+		bool m_useLut;
 	};
 #endif // VOLUMERAYCASTSHADER_H

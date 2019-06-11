@@ -41,7 +41,7 @@ VolumeRaycastShader::VolumeRaycastShader() //: m_threshold{ 0.0f }, m_multiplier
 	/*m_viewport[0] = 1.0;
 	m_viewport[1] = 1.0;*/
 
-	m_shader = "VolumeSliceRender";
+	m_shader = "VolumeRaycastShader";
 
 	m_vertexShader = "#version 330 core\n"
 		"layout(location = 0) in vec3 vVertex;\n" //object space vertex position
@@ -71,12 +71,11 @@ VolumeRaycastShader::VolumeRaycastShader() //: m_threshold{ 0.0f }, m_multiplier
 		"const int MAX_SAMPLES = 3000;\n"				//total samples for each ray march step
 		"const vec3 texMin = vec3(0);\n"					//minimum texture access coordinate
 		"const vec3 texMax = vec3(1);\n"					//maximum texture access coordinate
+		"uniform int channel;\n"
+		"uniform sampler1D lut;\n"					//transferfunction
+		"uniform bool useLut;\n"
 		"void main()\n"
 		"{\n"
-
-			//"if (gl_FragCoord.z < texture(depth, vec2(gl_FragCoord.x/viewport.x,gl_FragCoord.y/viewport.y)).r )"
-			//"discard;"
-
 			//get the 3D texture coordinates for lookup into the volume dataset
 			"vec3 dataPos = vUV; \n"
 			//Getting the ray marching direction:
@@ -122,11 +121,28 @@ VolumeRaycastShader::VolumeRaycastShader() //: m_threshold{ 0.0f }, m_multiplier
 				"}\n"
 
 				// data fetching from the red channel of volume texture
-				"vec4 sample = texture(volume, dataPos) ; \n"
+				"vec4 sample; \n"
+				"if (channel == 1){ \n"
+					"sample = texture(volume, dataPos).rrrr; \n"
+				"}else if (channel == 2){ \n"
+					"sample = texture(volume, dataPos).gggg; \n"
+				"}else if (channel == 3){ \n"
+					"sample = texture(volume, dataPos).bbbb; \n"
+				"}else if (channel == 4){ \n"
+					"sample = texture(volume, dataPos).aaaa; \n"
+				"}else if (channel == 5){ \n"
+					"sample = texture(volume, dataPos); \n"
+				"}else{ \n"
+					"sample = texture(volume, dataPos); \n"
+					"sample.a = max(sample.r, max(sample.g,sample.b)) ; "
+				"}"
 
+				"if(useLut) \n"
+					"sample = texture(lut, sample.a);"
+				
 				//assume alpha is the highest channel and gamma correction
-				"sample.a = pow(max(sample.r,max(sample.g,sample.b)), multiplier); \n"
-
+				//"sample.a = pow(sample.a , multiplier); \n"  ///needs changing
+				
 				//threshold based on alpha
 				"if (sample.a < threshold) continue;\n"
 
@@ -155,6 +171,8 @@ void VolumeRaycastShader::render(glm::mat4 &MVP, glm::mat4 &clipPlane, glm::vec3
 	glUniform1f(m_threshold_uniform, m_threshold);
 	glUniform1f(m_multiplier_uniform, m_multiplier);
 	glUniform1i(m_clipping_uniform, m_clipping);
+	glUniform1i(m_channel_uniform, m_channel);
+	glUniform1i(m_useLut_uniform, m_useLut);
 
 	//////draw the triangles
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, 0);
@@ -175,9 +193,12 @@ void VolumeRaycastShader::initGL()
 	m_threshold_uniform = glGetUniformLocation(m_programID, "threshold");
 	m_multiplier_uniform = glGetUniformLocation(m_programID, "multiplier");
 	m_clipping_uniform = glGetUniformLocation(m_programID, "clipping");
+	m_channel_uniform = glGetUniformLocation(m_programID, "channel");
+	m_lut_uniform = glGetUniformLocation(m_programID, "lut");
+	m_useLut_uniform = glGetUniformLocation(m_programID, "useLut");
 
 	////pass constant uniforms at initialization
 	glUniform1i(m_volume_uniform, 0);
-	//glUniform1i(m_depth_uniform, 1);
+	glUniform1i(m_lut_uniform, 1);
 	unbindProgram();
 }
