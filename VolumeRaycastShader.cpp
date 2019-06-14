@@ -74,30 +74,43 @@ VolumeRaycastShader::VolumeRaycastShader() //: m_threshold{ 0.0f }, m_multiplier
 		"uniform int channel;\n"
 		"uniform sampler1D lut;\n"					//transferfunction
 		"uniform bool useLut;\n"
+		"uniform sampler2D depth;\n"
+		"uniform vec2 viewport;\n"
+		"uniform mat4 P_inv; \n"
 		"void main()\n"
 		"{\n"
-			//get the 3D texture coordinates for lookup into the volume dataset
-			"vec3 dataPos = vUV; \n"
-			//Getting the ray marching direction:
-			//get the object space position by subracting 0.5 from the
-			//3D texture coordinates. Then subtraact it from camera position
-			//and normalize to get the ray marching direction
-			"vec3 geomDir = normalize(camPos - (vUV-vec3(0.5f))); \n"
-			//multiply the raymarching direction with the step size to get the
-			//sub-step size we need to take at each raymarching step
-			"vec3 dirStep = geomDir * step_size; \n"
+				//get the 3D texture coordinates for lookup into the volume dataset
+				"vec3 dataPos = vUV; \n"
+				//Getting the ray marching direction:
+				//get the object space position by subracting 0.5 from the
+				//3D texture coordinates. Then subtraact it from camera position
+				//and normalize to get the ray marching direction
+				"vec3 geomDir = normalize(camPos - (vUV-vec3(0.5f))); \n"
+				//multiply the raymarching direction with the step size to get the
+				//sub-step size we need to take at each raymarching step
+				"vec3 dirStep = geomDir * step_size; \n"
 
-			//maximum iterations until camera position reached
-			"float max_it = floor( length(camPos - (vUV-vec3(0.5))) / step_size.r); \n"
+				//Compute occlusion point in volume coordinates
+				"float d = texture(depth, vec2(gl_FragCoord.x/viewport.x,gl_FragCoord.y/viewport.y)).r; \n"
+				"vec4 d_ndc = vec4((gl_FragCoord.x / viewport.x - 0.5) * 2.0,(gl_FragCoord.y / viewport.y - 0.5) * 2.0, (d - 0.5) * 2.0, 1.0); \n"
+				"d_ndc = P_inv * d_ndc; \n "
+				"d_ndc = d_ndc / d_ndc.w; \n"
 
-			//for all samples along the ray
-			"for (int i = 0; i < MAX_SAMPLES; i++) { \n"
+				//check which is closer to the camera dataPos or d_ndc
+				"if(length(camPos - (vUV - vec3(0.5))) > length(d_ndc.xyz - (vUV - vec3(0.5)))) \n"
+					"dataPos = d_ndc.xyz + vec3(0.5f); \n"
+
+				//maximum iterations until camera position reached
+				"float max_it = floor( length(camPos - (vUV-vec3(0.5))) / step_size.r); \n"
+
+				//for all samples along the ray
+				"for (int i = 0; i < MAX_SAMPLES; i++) { \n"
 
 				// advance ray by dirstep
 				"dataPos = dataPos + dirStep; \n"
 				//break if behind camera
 				"if (i > max_it) \n"
-					"break; \n"
+				"break; \n"
 
 				//The two constants texMin and texMax have a value of vec3(-1,-1,-1)
 				//and vec3(1,1,1) respectively. To determine if the data value is 
@@ -111,45 +124,44 @@ VolumeRaycastShader::VolumeRaycastShader() //: m_threshold{ 0.0f }, m_multiplier
 				//value less than 3. If it is greater than 3, we are already out of 
 				//the volume dataset
 				"if (dot(sign(dataPos-texMin),sign(texMax-dataPos)) < 3.0) \n"
-					"break; \n"
+				"break; \n"
 
 				//Stop when clipped
 				"if(clipping){ \n"
-					"vec4 p = clipPlane * vec4(dataPos, 1);\n"
-					"if(p.y > 0.0f)\n"
-						"break; \n"
+				"vec4 p = clipPlane * vec4(dataPos, 1);\n"
+				"if(p.y > 0.0f)\n"
+				"break; \n"
 				"}\n"
 
 				// data fetching from the red channel of volume texture
 				"vec4 sample; \n"
 				"if (channel == 1){ \n"
-					"sample = texture(volume, dataPos).rrrr; \n"
+				"sample = texture(volume, dataPos).rrrr; \n"
 				"}else if (channel == 2){ \n"
-					"sample = texture(volume, dataPos).gggg; \n"
+				"sample = texture(volume, dataPos).gggg; \n"
 				"}else if (channel == 3){ \n"
-					"sample = texture(volume, dataPos).bbbb; \n"
+				"sample = texture(volume, dataPos).bbbb; \n"
 				"}else if (channel == 4){ \n"
-					"sample = texture(volume, dataPos).aaaa; \n"
+				"sample = texture(volume, dataPos).aaaa; \n"
 				"}else if (channel == 5){ \n"
-					"sample = texture(volume, dataPos); \n"
+				"sample = texture(volume, dataPos); \n"
 				"}else{ \n"
-					"sample = texture(volume, dataPos); \n"
-					"sample.a = max(sample.r, max(sample.g,sample.b)) ; "
+				"sample = texture(volume, dataPos); \n"
+				"sample.a = max(sample.r, max(sample.g,sample.b)) ; "
 				"}"
 
 				"if(useLut) \n"
-					"sample = texture(lut, sample.a);"
-				
+				"sample = texture(lut, sample.a);"
+
 				//assume alpha is the highest channel and gamma correction
 				//"sample.a = pow(sample.a , multiplier); \n"  ///needs changing
-				
+
 				//threshold based on alpha
 				"if (sample.a < threshold) continue;\n"
 
 				//blending
 				"vFragColor = vFragColor * (1.0 - sample.a) + sample * sample.a; \n"
-			"} \n"
-
+				"} \n"
 			//remove fragments for correct depthbuffer
 			"if (vFragColor.a == 0.0f)"
 				"discard;"
@@ -162,7 +174,11 @@ VolumeRaycastShader::~VolumeRaycastShader()
 
 void VolumeRaycastShader::render(glm::mat4 &MVP, glm::mat4 &clipPlane, glm::vec3 &camPos)
 {
+	glActiveTexture(GL_TEXTURE0 + 2);
+	glBindTexture(GL_TEXTURE_2D, m_depth_texture);
+
 	bindProgram();
+
 	////pass the shader uniform
 	glUniformMatrix4fv(m_MVP_uniform, 1, GL_FALSE, glm::value_ptr(MVP));
 	glUniformMatrix4fv(m_clipPlane_uniform, 1, GL_FALSE, glm::value_ptr(clipPlane));
@@ -173,11 +189,15 @@ void VolumeRaycastShader::render(glm::mat4 &MVP, glm::mat4 &clipPlane, glm::vec3
 	glUniform1i(m_clipping_uniform, m_clipping);
 	glUniform1i(m_channel_uniform, m_channel);
 	glUniform1i(m_useLut_uniform, m_useLut);
+	glUniform2f(m_viewport_uniform, m_screen_size[0], m_screen_size[1]);
+	glUniformMatrix4fv(m_P_inv_uniform, 1, GL_FALSE, glm::value_ptr(m_P_inv));
 
 	//////draw the triangles
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, 0);
 	////unbind the shader
 	unbindProgram();
+
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void VolumeRaycastShader::initGL()
@@ -196,9 +216,14 @@ void VolumeRaycastShader::initGL()
 	m_channel_uniform = glGetUniformLocation(m_programID, "channel");
 	m_lut_uniform = glGetUniformLocation(m_programID, "lut");
 	m_useLut_uniform = glGetUniformLocation(m_programID, "useLut");
+	m_viewport_uniform = glGetUniformLocation(m_programID, "viewport");
+	m_depth_uniform = glGetUniformLocation(m_programID, "depth");
+	m_P_inv_uniform = glGetUniformLocation(m_programID, "P_inv");
 
 	////pass constant uniforms at initialization
 	glUniform1i(m_volume_uniform, 0);
 	glUniform1i(m_lut_uniform, 1);
+	glUniform1i(m_depth_uniform, 2);
+
 	unbindProgram();
 }

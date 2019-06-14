@@ -63,6 +63,11 @@ class VolumeRaycastRenderer : public  VolumeRenderer
 		virtual void set_threshold(float threshold) override;
 		virtual void set_multiplier(float multiplier) override;
 		
+		void setDepthTexture(DepthTexture* depth_texture)
+		{
+			shader.setDepthTexture(depth_texture);
+		}
+
 	private:
 		void setChannel(Volume* volume);
 

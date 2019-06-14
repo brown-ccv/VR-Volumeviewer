@@ -114,7 +114,7 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 			}
 		}
 	}
-	std::cerr << " Done loading" << std::endl;
+	
 	inFile.close();
 
 	m_object_pose = glm::mat4(1.0f);
@@ -126,6 +126,8 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 
 	m_renders.push_back(new VolumeSliceRenderer());
 	m_renders.push_back(new VolumeRaycastRenderer());
+
+	std::cerr << " Done loading" << std::endl;
 }
 
 VolumeVisualizationApp::~VolumeVisualizationApp()
@@ -312,6 +314,7 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
     // load models, or do other operations that you only want to do once per
     // frame when in stereo mode.
     if (renderState.isInitialRenderCall()) {
+	
        #ifndef __APPLE__
             glewExperimental = GL_TRUE;
             GLenum err = glewInit();
@@ -356,12 +359,18 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 	{
 		m_framecounter++;
 	}
+	rendercount = 0;
 }
 
 
 void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &renderState) {
     // This routine is called once per eye.  This is the place to actually
     // draw the scene.
+
+	if (renderState.isInitialRenderCall())
+	{
+		m_depthTextures.push_back(new DepthTexture);
+	}
 
 	//setup projection
 	P = glm::make_mat4(renderState.getProjectionMatrix());	
@@ -381,8 +390,10 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 
 	//setup Modelview for meshes
 	for (int i = 0; i < m_models_displayLists.size(); i++){
+		
 		m_models_MV[i] = m_volumes[m_models_volumeID[i]]->get_volume_mv();
-		m_models_MV[i] = glm::translate(m_models_MV[i], glm::vec3(-0.5f, -0.5f, -0.5f));
+		m_models_MV[i] = glm::translate(m_models_MV[i], glm::vec3(-0.5f, -0.5f, -0.5f * m_volumes[i]->get_volume_scale().x / m_volumes[i]->get_volume_scale().z));
+		m_models_MV[i] = glm::scale(m_models_MV[i], glm::vec3(m_volumes[i]->get_volume_scale().x, m_volumes[i]->get_volume_scale().y, m_volumes[i]->get_volume_scale().x ));
 	}
 
 	//Set cuttingplane
@@ -395,13 +406,16 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 		for (auto ren : m_renders)
 			ren->setClipping(false, nullptr);
 	}
-
+	
 	//Render meshes
 	for (int i = 0; i < m_models_displayLists.size(); i++){
 		glMatrixMode(GL_MODELVIEW);
 		glLoadMatrixf(glm::value_ptr(m_models_MV[i]));
 		glCallList(m_models_displayLists[i]);
 	}
+	
+	m_depthTextures[rendercount]->copyDepthbuffer();
+	(static_cast <VolumeRaycastRenderer*> (m_renders[1]))->setDepthTexture(m_depthTextures[rendercount]);
 
 	//render volumes
 	if (m_texture_loaded){
@@ -432,4 +446,6 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 	}
 
 	glFlush();
+
+	rendercount++;
 }

@@ -50,8 +50,9 @@
 #endif
 
 #include <glm/glm.hpp>
+#include "DepthTexture.h"
 
-	class VolumeRaycastShader : public Shader
+class VolumeRaycastShader : public Shader
 	{
 		
 	public:
@@ -93,6 +94,18 @@
 			m_useLut = useLUT;
 		}
 
+		void setDepthTexture(DepthTexture * depth_texture)
+		{
+			m_depth_texture = depth_texture->depth_texture();
+			m_screen_size[0] = depth_texture->width();
+			m_screen_size[1] = depth_texture->height();
+		} 
+
+		void set_P_inv(glm::mat4 &P_inv)
+		{
+			m_P_inv = P_inv;
+		}
+
 	private:
 		
 		float m_stepSize[3];
@@ -116,5 +129,13 @@
 		bool m_clipping;
 		int m_channel;
 		bool m_useLut;
+
+		unsigned int m_depth_texture;
+		unsigned int m_screen_size[2];
+		GLuint m_depth_uniform;
+		GLuint m_viewport_uniform;
+		GLuint m_P_inv_uniform;
+
+		glm::mat4 m_P_inv;
 	};
 #endif // VOLUMERAYCASTSHADER_H

@@ -53,7 +53,7 @@ void FrameBufferObject::bind(bool clipping_on)
 	glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &m_pdrawFboId);
 	glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &m_preadFboId);
 	glGetIntegerv(GL_DRAW_BUFFER, &m_pDrawBuffer);
-	glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &m_pReadBuffer);
+	glGetIntegerv(GL_READ_BUFFER, &m_pReadBuffer);
 	glGetIntegerv(GL_DEPTH_FUNC, &m_pDepthTest);
 	glGetFloatv(GL_DEPTH_CLEAR_VALUE, &m_pClearDepth);
 

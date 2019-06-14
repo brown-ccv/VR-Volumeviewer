@@ -45,6 +45,7 @@ set(source_files
   glm.cpp
   FrameBufferObject.cpp
   TransferFunction.cpp
+  DepthTexture.cpp
 )
 
 set(header_files
@@ -59,6 +60,7 @@ set(header_files
   glm.h
   FrameBufferObject.h
   TransferFunction.h
+  DepthTexture.h
 )
 
 

@@ -100,6 +100,8 @@ void VolumeRaycastRenderer::initGL()
 void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale)
 {
 	glDepthMask(GL_FALSE);
+	glDisable(GL_DEPTH_TEST);
+
 	glActiveTexture(GL_TEXTURE0 + 0);
 	glBindTexture(GL_TEXTURE_3D, volume->get_texture_id());
 
@@ -123,6 +125,7 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat
 
 	////get the combined modelview projection matrix
 	glm::mat4 MVP = P*MV_tmp;
+	
 	glm::mat4 clipPlane;
 	if (m_clipping){
 		clipPlane = glm::translate(m_clipPlane * MV_tmp, glm::vec3(-0.5f));
@@ -132,14 +135,18 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat
 	{
 		shader.set_clipping(false);
 	}
+	
 	glm::vec3 camPos = glm::vec4(glm::inverse(MV_tmp)*glm::vec4(0, 0, 0, 1));
 	
+	glm::mat4 P_inv = glm::inverse(MV_tmp) * glm::inverse(P);
+
 	setChannel(volume);
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
 	glBindVertexArray(cubeVAOID);
 	////use the volume shader
+	shader.set_P_inv(P_inv);
 	shader.set_stepSize(1.0f / 256.0f, 1.0f / 256.0f, 1.0f / 256.0f);
 	shader.render(MVP, clipPlane, camPos);
 	glDisable(GL_CULL_FACE);
@@ -147,15 +154,17 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat
 	////disable blending
 	glBindVertexArray(0);
 	glDisable(GL_BLEND);
-
+	glDisable(GL_BLEND);
 	if (volume->transfer_function() != nullptr)
 	{
+		glActiveTexture(GL_TEXTURE0 + 1);
 		glBindTexture(GL_TEXTURE_1D, 0);
-		glActiveTexture(GL_TEXTURE0 + 0);
 	}
 
+	glActiveTexture(GL_TEXTURE0 + 0);
 	glBindTexture(GL_TEXTURE_3D, 0);
 
+	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
 }
 

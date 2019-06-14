@@ -7,6 +7,7 @@
 #include "FrameBufferObject.h"
 #include "Volume.h"
 #include "VolumeRaycastRenderer.h"
+#include "DepthTexture.h"
 using namespace MinVR;
 
 #include <vector>
@@ -95,6 +96,8 @@ private:
 	float m_threshold;
 
 	std::vector <VolumeRenderer*> m_renders;
+	std::vector <DepthTexture*> m_depthTextures;
+	unsigned int rendercount;
 };
 
 
