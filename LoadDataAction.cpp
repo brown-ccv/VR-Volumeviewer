@@ -41,6 +41,7 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include <iostream>
+#include <fstream>
 
 LoadDataAction::LoadDataAction(std::string folder, float * res) : m_folder(folder),  m_res(res)
 {
@@ -50,48 +51,62 @@ LoadDataAction::LoadDataAction(std::string folder, float * res) : m_folder(folde
 
 Volume* LoadDataAction::run()
 {
-	std::vector <std::string> filenames = readTiffs(m_folder);
-
-	std::vector <cv::Mat> image_r;
-	std::vector <cv::Mat> image_g;
-	std::vector <cv::Mat> image_b;
+	unsigned int channels,depth,w,h,d;
+	float minval[2];
 	std::vector <cv::Mat> images;
 
-	for( auto name : filenames)
+	if (ends_with_string(m_folder, "desc"))
 	{
-		if (contains_string(name, "ch1"))
-		{
-			std::cerr << "Load Image " << image_r.size() << " Channel 1 - " << name << std::endl;
-			image_r.push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_GRAYSCALE)));
-		}
-		else if (contains_string(name, "ch2"))
-		{
-			std::cerr << "Load Image " << image_g.size() << " Channel 2 - " << name << std::endl;
-			image_g.push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_GRAYSCALE)));
-		}
-		else if (contains_string(name, "ch3"))
-		{
-			std::cerr << "Load Image " <<image_b.size() << " Channel 3 - " << name << std::endl;
-			image_b.push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_GRAYSCALE)));
-		}
-		else
-		{
-			std::cerr << "Load Image " << images.size() << " RGB - " << name << std::endl;
-			images.push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_ANYCOLOR)));
-		}
+		FILE * pFile;
+		pFile = fopen(m_folder.c_str(), "r");
+		fscanf(pFile, "%u,%u,%u,%f,%f\n'", &w, &h, &d, &minval[0], &minval[1]);
+		channels = 1;
+		depth = CV_32F;
+		replace(m_folder, ".desc", ".raw");
 	}
+	else{
 
-	if (!image_r.empty() || !image_g.empty() || !image_b.empty())
-	{
-		mergeRGB(image_r, image_g, image_b, images);
+		std::vector <std::string> filenames = readTiffs(m_folder);
+		std::vector <cv::Mat> image_r;
+		std::vector <cv::Mat> image_g;
+		std::vector <cv::Mat> image_b;
+
+		for (auto name : filenames)
+		{
+			if (contains_string(name, "ch1"))
+			{
+				std::cerr << "Load Image " << image_r.size() << " Channel 1 - " << name << std::endl;
+				image_r.push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_GRAYSCALE)));
+			}
+			else if (contains_string(name, "ch2"))
+			{
+				std::cerr << "Load Image " << image_g.size() << " Channel 2 - " << name << std::endl;
+				image_g.push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_GRAYSCALE)));
+			}
+			else if (contains_string(name, "ch3"))
+			{
+				std::cerr << "Load Image " << image_b.size() << " Channel 3 - " << name << std::endl;
+				image_b.push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_GRAYSCALE)));
+			}
+			else
+			{
+				std::cerr << "Load Image " << images.size() << " RGB - " << name << std::endl;
+				images.push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_ANYCOLOR)));
+			}
+		}
+
+		if (!image_r.empty() || !image_g.empty() || !image_b.empty())
+		{
+			mergeRGB(image_r, image_g, image_b, images);
+		}
+
+		channels = images[0].channels();
+		depth = images[0].depth();
+		w = images[0].cols;
+		h = images[0].rows;
+		d = images.size();
 	}
-
-	unsigned int channels = images[0].channels();
-	unsigned int depth = images[0].depth();
-	unsigned int w = images[0].cols;
-	unsigned int h = images[0].rows;
-	unsigned int d = images.size();
-
+	std::cerr << "Loading Volume size:  " << w << " , " << h << " , " << d << "Channels " << channels << std::endl;
 	Volume* volume;
 	switch (depth)
 	{
@@ -103,10 +118,10 @@ Volume* LoadDataAction::run()
 			volume = new Volume(w, h, d, m_res[0], m_res[1], m_res[2], 2, channels);
 			uploadDataCV_16U(images, volume);
 			break;
-		/*case CV_32F:
+		case CV_32F:
 			volume = new Volume(w, h, d, m_res[0], m_res[1], m_res[2], 4, channels);
-			uploadDataCV_32F(images, volume);
-			break;*/
+			uploadData_32F_raw(m_folder, volume);
+			break;
 	}
 	return volume;
 }
@@ -240,6 +255,26 @@ void LoadDataAction::uploadDataCV_16U(std::vector <cv::Mat> image, Volume* volum
 		}
 	}
 }
+
+void LoadDataAction::uploadData_32F_raw(std::string filename, Volume* volume)
+{
+	void* data = reinterpret_cast <unsigned short*> (volume->get_data());
+	
+	FILE* file = fopen(filename.c_str(), "rb");
+
+	// obtain file size:
+	fseek(file, 0, SEEK_END);
+	long lSize = ftell(file);
+	rewind(file);
+	if (lSize != volume->get_depth()*volume->get_height()*volume->get_width() * 4)
+	{
+		std::cerr << "Error datasize not equal - file" << lSize << " bytes - desc " << volume->get_depth()*volume->get_height()*volume->get_width() * 4 << " bytes" << std::endl;
+	}
+
+	fread(data, sizeof(float), lSize / 4, file);
+	fclose(file);
+}
+
 //void LoadDataAction::uploadDataCV_32F(std::vector <cv::Mat> image, Volume* volume)
 //{
 //	float* ptr = reinterpret_cast <float*> (volume->get_data());
@@ -277,6 +312,14 @@ void LoadDataAction::uploadDataCV_16U(std::vector <cv::Mat> image, Volume* volum
 //		}
 //	}
 //}
+
+bool LoadDataAction::replace(std::string& str, const std::string& from, const std::string& to) {
+	size_t start_pos = str.find(from);
+	if (start_pos == std::string::npos)
+		return false;
+	str.replace(start_pos, from.length(), to);
+	return true;
+}
 
 bool LoadDataAction::ends_with_string(std::string const& str, std::string const& what) {
 	return what.size() <= str.size()

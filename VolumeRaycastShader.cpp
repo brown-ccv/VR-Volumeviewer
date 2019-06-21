@@ -58,7 +58,21 @@ VolumeRaycastShader::VolumeRaycastShader() //: m_threshold{ 0.0f }, m_multiplier
 			"vUV = vVertex + vec3(0.5); \n"
 		"}\n";
 
-	m_fragmentShader = "#version 330 core\n"
+	m_fragmentShader =
+		"#version 330 core\n"
+		"vec2 intersect_box(vec3 orig, vec3 dir) { \n"
+		"const vec3 box_min = vec3(0); \n"
+		"const vec3 box_max = vec3(1); \n"
+		"vec3 inv_dir = 1.0 / dir; \n"
+		"vec3 tmin_tmp = (box_min - orig) * inv_dir; \n"
+		"vec3 tmax_tmp = (box_max - orig) * inv_dir; \n"
+		"vec3 tmin = min(tmin_tmp, tmax_tmp); \n"
+		"vec3 tmax = max(tmin_tmp, tmax_tmp); \n"
+		"float t0 = max(tmin.x, max(tmin.y, tmin.z)); \n"
+		"float t1 = min(tmax.x, min(tmax.y, tmax.z)); \n"
+		"return vec2(t0, t1); \n"
+		"}\n"
+
 		"layout(location = 0) out vec4 vFragColor; \n"	//fragment shader output
 		"smooth in vec3 vUV; \n"						//3D texture coordinates form vertex shader interpolated by rasterizer
 		"uniform sampler3D volume;\n"					//volume dataset
@@ -69,8 +83,6 @@ VolumeRaycastShader::VolumeRaycastShader() //: m_threshold{ 0.0f }, m_multiplier
 		"uniform vec3 camPos;\n"						//camera position
 		"uniform vec3 step_size;\n"					//ray step size
 		"const int MAX_SAMPLES = 3000;\n"				//total samples for each ray march step
-		"const vec3 texMin = vec3(0);\n"					//minimum texture access coordinate
-		"const vec3 texMax = vec3(1);\n"					//maximum texture access coordinate
 		"uniform int channel;\n"
 		"uniform sampler1D lut;\n"					//transferfunction
 		"uniform bool useLut;\n"
@@ -79,89 +91,111 @@ VolumeRaycastShader::VolumeRaycastShader() //: m_threshold{ 0.0f }, m_multiplier
 		"uniform mat4 P_inv; \n"
 		"void main()\n"
 		"{\n"
-				//get the 3D texture coordinates for lookup into the volume dataset
-				"vec3 dataPos = vUV; \n"
-				//Getting the ray marching direction:
-				//get the object space position by subracting 0.5 from the
-				//3D texture coordinates. Then subtraact it from camera position
-				//and normalize to get the ray marching direction
-				"vec3 geomDir = normalize(camPos - (vUV-vec3(0.5f))); \n"
-				//multiply the raymarching direction with the step size to get the
-				//sub-step size we need to take at each raymarching step
-				"vec3 dirStep = geomDir * step_size; \n"
+		//get the 3D texture coordinates for lookup into the volume dataset
+		"vec3 dataPos = vUV; \n"
+		
+		//get the object space position by subracting 0.5 from the
+		//3D texture coordinates. Then subtraact it from camera position
+		//and normalize to get the ray marching direction
+		"vec3 geomDir = normalize( dataPos - camPos); \n"
 
-				//Compute occlusion point in volume coordinates
-				"float d = texture(depth, vec2(gl_FragCoord.x/viewport.x,gl_FragCoord.y/viewport.y)).r; \n"
-				"vec4 d_ndc = vec4((gl_FragCoord.x / viewport.x - 0.5) * 2.0,(gl_FragCoord.y / viewport.y - 0.5) * 2.0, (d - 0.5) * 2.0, 1.0); \n"
-				"d_ndc = P_inv * d_ndc; \n "
-				"d_ndc = d_ndc / d_ndc.w; \n"
+		//get the t values for the intersection with the box"
+		"vec2 t_hit = intersect_box(camPos, geomDir); \n"
 
-				//check which is closer to the camera dataPos or d_ndc
-				"if(length(camPos - (vUV - vec3(0.5))) > length(d_ndc.xyz - (vUV - vec3(0.5)))) \n"
-					"dataPos = d_ndc.xyz + vec3(0.5f); \n"
+		//first value should always be lower by definition and this case should never occur. If it does discard the fragment.
+		"if (t_hit.x > t_hit.y) \n"
+			"discard; \n"
 
-				//maximum iterations until camera position reached
-				"float max_it = floor( length(camPos - (vUV-vec3(0.5))) / step_size.r); \n"
+		// We don't want to sample voxels behind the eye if it's
+		// inside the volume, so keep the starting point at or in front
+		// of the eye
+		"if(t_hit.x < 0.0f) t_hit.x= max(t_hit.x, 0.0); \n"
 
-				//for all samples along the ray
-				"for (int i = 0; i < MAX_SAMPLES; i++) { \n"
+		//We not know if the ray was cast from the back or the front face. (Note: For now we also render the back face only)
+		//To ensure we update dataPos and t_hit to reflect a ray from entry point to exit
+		"dataPos = camPos + t_hit.x * geomDir;\n"
+		"t_hit.y = t_hit.y-t_hit.x; \n"
+		"t_hit.x = 0.0f; \n"
 
-				// advance ray by dirstep
-				"dataPos = dataPos + dirStep; \n"
-				//break if behind camera
-				"if (i > max_it) \n"
-				"break; \n"
-
-				//The two constants texMin and texMax have a value of vec3(-1,-1,-1)
-				//and vec3(1,1,1) respectively. To determine if the data value is 
-				//outside the volume data, we use the sign function. The sign function 
-				//return -1 if the value is less than 0, 0 if the value is equal to 0 
-				//and 1 if value is greater than 0. Hence, the sign function for the 
-				//calculation (sign(dataPos-texMin) and sign (texMax-dataPos)) will 
-				//give us vec3(1,1,1) at the possible minimum and maximum position. 
-				//When we do a dot product between two vec3(1,1,1) we get the answer 3. 
-				//So to be within the dataset limits, the dot product will return a 
-				//value less than 3. If it is greater than 3, we are already out of 
-				//the volume dataset
-				"if (dot(sign(dataPos-texMin),sign(texMax-dataPos)) < 3.0) \n"
-				"break; \n"
-
-				//Stop when clipped
-				"if(clipping){ \n"
-				"vec4 p = clipPlane * vec4(dataPos, 1);\n"
-				"if(p.y > 0.0f)\n"
-				"break; \n"
+		//get t for the clipping plane and overwrite the entry point
+		"if(clipping){ \n"
+			"vec4 p_in = clipPlane * vec4(dataPos + t_hit.x * geomDir, 1);\n"
+			"vec4 p_out = clipPlane * vec4(dataPos + t_hit.y * geomDir, 1);\n"
+			"if(p_in.y * p_out.y < 0.0f ){\n"
+				//both points lie on different sides of the plane	
+				//we need to compute a new clippoint
+				"vec4 c_pos = clipPlane * vec4(dataPos, 1);\n"
+				"vec4 c_dir = clipPlane * vec4(geomDir, 0);\n"
+				"float t_clip = -c_pos.y / c_dir.y  ;\n"
+				//update either entry or exit based on which is on the clipped side
+				"if (p_in.y > 0.0f){\n"
+					"t_hit.x = t_clip; \n"
+				"}else{\n"
+					"t_hit.y = t_clip; \n"
 				"}\n"
+			"}else{\n"
+				//both points lie on the same side of the plane.
+				//if one of them is on the wrong side they can be clipped
+				"if(p_in.y > 0.0f)\n"
+					"discard;\n"
+			"}\n"				
+		"}\n"
 
+		//Compute occlusion point in volume coordinates
+		"float d = texture(depth, vec2(gl_FragCoord.x/viewport.x,gl_FragCoord.y/viewport.y)).r; \n"
+		"vec4 d_ndc = vec4((gl_FragCoord.x / viewport.x - 0.5) * 2.0,(gl_FragCoord.y / viewport.y - 0.5) * 2.0, (d - 0.5) * 2.0, 1.0); \n"
+		"d_ndc = P_inv * d_ndc; \n "
+		"d_ndc = d_ndc / d_ndc.w; \n"
+
+		//compute t_occ and check if it closer than the exit point
+		"float t_occ = length(d_ndc.xyz - (dataPos - vec3(0.5))); \n"
+		"t_hit.y = min(t_hit.y, t_occ); \n"
+
+		//compute step size as the minimum of the stepsize
+		"float dt = min(step_size.x, min(step_size.y, step_size.z)) ;\n"
+
+		// Step 4: Starting from the entry point, march the ray through the volume
+		// and sample it
+		"dataPos = dataPos + t_hit.x * geomDir; \n"
+		"for (float t = t_hit.x; t < t_hit.y; t += dt) {\n"
 				// data fetching from the red channel of volume texture
 				"vec4 sample; \n"
 				"if (channel == 1){ \n"
-				"sample = texture(volume, dataPos).rrrr; \n"
+					"sample = texture(volume, dataPos).rrrr; \n"
 				"}else if (channel == 2){ \n"
-				"sample = texture(volume, dataPos).gggg; \n"
+					"sample = texture(volume, dataPos).gggg; \n"
 				"}else if (channel == 3){ \n"
-				"sample = texture(volume, dataPos).bbbb; \n"
+					"sample = texture(volume, dataPos).bbbb; \n"
 				"}else if (channel == 4){ \n"
-				"sample = texture(volume, dataPos).aaaa; \n"
+					"sample = texture(volume, dataPos).aaaa; \n"
 				"}else if (channel == 5){ \n"
-				"sample = texture(volume, dataPos); \n"
+					"sample = texture(volume, dataPos); \n"
 				"}else{ \n"
-				"sample = texture(volume, dataPos); \n"
-				"sample.a = max(sample.r, max(sample.g,sample.b)) ; "
+					"sample = texture(volume, dataPos); \n"
+					"sample.a = max(sample.r, max(sample.g,sample.b)) ; "
 				"}"
 
 				"if(useLut) \n"
-				"sample = texture(lut, sample.a);"
-
+					"sample = texture(lut, sample.a);"
+				
 				//assume alpha is the highest channel and gamma correction
 				//"sample.a = pow(sample.a , multiplier); \n"  ///needs changing
 
 				//threshold based on alpha
-				"if (sample.a < threshold) continue;\n"
+				//"if (sample.a < threshold) continue;\n"
 
-				//blending
-				"vFragColor = vFragColor * (1.0 - sample.a) + sample * sample.a; \n"
-				"} \n"
+				//blending (front to back)
+				"vFragColor.rgb += (1.0 - vFragColor.a) * sample.a * sample.rgb;\n"
+				"vFragColor.a += (1.0 - vFragColor.a) * sample.a;\n"
+				
+				//early exit if opacity is reached
+				"if (vFragColor.a >= 0.95) \n"
+					"break;\n"
+
+				//advance point
+				"dataPos += geomDir * dt; \n"
+			"} \n"
+
 			//remove fragments for correct depthbuffer
 			"if (vFragColor.a == 0.0f)"
 				"discard;"

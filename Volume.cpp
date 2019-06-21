@@ -88,10 +88,13 @@ void Volume::initGL()
 	else if (m_channels == 1)
 	{
 		if (m_datatypesize == 1){
-			glTexImage3D(GL_TEXTURE_3D, 0, GL_LUMINANCE, get_width(), get_height(), get_depth(), 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, get_data());
+			glTexImage3D(GL_TEXTURE_3D, 0, GL_R, get_width(), get_height(), get_depth(), 0, GL_RED, GL_UNSIGNED_BYTE, get_data());
 		}
 		if (m_datatypesize == 2){
-			glTexImage3D(GL_TEXTURE_3D, 0, GL_LUMINANCE16, get_width(), get_height(), get_depth(), 0, GL_LUMINANCE, GL_UNSIGNED_SHORT, get_data());
+			glTexImage3D(GL_TEXTURE_3D, 0, GL_R16, get_width(), get_height(), get_depth(), 0, GL_RED, GL_UNSIGNED_SHORT, get_data());
+		}
+		if (m_datatypesize == 4){
+			glTexImage3D(GL_TEXTURE_3D, 0, GL_R32F, get_width(), get_height(), get_depth(), 0, GL_RED, GL_FLOAT, get_data());
 		}
 	}
 

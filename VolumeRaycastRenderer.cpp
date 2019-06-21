@@ -102,8 +102,20 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
 
+	bool enableCulling = glIsEnabled(GL_CULL_FACE);
+	GLint  cull_mode;
+	glGetIntegerv(GL_CULL_FACE_MODE, &cull_mode);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
+
 	glActiveTexture(GL_TEXTURE0 + 0);
 	glBindTexture(GL_TEXTURE_3D, volume->get_texture_id());
+
+	////enable alpha blending (use over operator)
+	bool enableBlend = glIsEnabled(GL_BLEND);
+	glEnable(GL_BLEND);
+	//todo: we should also undo the blending func later 
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	if (volume->transfer_function() != nullptr)
 	{
@@ -115,10 +127,6 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat
 	{
 		shader.set_useLut(false);
 	}
-
-	////enable alpha blending (use over operator)
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	////now do the z_scaling
 	glm::mat4 MV_tmp = glm::scale(MV, glm::vec3(1, 1, z_scale));
@@ -137,24 +145,21 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat
 	}
 	
 	glm::vec3 camPos = glm::vec4(glm::inverse(MV_tmp)*glm::vec4(0, 0, 0, 1));
-	
+	camPos += glm::vec3(0.5f);
 	glm::mat4 P_inv = glm::inverse(MV_tmp) * glm::inverse(P);
 
 	setChannel(volume);
 
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
 	glBindVertexArray(cubeVAOID);
 	////use the volume shader
 	shader.set_P_inv(P_inv);
-	shader.set_stepSize(1.0f / 256.0f, 1.0f / 256.0f, 1.0f / 256.0f);
+	shader.set_stepSize(1.0f / volume->get_width(), 1.0f / volume->get_height(), 1.0f / volume->get_depth());
+	
 	shader.render(MVP, clipPlane, camPos);
-	glDisable(GL_CULL_FACE);
 
 	////disable blending
 	glBindVertexArray(0);
-	glDisable(GL_BLEND);
-	glDisable(GL_BLEND);
+
 	if (volume->transfer_function() != nullptr)
 	{
 		glActiveTexture(GL_TEXTURE0 + 1);
@@ -163,6 +168,12 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat
 
 	glActiveTexture(GL_TEXTURE0 + 0);
 	glBindTexture(GL_TEXTURE_3D, 0);
+
+	if(!enableBlend)glDisable(GL_BLEND);
+
+	if (!enableCulling)
+		glDisable(GL_CULL_FACE);
+	glCullFace(cull_mode);
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
