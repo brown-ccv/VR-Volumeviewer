@@ -63,9 +63,11 @@ const int VolumeSliceRenderer::edgeList[8][12] = {
 
 const int VolumeSliceRenderer::edges[12][2] = { { 0, 1 }, { 1, 2 }, { 2, 3 }, { 3, 0 }, { 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 }, { 4, 5 }, { 5, 6 }, { 6, 7 }, { 7, 4 } };
 
-VolumeSliceRenderer::VolumeSliceRenderer() : num_slices{ MAX_SLICES }
+VolumeSliceRenderer::VolumeSliceRenderer() : num_slices{ 256 }
 {
-
+	for (int i = 0; i < MAX_SLICES * 12 ; i++) {
+		vTextureSlices[i] = glm::vec3(0, 0, 0);
+	}
 }
 
 VolumeSliceRenderer::~VolumeSliceRenderer()
@@ -96,15 +98,15 @@ void VolumeSliceRenderer::initGL()
 	glBindVertexArray(0);
 }
 
-void VolumeSliceRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale)
+void VolumeSliceRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale, GLint colormap)
 {
 	glDepthMask(GL_FALSE);
 	glActiveTexture(GL_TEXTURE0 + 0);
 	glBindTexture(GL_TEXTURE_3D, volume->get_texture_id());
-	if (volume->transfer_function() != nullptr)
+	if (colormap >= 0)
 	{
 		glActiveTexture(GL_TEXTURE0 + 1);
-		glBindTexture(GL_TEXTURE_1D, volume->transfer_function()->texture_id());
+		glBindTexture(GL_TEXTURE_2D, colormap);
 		shader.set_useLut(true);
 	}
 	else
@@ -154,9 +156,9 @@ void VolumeSliceRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat4 
 	glBindVertexArray(0);
 	glDisable(GL_BLEND);
 
-	if (volume->transfer_function() != nullptr)
+	if (colormap >= 0)
 	{
-		glBindTexture(GL_TEXTURE_1D, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
 		glActiveTexture(GL_TEXTURE0 + 0);
 	}
 	glBindTexture(GL_TEXTURE_3D, 0);
@@ -172,6 +174,14 @@ void VolumeSliceRenderer::set_threshold(float threshold)
 void VolumeSliceRenderer::set_multiplier(float multiplier)
 {
 	shader.set_multiplier(multiplier);
+}
+
+void VolumeSliceRenderer::set_numSlices(int slices)
+{
+	if (slices != num_slices) {
+		num_slices = (MAX_SLICES < slices) ? MAX_SLICES : slices;
+		SliceVolume();
+	}
 }
 
 int VolumeSliceRenderer::FindAbsMax(glm::vec3 v)
@@ -351,13 +361,15 @@ void VolumeSliceRenderer::SliceVolume()
 		for (int j = 0; j<12; j++)
 			vTextureSlices[count++] = intersection[indices[j]];
 	}
-	while (count < MAX_SLICES * 12){
+	/*while (count < num_slices * 12){
 		vTextureSlices[count++] = glm::vec3(0,0,0);
-	}
-
+	}*/
+	
 	//update buffer object with the new vertices
 	glBindBuffer(GL_ARRAY_BUFFER, volumeVBO);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vTextureSlices), &(vTextureSlices[0].x));
+	//glBufferData(GL_ARRAY_BUFFER, 0, count * 12, &(vTextureSlices[0].x, GL_DYNAMIC_DRAW));
+	glBufferData(GL_ARRAY_BUFFER, count * 12, &(vTextureSlices[0].x), GL_DYNAMIC_DRAW);
+
 }
 
 void VolumeSliceRenderer::setChannel(Volume* volume)

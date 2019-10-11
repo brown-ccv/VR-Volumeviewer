@@ -17,11 +17,11 @@ list(APPEND CMAKE_MODULE_PATH  ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_INSTALL
 list(INSERT CMAKE_PREFIX_PATH 0 ${CMAKE_INSTALL_PREFIX})
 
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
     if(COMMAND cmake_policy)
       cmake_policy(SET CMP0003 NEW)
     endif(COMMAND cmake_policy)
-
+add_definitions(-D_HAS_STD_BYTE=0)
 
 #---------------------- Source for this Project ----------------------
 
@@ -44,8 +44,8 @@ set(source_files
   VolumeRaycastShader.cpp
   glm.cpp
   FrameBufferObject.cpp
-  TransferFunction.cpp
   DepthTexture.cpp
+  transferfunction/transfer_function_widget.cpp
 )
 
 set(header_files
@@ -59,8 +59,9 @@ set(header_files
   VolumeRaycastShader.h
   glm.h
   FrameBufferObject.h
-  TransferFunction.h
   DepthTexture.h
+  transferfunction/transfer_function_widget.h
+  transferfunction/embedded_colormaps.h
 )
 
 
@@ -70,12 +71,14 @@ set(EXTERNAL_CMAKE_SCRIPTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # MinVR (linked with an imported cmake target so no need to specify include dirs)
 find_package(MinVR REQUIRED)
+find_package(ImguiVR REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 FIND_PACKAGE(OpenCV REQUIRED )
 FIND_PACKAGE(glm REQUIRED )
 
 set(LIBRARIES
+	ImguiVR
 	${OpenCV_LIBS}
 	${GLM_LIBRARIES}
 	${GLEW_LIBRARY}

@@ -76,22 +76,22 @@ Volume* LoadDataAction::run()
 			if (contains_string(name, "ch1"))
 			{
 				std::cerr << "Load Image " << image_r.size() << " Channel 1 - " << name << std::endl;
-				image_r.push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_GRAYSCALE)));
+				image_r.push_back(std::move(cv::imread(name, cv::IMREAD_ANYDEPTH | cv::IMREAD_GRAYSCALE)));
 			}
 			else if (contains_string(name, "ch2"))
 			{
 				std::cerr << "Load Image " << image_g.size() << " Channel 2 - " << name << std::endl;
-				image_g.push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_GRAYSCALE)));
+				image_g.push_back(std::move(cv::imread(name, cv::IMREAD_ANYDEPTH | cv::IMREAD_GRAYSCALE)));
 			}
 			else if (contains_string(name, "ch3"))
 			{
 				std::cerr << "Load Image " << image_b.size() << " Channel 3 - " << name << std::endl;
-				image_b.push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_GRAYSCALE)));
+				image_b.push_back(std::move(cv::imread(name, cv::IMREAD_ANYDEPTH | cv::IMREAD_GRAYSCALE)));
 			}
 			else
 			{
 				std::cerr << "Load Image " << images.size() << " RGB - " << name << std::endl;
-				images.push_back(std::move(cv::imread(name, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_ANYCOLOR)));
+				images.push_back(std::move(cv::imread(name, cv::IMREAD_ANYDEPTH | cv::IMREAD_ANYCOLOR)));
 			}
 		}
 

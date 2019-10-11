@@ -97,7 +97,7 @@ void VolumeRaycastRenderer::initGL()
 	glBindVertexArray(0);
 }
 
-void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale)
+void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale, GLint colormap)
 {
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
@@ -117,10 +117,10 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat
 	//todo: we should also undo the blending func later 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	if (volume->transfer_function() != nullptr)
+	if (colormap >=0)
 	{
 		glActiveTexture(GL_TEXTURE0 + 1);
-		glBindTexture(GL_TEXTURE_1D, volume->transfer_function()->texture_id());
+		glBindTexture(GL_TEXTURE_2D, colormap);
 		shader.set_useLut(true);
 	} 
 	else
@@ -153,17 +153,17 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat
 	glBindVertexArray(cubeVAOID);
 	////use the volume shader
 	shader.set_P_inv(P_inv);
-	shader.set_stepSize(1.0f / volume->get_width(), 1.0f / volume->get_height(), 1.0f / volume->get_depth());
+	//shader.set_stepSize(1.0f / volume->get_width(), 1.0f / volume->get_height(), 1.0f / volume->get_depth());
 	
 	shader.render(MVP, clipPlane, camPos);
 
 	////disable blending
 	glBindVertexArray(0);
 
-	if (volume->transfer_function() != nullptr)
+	if (colormap >= 0)
 	{
 		glActiveTexture(GL_TEXTURE0 + 1);
-		glBindTexture(GL_TEXTURE_1D, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
 	glActiveTexture(GL_TEXTURE0 + 0);
@@ -187,6 +187,11 @@ void VolumeRaycastRenderer::set_threshold(float threshold)
 void VolumeRaycastRenderer::set_multiplier(float multiplier)
 {
 	shader.set_multiplier(multiplier);
+}
+
+void VolumeRaycastRenderer::set_numSlices(int slices)
+{
+	shader.set_stepSize(1.0f / slices, 1.0f / slices, 1.0f / slices);
 }
 
 void VolumeRaycastRenderer::setChannel(Volume* volume)

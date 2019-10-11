@@ -13,109 +13,53 @@ float ambient[] = { 0.5f, 0.5f, 0.5f, 1.0f };
 float diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
 
 VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(argc, argv), m_grab{ false }
-, m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_texture_loaded{ false }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }, m_shader_modifiers{false}
-, m_clipping{ false }, m_animated(false), m_framerepeat{ 60 }, m_framecounter{ 0 }, m_tune{ false }
+, m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }
+, m_clipping{ false }, m_animated(false), m_framerepeat{ 60 }, m_framecounter{ 0 }, m_slices(512), m_rendermethod{1}
 {
 	int argc_int = this->getLeftoverArgc();
 	char** argv_int = this->getLeftoverArgv();
 
-	if (argc_int < 2){
-		std::cerr << "You need to provide a dataset to load" << std::endl;
-		exit(EXIT_FAILURE);
-	} else
-	{
-		std::cerr << "Loading " << argv_int[1] << std::endl;
-	}
+	
+	if (argc_int >= 2) {
+		std::ifstream inFile;
+		inFile.open(argv_int[1]);
 
-	std::ifstream inFile;
-	inFile.open(argv_int[1]);
+		std::string line;
 
-	std::string line;
+		while (getline(inFile, line)) {
+			if (line[0] != '#') {
+				std::vector<std::string> vals; // Create vector to hold our words
+				std::stringstream ss(line);
+				std::string buf;
 
-	while (getline(inFile, line)) {
-		if (line[0] != '#'){
-			std::vector<std::string> vals; // Create vector to hold our words
-			std::stringstream ss(line);
-			std::string buf;
-
-			while (ss >> buf){
-				vals.push_back(buf);
-			}
-			if (vals.size() > 0){
-				if (vals[0] == "threshold")
-				{
-					m_threshold = std::stof(vals[1]);
+				while (ss >> buf) {
+					vals.push_back(buf);
 				}
-				else if (vals[0] == "multiplier")
-				{
-					m_multiplier = std::stof(vals[1]);
-				}
-				else if (vals[0] == "animated")
-				{
-					m_animated = true;
-				}
-				else if (vals[0] == "mesh")
-				{
-					std::cerr << "Load Mesh " << vals[1] << std::endl;
-					std::cerr << "for Volume " << vals[2] << std::endl;
-					m_models_volumeID.push_back(stoi(vals[2]) - 1);
-					m_models_filenames.push_back(vals[1]);
-					m_models_MV.push_back(glm::mat4());
-				}
-				else if (vals[0] == "volume")
-				{
-					std::cerr << "Load volume " << vals[1] << std::endl;
-					std::cerr << "Position " << vals[5] << " , " << vals[6] << " , " << vals[7] << std::endl;
-					std::cerr << "Resolution " << vals[2] << " , " << vals[3] << " , " << vals[4] << std::endl;
-
-					float t_res[3];
-					t_res[0] = stof(vals[2]);
-					t_res[1] = stof(vals[3]);
-					t_res[2] = stof(vals[4]);
-
-					m_volumes.push_back(LoadDataAction(vals[1], &t_res[0]).run());
-					m_volumes.back()->set_volume_position({ stof(vals[5]), stof(vals[6]), stof(vals[7]) });
-					m_volumes.back()->set_volume_scale({ 0.0, 0.0, 0.0 });
-					m_volumes.back()->set_volume_mv(glm::mat4());
-
-					m_volumes.back()->set_transfer_function(new TransferFunction());
-
-					if (vals.size() > 8)
+				if (vals.size() > 0) {
+					 if (vals[0] == "animated")
 					{
-						if (vals[8] == "raycast")
-						{
-							std::cerr << "Set RenderMethod raycast" << std::endl;
-							m_volumes.back()->set_render_type(RAYCAST_RENDERER);
-
-						} 
-						else if(vals[8] == "slice")
-						{
-							std::cerr << "Set RenderMethod slices" << std::endl;
-							m_volumes.back()->set_render_type(SLICE_RENDERER);
-						} 
-						else
-						{
-							std::cerr << "Could not interpret rendermethod, use slice or raycast. Using raycast as default." << std::endl;
-							m_volumes.back()->set_render_type(RAYCAST_RENDERER);
-						}
+						m_animated = true;
 					}
-					else
+					if (vals[0] == "mesh")
 					{
-						std::cerr << "No RenderMethod defined, using raycast." << std::endl;
-						m_volumes.back()->set_render_type(RAYCAST_RENDERER);
+						std::cerr << "Load Mesh " << vals[1] << std::endl;
+						std::cerr << "for Volume " << vals[2] << std::endl;
+						m_models_volumeID.push_back(stoi(vals[2]) - 1);
+						m_models_filenames.push_back(vals[1]);
+						m_models_MV.push_back(glm::mat4());
 					}
-
-					if (vals.size() > 9)
+					else if (vals[0] == "volume")
 					{
-						std::cerr << "Set render channel to " << vals[9] << std::endl;
-						m_volumes.back()->set_render_channel(std::stoi(vals[9]));
+						promises.push_back(new promise<Volume*>);
+						futures.push_back(promises.back()->get_future());
+						threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
 					}
 				}
 			}
 		}
+
+		inFile.close();
 	}
-	
-	inFile.close();
 
 	m_object_pose = glm::mat4(1.0f);
 
@@ -128,6 +72,56 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 	m_renders.push_back(new VolumeRaycastRenderer());
 
 	std::cerr << " Done loading" << std::endl;
+
+	m_menu_handler = new VRMenuHandler();
+	VRMenu * menu = m_menu_handler->addNewMenu(std::bind(&VolumeVisualizationApp::ui_callback, this), 1024, 1024, 1, 1);
+	menu->setMenuPose(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 2, -1, 1));
+
+	fileDialog.SetTitle("load data");
+	fileDialog.SetTypeFilters({ ".txt"});
+}
+
+void VolumeVisualizationApp::loadVolume(std::vector<std::string> vals, promise<Volume*>* promise)
+{
+	std::cerr << "Load volume " << vals[1] << std::endl;
+	std::cerr << "Position " << vals[5] << " , " << vals[6] << " , " << vals[7] << std::endl;
+	std::cerr << "Resolution " << vals[2] << " , " << vals[3] << " , " << vals[4] << std::endl;
+
+	float t_res[3];
+	t_res[0] = stof(vals[2]);
+	t_res[1] = stof(vals[3]);
+	t_res[2] = stof(vals[4]);
+
+	Volume* volume = LoadDataAction(vals[1], &t_res[0]).run();
+
+	volume->set_volume_position({ stof(vals[5]), stof(vals[6]), stof(vals[7]) });
+	volume->set_volume_scale({ 0.0, 0.0, 0.0 });
+	volume->set_volume_mv(glm::mat4());
+
+	if (vals.size() > 9)
+	{
+		std::cerr << "Set render channel to " << vals[9] << std::endl;
+		volume->set_render_channel(std::stoi(vals[9]));
+	}
+	promise->set_value(volume);;
+}
+
+void VolumeVisualizationApp::addLodadedTextures()
+{
+	int end = threads.size() - 1;
+	for(int i = end; i >=0 ;i--)
+	{
+		if (futures[i]._Is_ready())
+		{
+			m_volumes.push_back(futures[i].get());
+			futures.erase(futures.begin() + i);
+			threads[i]->join();
+			delete threads[i];
+			delete promises[i];	
+			threads.erase(threads.begin() + i);
+			promises.erase(promises.begin() + i);
+		}
+	}
 }
 
 VolumeVisualizationApp::~VolumeVisualizationApp()
@@ -138,139 +132,150 @@ VolumeVisualizationApp::~VolumeVisualizationApp()
 	m_volumes.clear();
 }
 
+void VolumeVisualizationApp::ui_callback()
+{
+	ImGui::Begin("dummy window");
+	ImGui::SliderFloat("alpha multiplier", &m_multiplier, 0.0f, 1.0f, "%.3f");
+	ImGui::SliderFloat("threshold", &m_threshold, 0.0f, 1.0f, "%.3f");
+	ImGui::SliderFloat("scale", &m_scale, 0.0f, 5.0f, "%.3f");
+	ImGui::SliderInt("Slices", &m_slices, 10, 1024, "%d");
+	
+	// open file dialog when user clicks this button
+	if (ImGui::Button("load file"))
+		fileDialog.Open();
+
+	fileDialog.Display();
+	
+	if (fileDialog.HasSelected())
+	{
+		std::ifstream inFile;
+		inFile.open(fileDialog.GetSelected().string());
+		fileDialog.ClearSelected();
+		std::string line;
+
+		while (getline(inFile, line)) {
+			if (line[0] != '#') {
+				std::vector<std::string> vals; // Create vector to hold our words
+				std::stringstream ss(line);
+				std::string buf;
+
+				while (ss >> buf) {
+					vals.push_back(buf);
+				}
+				if (vals.size() > 0) {
+					if (vals[0] == "volume")
+					{
+						promises.push_back(new promise<Volume*>);
+						futures.push_back(promises.back()->get_future());
+						threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
+					}
+				}
+			}
+		}
+
+		inFile.close();
+		
+	}
+	const char* items[] = { "sliced" , "raycast" };
+	ImGui::Combo("RenderMethod",&m_rendermethod,items, IM_ARRAYSIZE(items));
+	tfn_widget.draw_ui();
+	ImGui::End();
+}
+
 void VolumeVisualizationApp::initTexture()
 {
+	addLodadedTextures();
 	for (int i = 0; i < m_volumes.size(); i++){
-		std::cerr << "Init Texture " << i << std::endl;
 		m_volumes[i]->initGL();
 	}
 
-	m_texture_loaded = true;
-	std::cerr << "End Update Textures" << std::endl;
 }
 
 void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event) {
-    // This routine is called for all Analog_Change events.  Check event->getName()
-    // to see exactly which analog input has been changed, and then access the
-    // new value with event->getValue().
-	//std::cerr <<"onAnalogChange " << event.getName() << std::endl;
-	if (event.getName() == "HTC_Controller_Right_Joystick2_Y" || event.getName() == "HTC_Controller_1_Joystick2_Y" 
-		|| event.getName() == "HTC_Controller_Right_TrackPad0_Y" || event.getName() == "HTC_Controller_1_TrackPad0_Y"
-			)
-	{
-		if (event.getValue() > 0.5) {
-			if (m_shader_modifiers)
-			{
-				if (m_tune){
-					m_multiplier += 0.01;
-					std::cerr << "multiplier " << m_multiplier << std::endl;
-				}
-			}
-			else{
-				m_scale += 0.01;
-				std::cerr << "scale " << m_scale << std::endl;
-			}
-		} 
-		else if(event.getValue() < -0.5)
-		{
-			if (m_shader_modifiers)
-			{
-				if (m_tune){
-					m_multiplier -= 0.01;
-					m_multiplier = (m_multiplier < 0) ? 0.0f : m_multiplier;
-					std::cerr << "multiplier " << m_multiplier << std::endl;
-				}
-			}
-			else{
-				m_scale -= 0.01;
-				m_scale = (m_scale < 0) ? 0.0f : m_scale;
-				std::cerr << "scale " << m_scale << std::endl;
-			}
-		}
-	}
-	if (m_tune){
-		if (event.getName() == "HTC_Controller_Right_Joystick2_X" || event.getName() == "HTC_Controller_1_Joystick2_X"
-			|| event.getName() == "HTC_Controller_Right_TrackPad0_X" || event.getName() == "HTC_Controller_1_TrackPad0_X"
-			)
-		{
-			if (event.getValue() > 0.5) {
-				if (m_shader_modifiers)
-				{
-					m_threshold += 0.001;
-					m_threshold = (m_threshold > 1.0f) ? 1.0f : m_threshold;
-					std::cerr << "th0eshold " << m_threshold << std::endl;
-				}
-			}
-			else if (event.getValue() < -0.5)
-			{
-				if (m_shader_modifiers)
-				{
-					m_threshold -= 0.001;
-					m_threshold = (m_threshold < 0) ? 0.0f : m_threshold;
-					std::cerr << "threshold " << m_threshold << std::endl;
-				}
-			}
-		}
+	if (m_menu_handler->windowIsActive()) {
+		if (event.getName() == "HTC_Controller_Right_TrackPad0_Y" || event.getName() == "HTC_Controller_1_TrackPad0_Y")
+			m_menu_handler->setAnalogValue(event.getValue());
 	}
 }
 
 
 void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
-    // This routine is called for all Button_Down events.  Check event->getName()
-    // to see exactly which button has been pressed down.
-	//std::cerr << "onButtonDown " << event.getName() << std::endl;
-	if (event.getName() == "KbdEsc_Down")
-	{
-		exit(0);
+	if (m_menu_handler->windowIsActive()) {
+		if (event.getName() == "HTC_Controller_Right_Axis1Button_Down" || event.getName() == "HTC_Controller_1_Axis1Button_Down")
+		{
+			//left click
+			m_menu_handler->setButtonClick(0, 1);
+		}
+		else if (event.getName() == "HTC_Controller_Right_GripButton_Down" || event.getName() == "HTC_Controller_1_GripButton_Down")
+		{
+			//middle click
+			m_menu_handler->setButtonClick(2, 1);
+		}
+		//else if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
+		else if (event.getName() == "HTC_Controller_Right_Axis0Button_Down" || event.getName() == "HTC_Controller_1_Axis0Button_Down")
+		{
+			//right click
+			m_menu_handler->setButtonClick(1, 1);
+		}
 	}
-	else if (event.getName() == "KbdA_Down")
-	{
-		m_animated = !m_animated;
-		if (m_animated)
-			std::cerr << "Animation ON" << std::endl;
-		else
-			std::cerr << "Animation OFF" << std::endl;
-	}
-	else if (event.getName() == "KbdT_Down")
-	{
-		m_tune = !m_tune;
-		if (m_tune)
-			std::cerr << "Tuning ON" << std::endl;
-		else
-			std::cerr << "Tuning OFF" << std::endl;
-	}
-	else if (event.getName() == "HTC_Controller_Right_Axis1Button_Down" || event.getName() == "HTC_Controller_1_Axis1Button_Down")
-	{
-		m_grab = true;
-		std::cerr << "Grab ON" << std::endl;		
-	}
-	else if (event.getName() == "HTC_Controller_Right_GripButton_Down" || event.getName() == "HTC_Controller_1_GripButton_Down")
-	{
-		m_shader_modifiers = true;
-		std::cerr << "Modifier tuning ON" << std::endl;
-	}
-	//else if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
-	else if (event.getName() == "HTC_Controller_Right_Axis0Button_Down" || event.getName() == "HTC_Controller_1_Axis0Button_Down")
-	{
-		m_clipping = true;
-		std::cerr << "Clipping ON" << std::endl;
+	else {
+		// This routine is called for all Button_Down events.  Check event->getName()
+		// to see exactly which button has been pressed down.
+		//std::cerr << "onButtonDown " << event.getName() << std::endl;
+		if (event.getName() == "KbdEsc_Down")
+		{
+			exit(0);
+		}
+		else if (event.getName() == "KbdA_Down")
+		{
+			m_animated = !m_animated;
+			if (m_animated)
+				std::cerr << "Animation ON" << std::endl;
+			else
+				std::cerr << "Animation OFF" << std::endl;
+		}
+		else if (event.getName() == "HTC_Controller_Right_Axis1Button_Down" || event.getName() == "HTC_Controller_1_Axis1Button_Down")
+		{
+			m_grab = true;
+			std::cerr << "Grab ON" << std::endl;
+		}
+		//else if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
+		else if (event.getName() == "HTC_Controller_Right_Axis0Button_Down" || event.getName() == "HTC_Controller_1_Axis0Button_Down")
+		{
+			m_clipping = true;
+			std::cerr << "Clipping ON" << std::endl;
+		}
 	}
 }
 
 
 void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
-    // This routine is called for all Button_Up events.  Check event->getName()
-    // to see exactly which button has been released.
+	
+	if (event.getName() == "HTC_Controller_Right_Axis1Button_Up" || event.getName() == "HTC_Controller_1_Axis1Button_Up")
+	{
+		//left click
+		m_menu_handler->setButtonClick(0, 0);
+
+	}
+	else if (event.getName() == "HTC_Controller_Right_GripButton_Up" || event.getName() == "HTC_Controller_1_GripButton_Up")
+	{
+		//middle click
+		m_menu_handler->setButtonClick(2, 0);
+	}
+	//else if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
+	else if (event.getName() == "HTC_Controller_Right_Axis0Button_Up" || event.getName() == "HTC_Controller_1_Axis0Button_Up")
+	{
+		//right click
+		m_menu_handler->setButtonClick(1, 0);
+	}
+
+	// This routine is called for all Button_Up events.  Check event->getName()
+	// to see exactly which button has been released.
 	//std::cerr << "onButtonUp " << event.getName() << std::endl;
 	if (event.getName() == "HTC_Controller_Right_Axis1Button_Up" || event.getName() == "HTC_Controller_1_Axis1Button_Up")
 	{
 		m_grab = false;
 		std::cerr << "Grab OFF" << std::endl;
-	}
-	else if (event.getName() == "HTC_Controller_Right_GripButton_Up" || event.getName() == "HTC_Controller_1_GripButton_Up")
-	{
-		m_shader_modifiers = false;
-		std::cerr << "Modifier tuning OFF" << std::endl;
 	}
 	//else if (event.getName() == "HTC_Controller_Right_AButton_Up" || event.getName() == "HTC_Controller_1_AButton_Up")
 	else if (event.getName() == "HTC_Controller_Right_Axis0Button_Up" || event.getName() == "HTC_Controller_1_Axis0Button_Up")
@@ -278,16 +283,18 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 		m_clipping = false;
 		std::cerr << "Clipping OFF" << std::endl;
 	}
+	
 }
 
 
 void VolumeVisualizationApp::onTrackerMove(const VRTrackerEvent &event) {
-    // This routine is called for all Tracker_Move events.  Check event->getName()
+	if (event.getName() == "HTC_Controller_Right_Move" || event.getName() == "HTC_Controller_1_Move") {
+		m_menu_handler->setControllerPose(glm::make_mat4(event.getTransform()));
+	}
+
+	// This routine is called for all Tracker_Move events.  Check event->getName()
     // to see exactly which tracker has moved, and then access the tracker's new
     // 4x4 transformation matrix with event->getTransform().
-
-	//std::cerr << "onTrackerMove " << event.getName() << std::endl;
-	//HTC_Controller_Left_Move + HTC_Controller_Right_Move
 	if (event.getName() == "HTC_Controller_Right_Move" || event.getName() == "HTC_Controller_1_Move") {
 		glm::mat4 new_pose = glm::make_mat4(event.getTransform());
 		if (m_grab) {
@@ -313,6 +320,7 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
     // rendering process.  So, this is the place to initialize textures,
     // load models, or do other operations that you only want to do once per
     // frame when in stereo mode.
+    
     if (renderState.isInitialRenderCall()) {
 	
        #ifndef __APPLE__
@@ -334,15 +342,6 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 		glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, true);
 		glEnable(GL_COLOR_MATERIAL);
 		glEnable(GL_NORMALIZE);
-		for (std::string filename : m_models_filenames){
-			std::cerr << "Generate DisplayList " << filename  << std::endl;
-			GLMmodel* pmodel = glmReadOBJ((char*) filename.c_str());
-			glmFacetNormals(pmodel);
-			glmVertexNormals(pmodel, 90.0);
-			glColor4f(1.0, 1.0, 1.0,1.0);
-			m_models_displayLists.push_back(glmList(pmodel, GLM_SMOOTH));
-			glmDelete(pmodel);
-		}
         glEnable(GL_DEPTH_TEST);
         glClearDepth(1.0f);
         glDepthFunc(GL_LEQUAL);
@@ -352,14 +351,25 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 	glLoadIdentity();
 	glLightfv(GL_LIGHT0, GL_POSITION, m_light_pos);
 
-	if (!m_texture_loaded)
-		initTexture();
+	for (std::string filename : m_models_filenames) {
+		std::cerr << "Generate DisplayList " << filename << std::endl;
+		GLMmodel* pmodel = glmReadOBJ((char*)filename.c_str());
+		glmFacetNormals(pmodel);
+		glmVertexNormals(pmodel, 90.0);
+		glColor4f(1.0, 1.0, 1.0, 1.0);
+		m_models_displayLists.push_back(glmList(pmodel, GLM_SMOOTH));
+		glmDelete(pmodel);
+	}
+	
+	initTexture();
 
 	if (m_animated)
 	{
 		m_framecounter++;
 	}
 	rendercount = 0;
+
+	m_menu_handler->renderToTexture();
 }
 
 
@@ -413,35 +423,41 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 		glLoadMatrixf(glm::value_ptr(m_models_MV[i]));
 		glCallList(m_models_displayLists[i]);
 	}
+
+	//render menu
+	glMatrixMode(GL_MODELVIEW);
+	glLoadMatrixf(renderState.getViewMatrix());
+	m_menu_handler->drawMenu();
 	
 	m_depthTextures[rendercount]->copyDepthbuffer();
 	(static_cast <VolumeRaycastRenderer*> (m_renders[1]))->setDepthTexture(m_depthTextures[rendercount]);
 
 	//render volumes
-	if (m_texture_loaded){
-		for (auto ren : m_renders){
-			ren->set_multiplier(m_multiplier);
-			ren->set_threshold(m_threshold);
+	for (auto ren : m_renders){
+		ren->set_multiplier(m_multiplier);
+		ren->set_threshold(m_threshold);
+		ren->set_numSlices(m_slices);
+	}
+	
+	if (m_animated)
+	{
+		unsigned int active_volume = (m_framecounter / m_framerepeat) % m_volumes.size();
+		if(m_volumes[active_volume]->texture_initialized())
+			m_renders[m_rendermethod]->render(m_volumes[active_volume], m_volumes[active_volume]->get_volume_mv(), P, m_volumes[active_volume]->get_volume_scale().x / m_volumes[active_volume]->get_volume_scale().z, tfn_widget.get_colormap_gpu());
+	}
+	else {
+		//check order
+		std::vector<std::pair< float, int> > order;
+		for (int i = 0; i < m_volumes.size(); i++) {
+			glm::vec4 center = m_volumes[i]->get_volume_mv() * glm::vec4(0, 0, 0, 1);
+			float l = glm::length(center);
+			order.push_back(std::make_pair(l, i));
 		}
-		
-		if (m_animated)
-		{
-			unsigned int active_volume = (m_framecounter / m_framerepeat) % m_volumes.size();
-			m_renders[m_volumes[active_volume]->render_type()]->render(m_volumes[active_volume], m_volumes[active_volume]->get_volume_mv(), P, m_volumes[active_volume]->get_volume_scale().x / m_volumes[active_volume]->get_volume_scale().z);
-		}
-		else{
-			//check order
-			std::vector<std::pair< float, int> > order;
-			for (int i = 0; i < m_volumes.size(); i++){
-				glm::vec4 center = m_volumes[i]->get_volume_mv() * glm::vec4(0, 0, 0, 1);
-				float l = glm::length(center);
-				order.push_back(std::make_pair(l, i));
-			}
-			std::sort(order.begin(), order.end());
+		std::sort(order.begin(), order.end());
 
-			for (int i = order.size() - 1; i >= 0; i--){
-				m_renders[m_volumes[order[i].second]->render_type()]->render(m_volumes[order[i].second], m_volumes[order[i].second]->get_volume_mv(), P, m_volumes[order[i].second]->get_volume_scale().x / m_volumes[order[i].second]->get_volume_scale().z);
-			}
+		for (int i = order.size() - 1; i >= 0; i--) {
+			if (m_volumes[order[i].second]->texture_initialized())
+				m_renders[m_rendermethod]->render(m_volumes[order[i].second], m_volumes[order[i].second]->get_volume_mv(), P, m_volumes[order[i].second]->get_volume_scale().x / m_volumes[order[i].second]->get_volume_scale().z, tfn_widget.get_colormap_gpu());
 		}
 	}
 

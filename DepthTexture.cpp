@@ -51,7 +51,7 @@ void DepthTexture::copyDepthbuffer()
 	glBindTexture(GL_TEXTURE_2D, m_depth_texture);
 	glReadBuffer(m_pDrawBuffer);
 
-	//Does not work for multisample framebuffer
+	//TODO: Does not work for multisample framebuffer
 	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 0, 0, m_width, m_height, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 

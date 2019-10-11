@@ -48,18 +48,11 @@
 
 #include <cmath>
 #include <glm/gtc/matrix_transform.hpp>
-#include "TransferFunction.h"
 struct pt
 {
 	float x;
 	float y;
 	float z;
-};
-
-enum RenderType
-{
-	SLICE_RENDERER,
-	RAYCAST_RENDERER
 };
 
 	class Volume
@@ -150,16 +143,6 @@ enum RenderType
 			return data;
 		}
 
-		const RenderType& render_type() const
-		{
-			return m_renderType;
-		}
-
-		void set_render_type(const RenderType render)
-		{
-			m_renderType = render;
-		}
-
 		const int& render_channel() const
 		{
 			return m_render_channel;
@@ -170,18 +153,12 @@ enum RenderType
 			m_render_channel = render_channel;
 		}
 
-		void set_transfer_function(TransferFunction * transfer_function)
-		{
-			m_transfer_function = transfer_function;
-		}
-
-		TransferFunction * transfer_function() const
-		{
-			return m_transfer_function;
-		}
-
 		void initGL();
-		
+
+		bool& texture_initialized()
+		{
+			return m_texture_initialized;
+		}
 
 	private:
 		unsigned int m_width;
@@ -194,6 +171,7 @@ enum RenderType
 		double m_y_scale;
 		double m_z_scale;
 
+		bool m_texture_initialized;
 		unsigned int m_texture_id;
 
 		pt m_volume_position;
@@ -204,10 +182,7 @@ enum RenderType
 		unsigned int m_datatypesize;
 		unsigned char * data;
 
-		RenderType m_renderType;
 		int m_render_channel;
-
-		TransferFunction *m_transfer_function;
 	};
 
 #endif // VOLUME_H

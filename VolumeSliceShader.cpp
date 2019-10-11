@@ -63,7 +63,7 @@ VolumeSliceShader::VolumeSliceShader() : m_threshold{ 0.0f }, m_multiplier{ 0.5 
 		"uniform float threshold;\n"
 		"uniform float multiplier;\n"
 		"uniform int channel;\n"
-		"uniform sampler1D lut;\n"					//transferfunction
+		"uniform sampler2D lut;\n"					//transferfunction
 		"uniform bool useLut;\n"
 		"void main()\n"
 		"{\n"
@@ -91,14 +91,14 @@ VolumeSliceShader::VolumeSliceShader() : m_threshold{ 0.0f }, m_multiplier{ 0.5 
 				"c_out.a = max(c_out.r, max(c_out.g,c_out.b)) ; "
 			"}"
 
-			"if(useLut) \n"
-				"c_out = texture(lut, c_out.a);"
-
 			"c_out.a = (c_out.a > threshold) ? c_out.a : 0.0f ;\n"
-			"c_out.a = pow(c_out.a,multiplier) ; "
 
-			//"c_out.rgb = c_out.rgb * multiplier;\n"
-		
+	
+			"if(useLut) \n"
+				"c_out = texture(lut,  vec2(c_out.a,0.5) );"
+
+			"c_out.a = c_out.a * multiplier; "
+
 			//remove fragments for correct depthbuffer
 			"if (c_out.a == 0.0f)"
 				"discard;"

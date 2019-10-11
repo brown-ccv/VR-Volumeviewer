@@ -34,7 +34,7 @@
 
 Volume::Volume(unsigned int width, unsigned int height, unsigned int depth, double x_scale, double y_scale, double z_scale, unsigned int datatypesize, unsigned int channel)
 	: m_width{ width }, m_height{ height }, m_depth{ depth }, m_channels{ channel }, m_datatypesize{ datatypesize }, m_texture_id{ 0 }
-	, m_x_scale{ x_scale }, m_y_scale{ y_scale }, m_z_scale{ z_scale }, m_renderType(RAYCAST_RENDERER), m_render_channel(-1), m_transfer_function(nullptr)
+	, m_x_scale{ x_scale }, m_y_scale{ y_scale }, m_z_scale{ z_scale }, m_render_channel(-1), m_texture_initialized(false)
 {
 	data = new unsigned char[m_width*m_height*m_depth * m_channels * m_datatypesize]();
 }
@@ -43,13 +43,13 @@ Volume::~Volume()
 {
 	if (get_texture_id() != 0)
 		glDeleteTextures(1, &get_texture_id());
-
-	if (m_transfer_function != nullptr)
-		delete m_transfer_function;
 }
 
 void Volume::initGL()
 {
+	if (m_texture_initialized)
+		return;
+	
 	if (get_texture_id() != 0)
 		glDeleteTextures(1, &get_texture_id());
 
@@ -101,14 +101,13 @@ void Volume::initGL()
 
 	glGenerateMipmap(GL_TEXTURE_3D);
 	set_volume_scale({
-		1.0f / (get_x_scale() * get_width()),
-		1.0f / (get_y_scale() * get_height()),
-		1.0f / (get_z_scale() * get_depth())
+		static_cast<float>(1.0f / (get_x_scale() * get_width())),
+		static_cast<float>(1.0f / (get_y_scale() * get_height())),
+		static_cast<float>(1.0f / (get_z_scale() * get_depth()))
 	});
 
 	delete[] data;
 
-	if (transfer_function())
-		transfer_function()->initGL();
+	m_texture_initialized = true;
 	
 }

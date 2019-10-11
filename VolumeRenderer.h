@@ -39,10 +39,12 @@ class VolumeRenderer
 		virtual ~VolumeRenderer(){};
 
 		virtual void initGL() = 0;
-		virtual void render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale) = 0;
+		virtual void render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale, GLint colorma) = 0;
 
 		virtual void set_threshold(float threshold) = 0;
 		virtual void set_multiplier(float multiplier) = 0;
+		virtual void set_numSlices(int slices) = 0;
+	
 		void setClipping(bool isClipping, glm::mat4 * clipPlane)
 		{
 			m_clipping = isClipping;

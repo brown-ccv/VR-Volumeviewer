@@ -84,7 +84,7 @@ VolumeRaycastShader::VolumeRaycastShader() //: m_threshold{ 0.0f }, m_multiplier
 		"uniform vec3 step_size;\n"					//ray step size
 		"const int MAX_SAMPLES = 3000;\n"				//total samples for each ray march step
 		"uniform int channel;\n"
-		"uniform sampler1D lut;\n"					//transferfunction
+		"uniform sampler2D lut;\n"					//transferfunction
 		"uniform bool useLut;\n"
 		"uniform sampler2D depth;\n"
 		"uniform vec2 viewport;\n"
@@ -147,13 +147,15 @@ VolumeRaycastShader::VolumeRaycastShader() //: m_threshold{ 0.0f }, m_multiplier
 		"d_ndc = P_inv * d_ndc; \n "
 		"d_ndc = d_ndc / d_ndc.w; \n"
 
+		"float dt = min(step_size.x, min(step_size.y, step_size.z)) ;\n"
 		//compute t_occ and check if it closer than the exit point
-		"float t_occ = length(d_ndc.xyz - (dataPos - vec3(0.5))); \n"
+		"float t_occ = ((d_ndc.x + 0.5) - dataPos.x) / geomDir.x; \n"
 		"t_hit.y = min(t_hit.y, t_occ); \n"
 
-		//compute step size as the minimum of the stepsize
-		"float dt = min(step_size.x, min(step_size.y, step_size.z)) ;\n"
-
+		//first value should always be lower by definition and this case should never occur. If it does discard the fragment.
+		"if (t_hit.x > t_hit.y) \n"
+		"discard; \n"
+	
 		// Step 4: Starting from the entry point, march the ray through the volume
 		// and sample it
 		"dataPos = dataPos + t_hit.x * geomDir; \n"
@@ -175,15 +177,17 @@ VolumeRaycastShader::VolumeRaycastShader() //: m_threshold{ 0.0f }, m_multiplier
 					"sample.a = max(sample.r, max(sample.g,sample.b)) ; "
 				"}"
 
+				
+				//threshold based on alpha
+				"if (sample.a < threshold) continue;\n"
+
 				"if(useLut) \n"
-					"sample = texture(lut, sample.a);"
+					"sample = texture(lut, vec2(sample.a,0.5));"
 				
 				//assume alpha is the highest channel and gamma correction
-				//"sample.a = pow(sample.a , multiplier); \n"  ///needs changing
+				"sample.a = sample.a * multiplier; \n"  ///needs changing
 
-				//threshold based on alpha
-				//"if (sample.a < threshold) continue;\n"
-
+				
 				//blending (front to back)
 				"vFragColor.rgb += (1.0 - vFragColor.a) * sample.a * sample.rgb;\n"
 				"vFragColor.a += (1.0 - vFragColor.a) * sample.a;\n"

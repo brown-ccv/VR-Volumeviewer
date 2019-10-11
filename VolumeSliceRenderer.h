@@ -59,11 +59,12 @@ class VolumeSliceRenderer : public  VolumeRenderer
 		~VolumeSliceRenderer();
 
 		virtual void initGL() override;
-		virtual void render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale) override;
+		virtual void render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale, GLint colormap) override;
 
 		virtual void set_threshold(float threshold) override;
 		virtual void set_multiplier(float multiplier) override;
-
+		virtual void set_numSlices(int slices) override;
+	
 	private:
 		//function to get the max (abs) dimension of the given vertex v
 		int FindAbsMax(glm::vec3 v);
@@ -79,7 +80,7 @@ class VolumeSliceRenderer : public  VolumeRenderer
 		static const int edges[12][2];
 
 		//sliced vertices
-		static const int MAX_SLICES = 256;
+		static const int MAX_SLICES = 1024;
 		glm::vec3 vTextureSlices[MAX_SLICES * 12];
 
 		//total number of slices current used

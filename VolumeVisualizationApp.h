@@ -2,12 +2,17 @@
 #define VOLUMEVISUALIZATIONAPP_H
 
 #include "GL/glew.h"
-
+#include "VRMenuHandler.h"
+#include "transferfunction/transfer_function_widget.h"
+#include "imfilebrowser.h"
 #include <api/MinVR.h>
 #include "FrameBufferObject.h"
 #include "Volume.h"
 #include "VolumeRaycastRenderer.h"
 #include "DepthTexture.h"
+#include <future>
+
+
 using namespace MinVR;
 
 #include <vector>
@@ -40,7 +45,9 @@ public:
     virtual ~VolumeVisualizationApp();
  
     /** USER INTERFACE CALLBACKS **/
-    
+
+	void ui_callback();
+	
     virtual void onAnalogChange(const VRAnalogEvent &state);
     
     virtual void onButtonDown(const VRButtonEvent &state);
@@ -54,11 +61,12 @@ public:
     virtual void onRenderGraphicsScene(const VRGraphicsState& state);
     
     virtual void onRenderGraphicsContext(const VRGraphicsState& state);
-      
-private:
-	void initTexture();
 
-	bool m_texture_loaded;
+	void loadVolume(std::vector<std::string> vals, promise<Volume*>* promise);
+	
+private:
+	void addLodadedTextures();
+	void initTexture();
 
 	int width;
 	int height;
@@ -67,12 +75,11 @@ private:
 	glm::mat4 MV;
 
 	float m_scale;
-
+	int m_slices;
+	
 	bool m_grab;
-	bool m_shader_modifiers;
 	bool m_clipping;
 	bool m_animated;
-	bool m_tune;
 
 	unsigned int m_framerepeat;
 	unsigned int m_framecounter;
@@ -94,10 +101,21 @@ private:
 	
 	float m_multiplier;
 	float m_threshold;
-
+	int m_rendermethod;
+	
 	std::vector <VolumeRenderer*> m_renders;
 	std::vector <DepthTexture*> m_depthTextures;
 	unsigned int rendercount;
+
+	VRMenuHandler* m_menu_handler;
+
+	TransferFunctionWidget tfn_widget;
+	ImGui::FileBrowser fileDialog;
+	
+	std::vector <promise<Volume*> * > promises;
+	std::vector <future<Volume*>> futures;
+	std::vector <std::thread *> threads;
+
 };
 
 
