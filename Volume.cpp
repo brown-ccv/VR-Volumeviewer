@@ -31,10 +31,11 @@
 #endif
 
 #include "Volume.h"
+#include <iostream>
 
 Volume::Volume(unsigned int width, unsigned int height, unsigned int depth, double x_scale, double y_scale, double z_scale, unsigned int datatypesize, unsigned int channel)
 	: m_width{ width }, m_height{ height }, m_depth{ depth }, m_channels{ channel }, m_datatypesize{ datatypesize }, m_texture_id{ 0 }
-	, m_x_scale{ x_scale }, m_y_scale{ y_scale }, m_z_scale{ z_scale }, m_render_channel(-1), m_texture_initialized(false)
+	, m_x_scale{ x_scale }, m_y_scale{ y_scale }, m_z_scale{ z_scale }, m_render_channel(-1), m_texture_initialized(false), m_pbo_upload_started{false}
 {
 	data = new unsigned char[m_width*m_height*m_depth * m_channels * m_datatypesize]();
 }
@@ -45,11 +46,53 @@ Volume::~Volume()
 		glDeleteTextures(1, &get_texture_id());
 }
 
+void updatePixels(GLubyte* dst, int size)
+{
+	GLubyte color = 0;
+
+	if (!dst)
+		return;
+
+	GLubyte* ptr = (GLubyte*)dst;
+
+	// copy 4 bytes at once
+	for (int i = 0; i < size; ++i)
+	{
+		*ptr = color;
+		++ptr;
+		
+		color += 1;
+		if (color > 100) color = 1;
+	}
+}
+
+void Volume::uploadtoPBO()
+{
+	glGenBuffers(1, &m_pbo);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbo);
+	glBufferData(GL_PIXEL_UNPACK_BUFFER, get_depth()*get_width()*get_height() * get_channels() * m_datatypesize, 0, GL_STREAM_DRAW);
+	GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+	//updatePixels(ptr, get_depth() * get_width() * get_height());
+	memcpy(ptr, get_data(), get_depth() * get_width() * get_height() * get_channels() * m_datatypesize);
+	glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+	m_pbo_upload_started = true;
+	std::cerr << "upload " << get_depth() * get_width() * get_height()  << std::endl;
+}
+
+
 void Volume::initGL()
 {
 	if (m_texture_initialized)
 		return;
-	
+
+	if(!m_pbo_upload_started)
+	{
+		uploadtoPBO();
+		return;
+	}
+
+	std::cerr << "to texture" << std::endl;
 	if (get_texture_id() != 0)
 		glDeleteTextures(1, &get_texture_id());
 
@@ -68,37 +111,55 @@ void Volume::initGL()
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_BASE_LEVEL, 0);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, 0);
 
+	GLenum err;
+	while ((err = glGetError()) != GL_NO_ERROR) {
+		std::cerr << "before bind OpenGL error: " << err << std::endl;
+	}
+	
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbo);
+
+	while ((err = glGetError()) != GL_NO_ERROR) {
+		std::cerr << "After bind OpenGL error: " << err << std::endl;
+	}
+	
 	if (m_channels == 3){
 		if (m_datatypesize == 1){
-		glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_BYTE, get_data());
+			glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 		}
 		if (m_datatypesize == 2){
-			glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_SHORT, get_data());
+			glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_SHORT, NULL);
 		}
 	}
 	else if (m_channels == 4)
 	{
 		if (m_datatypesize == 1){
-			glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, get_width(), get_height(), get_depth(), 0, GL_RGBA, GL_UNSIGNED_BYTE, get_data());
+			glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, get_width(), get_height(), get_depth(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		}
 		if (m_datatypesize == 2){
-			glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, get_width(), get_height(), get_depth(), 0, GL_RGBA, GL_UNSIGNED_SHORT, get_data());
+			glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, get_width(), get_height(), get_depth(), 0, GL_RGBA, GL_UNSIGNED_SHORT, NULL);
 		}
 	}
 	else if (m_channels == 1)
 	{
 		if (m_datatypesize == 1){
-			glTexImage3D(GL_TEXTURE_3D, 0, GL_R, get_width(), get_height(), get_depth(), 0, GL_RED, GL_UNSIGNED_BYTE, get_data());
+			glTexImage3D(GL_TEXTURE_3D, 0, GL_R, get_width(), get_height(), get_depth(), 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
 		}
 		if (m_datatypesize == 2){
-			glTexImage3D(GL_TEXTURE_3D, 0, GL_R16, get_width(), get_height(), get_depth(), 0, GL_RED, GL_UNSIGNED_SHORT, get_data());
+			glTexImage3D(GL_TEXTURE_3D, 0, GL_R16, get_width(), get_height(), get_depth(), 0, GL_RED, GL_UNSIGNED_SHORT, NULL);
 		}
 		if (m_datatypesize == 4){
-			glTexImage3D(GL_TEXTURE_3D, 0, GL_R32F, get_width(), get_height(), get_depth(), 0, GL_RED, GL_FLOAT, get_data());
+			glTexImage3D(GL_TEXTURE_3D, 0, GL_R32F, get_width(), get_height(), get_depth(), 0, GL_RED, GL_FLOAT, NULL);
 		}
 	}
 
-
+	
+	while ((err = glGetError()) != GL_NO_ERROR) {
+		std::cerr << "After tex OpenGL error: " << err << std::endl;
+	}
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+	glDeleteBuffers(1, &m_pbo);
+	m_pbo_upload_started = false;
+	
 	glGenerateMipmap(GL_TEXTURE_3D);
 	set_volume_scale({
 		static_cast<float>(1.0f / (get_x_scale() * get_width())),

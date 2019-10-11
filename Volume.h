@@ -154,7 +154,8 @@ struct pt
 		}
 
 		void initGL();
-
+		void uploadtoPBO();
+		
 		bool& texture_initialized()
 		{
 			return m_texture_initialized;
@@ -178,7 +179,8 @@ struct pt
 		pt m_volume_scale;
 		glm::mat4 m_volume_MV;
 
-		
+		unsigned int m_pbo;
+		bool m_pbo_upload_started;
 		unsigned int m_datatypesize;
 		unsigned char * data;
 
