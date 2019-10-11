@@ -39,7 +39,7 @@ class VolumeRenderer
 		virtual ~VolumeRenderer(){};
 
 		virtual void initGL() = 0;
-		virtual void render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale, GLint colorma) = 0;
+		virtual void render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale, GLint colorma, int renderChannel) = 0;
 
 		virtual void set_threshold(float threshold) = 0;
 		virtual void set_multiplier(float multiplier) = 0;

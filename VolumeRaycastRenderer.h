@@ -58,7 +58,7 @@ class VolumeRaycastRenderer : public  VolumeRenderer
 		~VolumeRaycastRenderer();
 
 		virtual void initGL() override;
-		virtual void render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale, GLint colormap) override;
+		virtual void render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale, GLint colormap, int renderChannel) override;
 
 		virtual void set_threshold(float threshold) override;
 		virtual void set_multiplier(float multiplier) override;

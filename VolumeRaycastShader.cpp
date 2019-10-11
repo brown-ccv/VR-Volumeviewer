@@ -176,8 +176,7 @@ VolumeRaycastShader::VolumeRaycastShader() //: m_threshold{ 0.0f }, m_multiplier
 					"sample = texture(volume, dataPos); \n"
 					"sample.a = max(sample.r, max(sample.g,sample.b)) ; "
 				"}"
-
-				
+	
 				//threshold based on alpha
 				"if (sample.a < threshold) continue;\n"
 

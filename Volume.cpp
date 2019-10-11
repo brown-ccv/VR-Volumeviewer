@@ -77,7 +77,6 @@ void Volume::uploadtoPBO()
 	glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 	m_pbo_upload_started = true;
-	std::cerr << "upload " << get_depth() * get_width() * get_height()  << std::endl;
 }
 
 
@@ -92,7 +91,6 @@ void Volume::initGL()
 		return;
 	}
 
-	std::cerr << "to texture" << std::endl;
 	if (get_texture_id() != 0)
 		glDeleteTextures(1, &get_texture_id());
 
@@ -111,17 +109,8 @@ void Volume::initGL()
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_BASE_LEVEL, 0);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, 0);
 
-	GLenum err;
-	while ((err = glGetError()) != GL_NO_ERROR) {
-		std::cerr << "before bind OpenGL error: " << err << std::endl;
-	}
-	
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbo);
 
-	while ((err = glGetError()) != GL_NO_ERROR) {
-		std::cerr << "After bind OpenGL error: " << err << std::endl;
-	}
-	
 	if (m_channels == 3){
 		if (m_datatypesize == 1){
 			glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
@@ -152,10 +141,6 @@ void Volume::initGL()
 		}
 	}
 
-	
-	while ((err = glGetError()) != GL_NO_ERROR) {
-		std::cerr << "After tex OpenGL error: " << err << std::endl;
-	}
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 	glDeleteBuffers(1, &m_pbo);
 	m_pbo_upload_started = false;

@@ -102,6 +102,8 @@ private:
 	float m_multiplier;
 	float m_threshold;
 	int m_rendermethod;
+	int m_renderchannel;
+	bool m_use_transferfunction;
 	
 	std::vector <VolumeRenderer*> m_renders;
 	std::vector <DepthTexture*> m_depthTextures;
@@ -116,6 +118,11 @@ private:
 	std::vector <future<Volume*>> futures;
 	std::vector <std::thread *> threads;
 
+	std::chrono::steady_clock::time_point m_lastTime;
+	bool m_dynamic_slices;
+	float m_fps;
+	bool m_show_menu;
+	
 };
 
 

@@ -98,7 +98,7 @@ void VolumeSliceRenderer::initGL()
 	glBindVertexArray(0);
 }
 
-void VolumeSliceRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale, GLint colormap)
+void VolumeSliceRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale, GLint colormap, int renderChannel)
 {
 	glDepthMask(GL_FALSE);
 	glActiveTexture(GL_TEXTURE0 + 0);
@@ -145,8 +145,11 @@ void VolumeSliceRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat4 
 		shader.set_clipping(false);
 	}
 
-	setChannel(volume);
-
+	if(renderChannel == 0)
+		setChannel(volume);
+	else
+		shader.set_channel(renderChannel);
+	
 	//bind volume vertex array object
 	glBindVertexArray(volumeVAO);
 	//use the volume shader

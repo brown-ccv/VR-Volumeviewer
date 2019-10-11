@@ -97,7 +97,7 @@ void VolumeRaycastRenderer::initGL()
 	glBindVertexArray(0);
 }
 
-void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale, GLint colormap)
+void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale, GLint colormap, int renderChannel)
 {
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
@@ -148,7 +148,10 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat
 	camPos += glm::vec3(0.5f);
 	glm::mat4 P_inv = glm::inverse(MV_tmp) * glm::inverse(P);
 
-	setChannel(volume);
+	if (renderChannel == 0)
+		setChannel(volume);
+	else
+		shader.set_channel(renderChannel);
 
 	glBindVertexArray(cubeVAOID);
 	////use the volume shader

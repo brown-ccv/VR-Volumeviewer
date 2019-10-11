@@ -14,7 +14,7 @@ float diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
 
 VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(argc, argv), m_grab{ false }
 , m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }
-, m_clipping{ false }, m_animated(false), m_framerepeat{ 60 }, m_framecounter{ 0 }, m_slices(512), m_rendermethod{1}
+, m_clipping{ false }, m_animated(false), m_framerepeat{ 60 }, m_framecounter{ 0 }, m_slices(512), m_rendermethod{ 1 }, m_renderchannel{0} ,m_use_transferfunction{ false }, m_dynamic_slices{true}, m_show_menu{true}
 {
 	int argc_int = this->getLeftoverArgc();
 	char** argv_int = this->getLeftoverArgv();
@@ -134,18 +134,43 @@ VolumeVisualizationApp::~VolumeVisualizationApp()
 
 void VolumeVisualizationApp::ui_callback()
 {
-	ImGui::Begin("dummy window");
+
+	ImGui::Begin("Volumeviewer");
+	
+	// open file dialog when user clicks this button
+	if (ImGui::Button("load file", ImVec2(ImGui::GetWindowSize().x * 0.49f, 0.0f)))
+		fileDialog.Open();
+	ImGui::SameLine(ImGui::GetWindowSize().x * 0.5f,0);
+	if (ImGui::Button("Clear all", ImVec2(ImGui::GetWindowSize().x * 0.49f, 0.0f)))
+	{
+		for (int i = 0; i < m_volumes.size(); i++) {
+			delete m_volumes[i];
+		}
+		m_volumes.clear();
+	}
+
+	
 	ImGui::SliderFloat("alpha multiplier", &m_multiplier, 0.0f, 1.0f, "%.3f");
 	ImGui::SliderFloat("threshold", &m_threshold, 0.0f, 1.0f, "%.3f");
 	ImGui::SliderFloat("scale", &m_scale, 0.0f, 5.0f, "%.3f");
 	ImGui::SliderInt("Slices", &m_slices, 10, 1024, "%d");
+	ImGui::Checkbox("automatic slice adjustment", &m_dynamic_slices);
 	
-	// open file dialog when user clicks this button
-	if (ImGui::Button("load file"))
-		fileDialog.Open();
+	ImGui::SameLine(ImGui::GetWindowSize().x * 0.5f, 0);
+	ImGui::Text("FPS = %f",m_fps);
+	const char* items[] = { "sliced" , "raycast" };
+	ImGui::Combo("RenderMethod",&m_rendermethod,items, IM_ARRAYSIZE(items));
+	
+	const char* items_channel[] = { "based on data" , "red", "green" , "blue", "alpha", "rgba", "rgba with alpha as max rgb" };
+	ImGui::Combo("Render Channel", &m_renderchannel, items_channel, IM_ARRAYSIZE(items_channel));
+	
+	ImGui::Checkbox("use transferfunction", &m_use_transferfunction);
+	if(m_use_transferfunction)
+		tfn_widget.draw_ui();
 
+	//file loading
 	fileDialog.Display();
-	
+
 	if (fileDialog.HasSelected())
 	{
 		std::ifstream inFile;
@@ -174,11 +199,8 @@ void VolumeVisualizationApp::ui_callback()
 		}
 
 		inFile.close();
-		
 	}
-	const char* items[] = { "sliced" , "raycast" };
-	ImGui::Combo("RenderMethod",&m_rendermethod,items, IM_ARRAYSIZE(items));
-	tfn_widget.draw_ui();
+	
 	ImGui::End();
 }
 
@@ -192,7 +214,7 @@ void VolumeVisualizationApp::initTexture()
 }
 
 void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event) {
-	if (m_menu_handler->windowIsActive()) {
+	if (m_show_menu && m_menu_handler->windowIsActive()) {
 		if (event.getName() == "HTC_Controller_Right_TrackPad0_Y" || event.getName() == "HTC_Controller_1_TrackPad0_Y")
 			m_menu_handler->setAnalogValue(event.getValue());
 	}
@@ -200,7 +222,7 @@ void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event) {
 
 
 void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
-	if (m_menu_handler->windowIsActive()) {
+	if (m_show_menu && m_menu_handler->windowIsActive()) {
 		if (event.getName() == "HTC_Controller_Right_Axis1Button_Down" || event.getName() == "HTC_Controller_1_Axis1Button_Down")
 		{
 			//left click
@@ -237,59 +259,66 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 		else if (event.getName() == "HTC_Controller_Right_Axis1Button_Down" || event.getName() == "HTC_Controller_1_Axis1Button_Down")
 		{
 			m_grab = true;
-			std::cerr << "Grab ON" << std::endl;
+			//std::cerr << "Grab ON" << std::endl;
 		}
 		//else if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
 		else if (event.getName() == "HTC_Controller_Right_Axis0Button_Down" || event.getName() == "HTC_Controller_1_Axis0Button_Down")
 		{
 			m_clipping = true;
-			std::cerr << "Clipping ON" << std::endl;
+			//std::cerr << "Clipping ON" << std::endl;
+		}
+		else if (event.getName() == "HTC_Controller_Right_GripButton_Down" || event.getName() == "HTC_Controller_1_GripButton_Down")
+		{
+			m_show_menu = !m_show_menu;
 		}
 	}
 }
 
 
 void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
-	
-	if (event.getName() == "HTC_Controller_Right_Axis1Button_Up" || event.getName() == "HTC_Controller_1_Axis1Button_Up")
-	{
-		//left click
-		m_menu_handler->setButtonClick(0, 0);
 
-	}
-	else if (event.getName() == "HTC_Controller_Right_GripButton_Up" || event.getName() == "HTC_Controller_1_GripButton_Up")
-	{
-		//middle click
-		m_menu_handler->setButtonClick(2, 0);
-	}
-	//else if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
-	else if (event.getName() == "HTC_Controller_Right_Axis0Button_Up" || event.getName() == "HTC_Controller_1_Axis0Button_Up")
-	{
-		//right click
-		m_menu_handler->setButtonClick(1, 0);
-	}
+	if (m_show_menu) {
+		if (event.getName() == "HTC_Controller_Right_Axis1Button_Up" || event.getName() == "HTC_Controller_1_Axis1Button_Up")
+		{
+			//left click
+			m_menu_handler->setButtonClick(0, 0);
 
+		}
+		else if (event.getName() == "HTC_Controller_Right_GripButton_Up" || event.getName() == "HTC_Controller_1_GripButton_Up")
+		{
+			//middle click
+			m_menu_handler->setButtonClick(2, 0);
+		}
+		//else if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
+		else if (event.getName() == "HTC_Controller_Right_Axis0Button_Up" || event.getName() == "HTC_Controller_1_Axis0Button_Up")
+		{
+			//right click
+			m_menu_handler->setButtonClick(1, 0);
+		}
+	}
 	// This routine is called for all Button_Up events.  Check event->getName()
 	// to see exactly which button has been released.
 	//std::cerr << "onButtonUp " << event.getName() << std::endl;
 	if (event.getName() == "HTC_Controller_Right_Axis1Button_Up" || event.getName() == "HTC_Controller_1_Axis1Button_Up")
 	{
 		m_grab = false;
-		std::cerr << "Grab OFF" << std::endl;
+		//std::cerr << "Grab OFF" << std::endl;
 	}
 	//else if (event.getName() == "HTC_Controller_Right_AButton_Up" || event.getName() == "HTC_Controller_1_AButton_Up")
 	else if (event.getName() == "HTC_Controller_Right_Axis0Button_Up" || event.getName() == "HTC_Controller_1_Axis0Button_Up")
 	{
 		m_clipping = false;
-		std::cerr << "Clipping OFF" << std::endl;
+		//std::cerr << "Clipping OFF" << std::endl;
 	}
 	
 }
 
 
 void VolumeVisualizationApp::onTrackerMove(const VRTrackerEvent &event) {
-	if (event.getName() == "HTC_Controller_Right_Move" || event.getName() == "HTC_Controller_1_Move") {
-		m_menu_handler->setControllerPose(glm::make_mat4(event.getTransform()));
+	if (m_show_menu) {
+		if (event.getName() == "HTC_Controller_Right_Move" || event.getName() == "HTC_Controller_1_Move") {
+			m_menu_handler->setControllerPose(glm::make_mat4(event.getTransform()));
+		}
 	}
 
 	// This routine is called for all Tracker_Move events.  Check event->getName()
@@ -320,7 +349,25 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
     // rendering process.  So, this is the place to initialize textures,
     // load models, or do other operations that you only want to do once per
     // frame when in stereo mode.
-    
+	
+	std::chrono::steady_clock::time_point nowTime = std::chrono::steady_clock::now();
+	std::chrono::duration<double> time_span = std::chrono::duration<double>(nowTime - m_lastTime);
+	m_fps = 1000.0f / std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
+	m_lastTime = nowTime;
+
+	if (m_dynamic_slices) {
+		if (m_fps < 25)
+			{
+				m_slices -= 5;
+				m_slices = (m_slices < 10) ? 10 : m_slices;
+			}
+			else if (m_fps > 60)
+			{
+				m_slices += 5;
+				m_slices = (m_slices > 1024) ? 1024 : m_slices;
+			}
+	}
+	
     if (renderState.isInitialRenderCall()) {
 	
        #ifndef __APPLE__
@@ -369,7 +416,7 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 	}
 	rendercount = 0;
 
-	m_menu_handler->renderToTexture();
+	if (m_show_menu) m_menu_handler->renderToTexture();
 }
 
 
@@ -427,7 +474,8 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 	//render menu
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(renderState.getViewMatrix());
-	m_menu_handler->drawMenu();
+	if (m_show_menu) 
+		m_menu_handler->drawMenu();
 	
 	m_depthTextures[rendercount]->copyDepthbuffer();
 	(static_cast <VolumeRaycastRenderer*> (m_renders[1]))->setDepthTexture(m_depthTextures[rendercount]);
@@ -443,7 +491,7 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 	{
 		unsigned int active_volume = (m_framecounter / m_framerepeat) % m_volumes.size();
 		if(m_volumes[active_volume]->texture_initialized())
-			m_renders[m_rendermethod]->render(m_volumes[active_volume], m_volumes[active_volume]->get_volume_mv(), P, m_volumes[active_volume]->get_volume_scale().x / m_volumes[active_volume]->get_volume_scale().z, tfn_widget.get_colormap_gpu());
+			m_renders[m_rendermethod]->render(m_volumes[active_volume], m_volumes[active_volume]->get_volume_mv(), P, m_volumes[active_volume]->get_volume_scale().x / m_volumes[active_volume]->get_volume_scale().z,  m_use_transferfunction ? tfn_widget.get_colormap_gpu() : -1, m_renderchannel);
 	}
 	else {
 		//check order
@@ -457,7 +505,7 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 
 		for (int i = order.size() - 1; i >= 0; i--) {
 			if (m_volumes[order[i].second]->texture_initialized())
-				m_renders[m_rendermethod]->render(m_volumes[order[i].second], m_volumes[order[i].second]->get_volume_mv(), P, m_volumes[order[i].second]->get_volume_scale().x / m_volumes[order[i].second]->get_volume_scale().z, tfn_widget.get_colormap_gpu());
+				m_renders[m_rendermethod]->render(m_volumes[order[i].second], m_volumes[order[i].second]->get_volume_mv(), P, m_volumes[order[i].second]->get_volume_scale().x / m_volumes[order[i].second]->get_volume_scale().z, m_use_transferfunction ? tfn_widget.get_colormap_gpu() : -1, m_renderchannel);
 		}
 	}
 
