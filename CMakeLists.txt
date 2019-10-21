@@ -46,6 +46,7 @@ set(source_files
   FrameBufferObject.cpp
   DepthTexture.cpp
   transferfunction/transfer_function_widget.cpp
+  ArcBall.cpp
 )
 
 set(header_files
@@ -62,6 +63,7 @@ set(header_files
   DepthTexture.h
   transferfunction/transfer_function_widget.h
   transferfunction/embedded_colormaps.h
+  ArcBall.h
 )
 
 

@@ -11,6 +11,7 @@
 #include "VolumeRaycastRenderer.h"
 #include "DepthTexture.h"
 #include <future>
+#include "ArcBall.h"
 
 
 using namespace MinVR;
@@ -47,6 +48,8 @@ public:
     /** USER INTERFACE CALLBACKS **/
 
 	void ui_callback();
+
+	virtual void onCursorMove(const VRCursorEvent& state);
 	
     virtual void onAnalogChange(const VRAnalogEvent &state);
     
@@ -122,6 +125,10 @@ private:
 	bool m_dynamic_slices;
 	float m_fps;
 	bool m_show_menu;
+
+	//2D
+	bool m_is2d;
+	ArcBall m_trackball;
 	
 };
 

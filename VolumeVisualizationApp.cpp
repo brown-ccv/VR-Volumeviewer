@@ -13,52 +13,58 @@ float ambient[] = { 0.5f, 0.5f, 0.5f, 1.0f };
 float diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
 
 VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(argc, argv), m_grab{ false }
-, m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }
+, m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }, m_is2d(false), m_menu_handler(NULL)
 , m_clipping{ false }, m_animated(false), m_framerepeat{ 60 }, m_framecounter{ 0 }, m_slices(512), m_rendermethod{ 1 }, m_renderchannel{0} ,m_use_transferfunction{ false }, m_dynamic_slices{true}, m_show_menu{true}
 {
 	int argc_int = this->getLeftoverArgc();
 	char** argv_int = this->getLeftoverArgv();
 
-	
 	if (argc_int >= 2) {
-		std::ifstream inFile;
-		inFile.open(argv_int[1]);
+		for (int i = 1; i < argc_int; i++) {
+			if (std::string(argv_int[i]) == std::string("use2DUI"))
+			{
+				m_is2d = true;
+			}
+			else {
+				std::ifstream inFile;
+				inFile.open(argv_int[i]);
 
-		std::string line;
+				std::string line;
 
-		while (getline(inFile, line)) {
-			if (line[0] != '#') {
-				std::vector<std::string> vals; // Create vector to hold our words
-				std::stringstream ss(line);
-				std::string buf;
+				while (getline(inFile, line)) {
+					if (line[0] != '#') {
+						std::vector<std::string> vals; // Create vector to hold our words
+						std::stringstream ss(line);
+						std::string buf;
 
-				while (ss >> buf) {
-					vals.push_back(buf);
+						while (ss >> buf) {
+							vals.push_back(buf);
+						}
+						if (vals.size() > 0) {
+							if (vals[0] == "animated")
+							{
+								m_animated = true;
+							}
+							if (vals[0] == "mesh")
+							{
+								std::cerr << "Load Mesh " << vals[1] << std::endl;
+								std::cerr << "for Volume " << vals[2] << std::endl;
+								m_models_volumeID.push_back(stoi(vals[2]) - 1);
+								m_models_filenames.push_back(vals[1]);
+								m_models_MV.push_back(glm::mat4());
+							}
+							else if (vals[0] == "volume")
+							{
+								promises.push_back(new promise<Volume*>);
+								futures.push_back(promises.back()->get_future());
+								threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
+							}
+						}
+					}
 				}
-				if (vals.size() > 0) {
-					 if (vals[0] == "animated")
-					{
-						m_animated = true;
-					}
-					if (vals[0] == "mesh")
-					{
-						std::cerr << "Load Mesh " << vals[1] << std::endl;
-						std::cerr << "for Volume " << vals[2] << std::endl;
-						m_models_volumeID.push_back(stoi(vals[2]) - 1);
-						m_models_filenames.push_back(vals[1]);
-						m_models_MV.push_back(glm::mat4());
-					}
-					else if (vals[0] == "volume")
-					{
-						promises.push_back(new promise<Volume*>);
-						futures.push_back(promises.back()->get_future());
-						threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
-					}
-				}
+				inFile.close();
 			}
 		}
-
-		inFile.close();
 	}
 
 	m_object_pose = glm::mat4(1.0f);
@@ -73,7 +79,7 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 
 	std::cerr << " Done loading" << std::endl;
 
-	m_menu_handler = new VRMenuHandler();
+	m_menu_handler = new VRMenuHandler(m_is2d);
 	VRMenu * menu = m_menu_handler->addNewMenu(std::bind(&VolumeVisualizationApp::ui_callback, this), 1024, 1024, 1, 1);
 	menu->setMenuPose(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 2, -1, 1));
 
@@ -134,7 +140,10 @@ VolumeVisualizationApp::~VolumeVisualizationApp()
 
 void VolumeVisualizationApp::ui_callback()
 {
-
+	if(m_is2d){
+		ImGui::SetNextWindowSize(ImVec2(500, 700), ImGuiCond_Once);
+		ImGui::SetNextWindowPos(ImVec2(40, 40), ImGuiCond_Once);
+	}
 	ImGui::Begin("Volumeviewer");
 	
 	// open file dialog when user clicks this button
@@ -149,7 +158,6 @@ void VolumeVisualizationApp::ui_callback()
 		m_volumes.clear();
 	}
 
-	
 	ImGui::SliderFloat("alpha multiplier", &m_multiplier, 0.0f, 1.0f, "%.3f");
 	ImGui::SliderFloat("threshold", &m_threshold, 0.0f, 1.0f, "%.3f");
 	ImGui::SliderFloat("scale", &m_scale, 0.0f, 5.0f, "%.3f");
@@ -213,8 +221,17 @@ void VolumeVisualizationApp::initTexture()
 
 }
 
+void VolumeVisualizationApp::onCursorMove(const VRCursorEvent& event)
+{
+	if (event.getName() == "Mouse_Move" && m_menu_handler != NULL)
+	{
+		m_trackball.mouseMove(event.getPos()[0], event.getPos()[1]);
+		m_menu_handler->setCursorPos(event.getPos()[0], event.getPos()[1]);
+	}
+}
+
 void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event) {
-	if (m_show_menu && m_menu_handler->windowIsActive()) {
+	if (m_show_menu && m_menu_handler != NULL && m_menu_handler->windowIsActive()) {
 		if (event.getName() == "HTC_Controller_Right_TrackPad0_Y" || event.getName() == "HTC_Controller_1_TrackPad0_Y")
 			m_menu_handler->setAnalogValue(event.getValue());
 	}
@@ -222,7 +239,28 @@ void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event) {
 
 
 void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
-	if (m_show_menu && m_menu_handler->windowIsActive()) {
+	if (m_menu_handler != NULL && m_menu_handler->windowIsActive()) {
+		if (event.getName() == "MouseBtnLeft_Down")
+		{
+			m_menu_handler->setButtonClick(0, 1);
+		}
+		else if (event.getName() == "MouseBtnRight_Down")
+		{
+			m_menu_handler->setButtonClick(1, 1);
+		}
+	}else
+	{
+		if (event.getName() == "MouseBtnLeft_Down")
+		{
+			m_trackball.mouse_pressed(0, true);
+		}
+		else if (event.getName() == "MouseBtnRight_Down")
+		{
+			m_trackball.mouse_pressed(1, true);
+		}
+	}
+
+	if (m_show_menu && m_menu_handler != NULL && m_menu_handler->windowIsActive()) {
 		if (event.getName() == "HTC_Controller_Right_Axis1Button_Down" || event.getName() == "HTC_Controller_1_Axis1Button_Down")
 		{
 			//left click
@@ -276,8 +314,43 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 
 
 void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
+	if (m_menu_handler != NULL && m_menu_handler->windowIsActive()) {
+		if (event.getName() == "MouseBtnMiddle_ScrollUp")
+		{
+			m_menu_handler->setAnalogValue(10);
+		}
 
-	if (m_show_menu) {
+		if (event.getName() == "MouseBtnMiddle_ScrollDown")
+		{
+			m_menu_handler->setAnalogValue(-10);
+		}
+	}
+	else
+	{
+		if (event.getName() == "MouseBtnMiddle_ScrollUp")
+		{
+			m_trackball.mouse_pressed(2, false);
+		}
+
+		if (event.getName() == "MouseBtnMiddle_ScrollDown")
+		{
+			m_trackball.mouse_pressed(2, true);
+		}
+	}
+	
+	if (event.getName() == "MouseBtnLeft_Up")
+	{
+		if (m_menu_handler != NULL) m_menu_handler->setButtonClick(0, 0);
+		m_trackball.mouse_pressed(0, false);
+	}
+	else if (event.getName() == "MouseBtnRight_Up")
+	{
+		m_trackball.mouse_pressed(1, false);
+		if (m_menu_handler != NULL) m_menu_handler->setButtonClick(1, 0);
+	}
+	
+
+	if (m_show_menu && m_menu_handler != NULL) {
 		if (event.getName() == "HTC_Controller_Right_Axis1Button_Up" || event.getName() == "HTC_Controller_1_Axis1Button_Up")
 		{
 			//left click
@@ -315,11 +388,12 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 
 
 void VolumeVisualizationApp::onTrackerMove(const VRTrackerEvent &event) {
-	if (m_show_menu) {
+	if (m_show_menu && m_menu_handler != NULL) {
 		if (event.getName() == "HTC_Controller_Right_Move" || event.getName() == "HTC_Controller_1_Move") {
 			m_menu_handler->setControllerPose(glm::make_mat4(event.getTransform()));
 		}
 	}
+
 
 	// This routine is called for all Tracker_Move events.  Check event->getName()
     // to see exactly which tracker has moved, and then access the tracker's new
@@ -380,7 +454,7 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 
 		for (auto ren : m_renders)
 			ren->initGL();
-	
+
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
 		glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
@@ -419,19 +493,28 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 	if (m_show_menu) m_menu_handler->renderToTexture();
 }
 
-
+#include <glm/gtx/string_cast.hpp>
 void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &renderState) {
     // This routine is called once per eye.  This is the place to actually
-    // draw the scene.
+    // draw the scene...
 
+	glClearColor(0, 0, 0, 1);
+	glClearDepth(1.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
 	if (renderState.isInitialRenderCall())
 	{
 		m_depthTextures.push_back(new DepthTexture);
 	}
 
 	//setup projection
-	P = glm::make_mat4(renderState.getProjectionMatrix());	
+	P = glm::make_mat4(renderState.getProjectionMatrix());
 	MV = glm::make_mat4(renderState.getViewMatrix());
+
+	//overwrite MV for 2D viewing
+	if(m_is2d)
+		MV = m_trackball.getViewmatrix();
+	
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(glm::value_ptr(P));
 
@@ -471,10 +554,10 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 		glCallList(m_models_displayLists[i]);
 	}
 
-	//render menu
+	//render menu	
 	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(renderState.getViewMatrix());
-	if (m_show_menu) 
+	glLoadMatrixf(glm::value_ptr(glm::make_mat4(renderState.getViewMatrix())));
+	if (m_show_menu && !m_is2d) 
 		m_menu_handler->drawMenu();
 	
 	m_depthTextures[rendercount]->copyDepthbuffer();
@@ -509,6 +592,9 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 		}
 	}
 
+	if (m_is2d)
+		m_menu_handler->drawMenu();
+	
 	glFlush();
 
 	rendercount++;
