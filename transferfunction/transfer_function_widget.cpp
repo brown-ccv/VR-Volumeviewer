@@ -133,20 +133,32 @@ void TransferFunctionWidget::draw_ui()
     draw_list->AddRect(canvas_pos, canvas_pos + canvas_size, ImColor(180, 180, 180, 255));
 
     ImGui::InvisibleButton("tfn_canvas", canvas_size);
-    if (ImGui::IsItemHovered()) {
+    if (ImGui::IsItemHovered() || selected_point != (size_t)-1) {
+    	
         vec2f mouse_pos = (vec2f(io.MousePos) - view_offset) / view_scale;
         mouse_pos.x = clamp(mouse_pos.x, 0.f, 1.f);
         mouse_pos.y = clamp(mouse_pos.y, 0.f, 1.f);
-
+		//bool requires_sorting = false;
+    	
         if (io.MouseDown[0]) {
             if (selected_point != (size_t)-1) {
-                alpha_control_pts[selected_point] = mouse_pos;
+				 alpha_control_pts[selected_point] = mouse_pos;
 
+            	//make sure point does not cross
+				
                 // Keep the first and last control points at the edges
                 if (selected_point == 0) {
                     alpha_control_pts[selected_point].x = 0.f;
                 } else if (selected_point == alpha_control_pts.size() - 1) {
                     alpha_control_pts[selected_point].x = 1.f;
+                }
+            	//make sure the other points do not cross
+            	else
+                {
+					alpha_control_pts[selected_point].x = (alpha_control_pts[selected_point].x < alpha_control_pts[selected_point - 1].x)
+            		? alpha_control_pts[selected_point - 1].x + 0.01 : alpha_control_pts[selected_point].x;
+					alpha_control_pts[selected_point].x = (alpha_control_pts[selected_point].x > alpha_control_pts[selected_point + 1].x)
+            		? alpha_control_pts[selected_point + 1].x - 0.01 : alpha_control_pts[selected_point].x;
                 }
             } else {
                 // See if we're selecting a point or adding one
@@ -164,22 +176,22 @@ void TransferFunctionWidget::draw_ui()
                     // No nearby point, we're adding a new one
                     if (fnd == alpha_control_pts.end()) {
                         alpha_control_pts.push_back(mouse_pos);
+						// Keep alpha control points ordered by x coordinate, update
+						// selected point index to match
+						std::sort(alpha_control_pts.begin(),
+							alpha_control_pts.end(),
+							[](const vec2f& a, const vec2f& b) { return a.x < b.x; });
+						if (selected_point != 0 && selected_point != alpha_control_pts.size() - 1) {
+							fnd = std::find_if(
+								alpha_control_pts.begin(), alpha_control_pts.end(), [&](const vec2f& p) {
+									const vec2f pt_pos = p * view_scale + view_offset;
+									float dist = (pt_pos - vec2f(io.MousePos)).length();
+									return dist <= point_radius;
+								});	
+						}
                     }
+	                selected_point = std::distance(alpha_control_pts.begin(), fnd);  
                 }
-            }
-            // Keep alpha control points ordered by x coordinate, update
-            // selected point index to match
-            std::sort(alpha_control_pts.begin(),
-                      alpha_control_pts.end(),
-                      [](const vec2f &a, const vec2f &b) { return a.x < b.x; });
-            if (selected_point != 0 && selected_point != alpha_control_pts.size() - 1) {
-                auto fnd = std::find_if(
-                    alpha_control_pts.begin(), alpha_control_pts.end(), [&](const vec2f &p) {
-                        const vec2f pt_pos = p * view_scale + view_offset;
-                        float dist = (pt_pos - vec2f(io.MousePos)).length();
-                        return dist <= point_radius;
-                    });
-                selected_point = std::distance(alpha_control_pts.begin(), fnd);
             }
             update_colormap();
         } else if (ImGui::IsMouseClicked(1)) {
