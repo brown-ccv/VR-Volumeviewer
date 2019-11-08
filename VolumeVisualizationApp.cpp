@@ -7,7 +7,6 @@
 #include <glm/gtc/type_ptr.inl>
 #include <glm/gtc/matrix_transform.hpp>
 #include "glm.h"
-//#include "NarragansettBay/LoadGliderDataAction.h"
 
 float noColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 float ambient[] = { 0.5f, 0.5f, 0.5f, 1.0f };
@@ -64,14 +63,6 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 								futures.push_back(promises.back()->get_future());
 								threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
 							}
-							/*else if (vals[0] == "glider")
-							{
-								std::cerr << "Load Glider data " << vals[1] << std::endl;
-								std::cerr << "for Volume " << vals[2] << std::endl;
-								m_gliders_volumeID.push_back(stoi(vals[2]) - 1);
-								m_gliders.push_back(LoadGliderDataAction(vals[1]).run());
-								m_gliders_MV.push_back(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
-							}*/
 						}
 					}
 				}
@@ -564,15 +555,6 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 		}
 	}
 
-	//setup Modelview for gliders
-	/*for (int i = 0; i < m_gliders.size(); i++){
-		if (m_volumes.size() > m_gliders_volumeID[i]) {
-			m_gliders_MV[i] = m_volumes[m_gliders_volumeID[i]]->get_volume_mv();
-			m_gliders_MV[i] = glm::translate(m_gliders_MV[i], glm::vec3(-0.5f, -0.5f, -0.5f * m_volumes[m_gliders_volumeID[i]]->get_volume_scale().x / m_volumes[m_gliders_volumeID[i]]->get_volume_scale().z));
-			m_gliders_MV[i] = glm::scale(m_gliders_MV[m_gliders_volumeID[i]], glm::vec3(1.0, 1.0, m_volumes[m_gliders_volumeID[i]]->get_volume_scale().x / m_volumes[m_gliders_volumeID[i]]->get_volume_scale().z));
-		}
-	}*/
-
 	//Set cuttingplane
 	if (m_clipping){
 		glm::mat4 clipPlane = glm::inverse(m_controller_pose) * glm::inverse(MV);
@@ -594,17 +576,6 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 		}
 	}
 	
-	//Render glider
-	/*for (int i = 0; i < m_gliders.size(); i++) {
-		if (m_volumes.size() > m_gliders_volumeID[i]) {
-			glMatrixMode(GL_MODELVIEW);
-			glLoadMatrixf(glm::value_ptr(m_gliders_MV[i]));
-			m_gliders[i]->draw();
-			m_gliders[i]->drawTool(MV * m_controller_pose);
-			m_gliders[i]->drawLabels(m_gliders_MV[i], m_headpose);
-		}
-	}*/
-
 	//render menu	
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(glm::value_ptr(glm::make_mat4(renderState.getViewMatrix())));
