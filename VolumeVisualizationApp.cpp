@@ -7,6 +7,7 @@
 #include <glm/gtc/type_ptr.inl>
 #include <glm/gtc/matrix_transform.hpp>
 #include "glm.h"
+//#include "NarragansettBay/LoadGliderDataAction.h"
 
 float noColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 float ambient[] = { 0.5f, 0.5f, 0.5f, 1.0f };
@@ -14,7 +15,7 @@ float diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
 
 VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(argc, argv), m_grab{ false }
 , m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }, m_is2d(false), m_menu_handler(NULL)
-, m_clipping{ false }, m_animated(false), m_framerepeat{ 60 }, m_framecounter{ 0 }, m_slices(512), m_rendermethod{ 1 }, m_renderchannel{0} ,m_use_transferfunction{ false }, m_dynamic_slices{true}, m_show_menu{true}
+, m_clipping{ false }, m_animated(false), m_speed{ 0.05 }, m_frame{ 0.0 }, m_slices(512), m_rendermethod{ 1 }, m_renderchannel{0} ,m_use_transferfunction{ false }, m_dynamic_slices{true}, m_show_menu{true}
 {
 	int argc_int = this->getLeftoverArgc();
 	char** argv_int = this->getLeftoverArgv();
@@ -45,13 +46,17 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 							{
 								m_animated = true;
 							}
+							if (vals[0] == "threshold")
+							{
+								m_threshold = stof(vals[1]);
+							}
 							if (vals[0] == "mesh")
 							{
 								std::cerr << "Load Mesh " << vals[1] << std::endl;
 								std::cerr << "for Volume " << vals[2] << std::endl;
 								m_models_volumeID.push_back(stoi(vals[2]) - 1);
 								m_models_filenames.push_back(vals[1]);
-								m_models_MV.push_back(glm::mat4());
+								m_models_MV.push_back(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
 							}
 							else if (vals[0] == "volume")
 							{
@@ -59,6 +64,14 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 								futures.push_back(promises.back()->get_future());
 								threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
 							}
+							/*else if (vals[0] == "glider")
+							{
+								std::cerr << "Load Glider data " << vals[1] << std::endl;
+								std::cerr << "for Volume " << vals[2] << std::endl;
+								m_gliders_volumeID.push_back(stoi(vals[2]) - 1);
+								m_gliders.push_back(LoadGliderDataAction(vals[1]).run());
+								m_gliders_MV.push_back(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
+							}*/
 						}
 					}
 				}
@@ -110,6 +123,7 @@ void VolumeVisualizationApp::loadVolume(std::vector<std::string> vals, promise<V
 		volume->set_render_channel(std::stoi(vals[9]));
 	}
 	promise->set_value(volume);;
+	std::cerr << "end load" << std::endl;
 }
 
 void VolumeVisualizationApp::addLodadedTextures()
@@ -196,7 +210,19 @@ void VolumeVisualizationApp::ui_callback()
 					vals.push_back(buf);
 				}
 				if (vals.size() > 0) {
-					if (vals[0] == "volume")
+					if (vals[0] == "animated")
+					{
+						m_animated = true;
+					}
+					if (vals[0] == "speed")
+					{
+						m_speed = stof(vals[1]);
+					}
+					if (vals[0] == "threshold")
+					{
+						m_threshold = stof(vals[1]);
+					}
+					else if (vals[0] == "volume")
 					{
 						promises.push_back(new promise<Volume*>);
 						futures.push_back(promises.back()->get_future());
@@ -481,12 +507,14 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 		m_models_displayLists.push_back(glmList(pmodel, GLM_SMOOTH));
 		glmDelete(pmodel);
 	}
+	m_models_filenames.clear();
 	
 	initTexture();
 
 	if (m_animated)
 	{
-		m_framecounter++;
+		m_frame+=m_speed;
+		if (m_frame >= m_volumes.size() - 1) m_frame = 0.0 ;
 	}
 	rendercount = 0;
 
@@ -497,7 +525,6 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &renderState) {
     // This routine is called once per eye.  This is the place to actually
     // draw the scene...
-
 	glClearColor(0, 0, 0, 1);
 	glClearDepth(1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -530,15 +557,25 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 
 	//setup Modelview for meshes
 	for (int i = 0; i < m_models_displayLists.size(); i++){
-		
-		m_models_MV[i] = m_volumes[m_models_volumeID[i]]->get_volume_mv();
-		m_models_MV[i] = glm::translate(m_models_MV[i], glm::vec3(-0.5f, -0.5f, -0.5f * m_volumes[i]->get_volume_scale().x / m_volumes[i]->get_volume_scale().z));
-		m_models_MV[i] = glm::scale(m_models_MV[i], glm::vec3(m_volumes[i]->get_volume_scale().x, m_volumes[i]->get_volume_scale().y, m_volumes[i]->get_volume_scale().x ));
+		if (m_volumes.size() > m_models_volumeID[i]) {
+			m_models_MV[i] = m_volumes[m_models_volumeID[i]]->get_volume_mv();
+			m_models_MV[i] = glm::translate(m_models_MV[i], glm::vec3(-0.5f, -0.5f, -0.5f * m_volumes[m_models_volumeID[i]]->get_volume_scale().x / m_volumes[m_models_volumeID[i]]->get_volume_scale().z));
+			m_models_MV[i] = glm::scale(m_models_MV[i], glm::vec3(m_volumes[m_models_volumeID[i]]->get_volume_scale().x, m_volumes[m_models_volumeID[i]]->get_volume_scale().y, m_volumes[m_models_volumeID[i]]->get_volume_scale().x));
+		}
 	}
+
+	//setup Modelview for gliders
+	/*for (int i = 0; i < m_gliders.size(); i++){
+		if (m_volumes.size() > m_gliders_volumeID[i]) {
+			m_gliders_MV[i] = m_volumes[m_gliders_volumeID[i]]->get_volume_mv();
+			m_gliders_MV[i] = glm::translate(m_gliders_MV[i], glm::vec3(-0.5f, -0.5f, -0.5f * m_volumes[m_gliders_volumeID[i]]->get_volume_scale().x / m_volumes[m_gliders_volumeID[i]]->get_volume_scale().z));
+			m_gliders_MV[i] = glm::scale(m_gliders_MV[m_gliders_volumeID[i]], glm::vec3(1.0, 1.0, m_volumes[m_gliders_volumeID[i]]->get_volume_scale().x / m_volumes[m_gliders_volumeID[i]]->get_volume_scale().z));
+		}
+	}*/
 
 	//Set cuttingplane
 	if (m_clipping){
-		glm::mat4 clipPlane = inverse(m_controller_pose) * inverse(MV);
+		glm::mat4 clipPlane = glm::inverse(m_controller_pose) * glm::inverse(MV);
 		for (auto ren : m_renders)
 			ren->setClipping(true, &clipPlane);
 	} else
@@ -549,10 +586,24 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 	
 	//Render meshes
 	for (int i = 0; i < m_models_displayLists.size(); i++){
-		glMatrixMode(GL_MODELVIEW);
-		glLoadMatrixf(glm::value_ptr(m_models_MV[i]));
-		glCallList(m_models_displayLists[i]);
+		if (m_volumes.size() > m_models_volumeID[i]) {
+			glMatrixMode(GL_MODELVIEW);
+			glLoadMatrixf(glm::value_ptr(m_models_MV[i]));
+			glColor3f(1.0f, 1.0f, 1.0f);
+			glCallList(m_models_displayLists[i]);
+		}
 	}
+	
+	//Render glider
+	/*for (int i = 0; i < m_gliders.size(); i++) {
+		if (m_volumes.size() > m_gliders_volumeID[i]) {
+			glMatrixMode(GL_MODELVIEW);
+			glLoadMatrixf(glm::value_ptr(m_gliders_MV[i]));
+			m_gliders[i]->draw();
+			m_gliders[i]->drawTool(MV * m_controller_pose);
+			m_gliders[i]->drawLabels(m_gliders_MV[i], m_headpose);
+		}
+	}*/
 
 	//render menu	
 	glMatrixMode(GL_MODELVIEW);
@@ -572,9 +623,13 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 	
 	if (m_animated)
 	{
-		unsigned int active_volume = (m_framecounter / m_framerepeat) % m_volumes.size();
-		if(m_volumes[active_volume]->texture_initialized())
-			m_renders[m_rendermethod]->render(m_volumes[active_volume], m_volumes[active_volume]->get_volume_mv(), P, m_volumes[active_volume]->get_volume_scale().x / m_volumes[active_volume]->get_volume_scale().z,  m_use_transferfunction ? tfn_widget.get_colormap_gpu() : -1, m_renderchannel);
+		unsigned int active_volume = floor(m_frame);
+		unsigned int active_volume2 = ceil(m_frame);
+		
+		if (active_volume < m_volumes.size() && active_volume2 < m_volumes.size() && m_volumes[active_volume]->texture_initialized() && m_volumes[active_volume2]->texture_initialized()) {
+			m_renders[m_rendermethod]->set_blending(true, m_frame - active_volume, m_volumes[active_volume2]);
+			m_renders[m_rendermethod]->render(m_volumes[active_volume], m_volumes[active_volume]->get_volume_mv(), P, m_volumes[active_volume]->get_volume_scale().x / m_volumes[active_volume]->get_volume_scale().z, m_use_transferfunction ? tfn_widget.get_colormap_gpu() : -1, m_renderchannel);
+		}
 	}
 	else {
 		//check order
@@ -598,4 +653,5 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 	glFlush();
 
 	rendercount++;
+	
 }

@@ -20,51 +20,27 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file DepthTexture.h
+///\file LoadGliderDataAction.h
 ///\author Benjamin Knorlein
-///\date 6/14/2019
+///\date 6/25/2019
 
 #pragma once
 
-#ifndef DEPTHTEXTURE_H
-#define DEPTHTEXTURE_H
+#ifndef LOADGLIDERDATAACTION_H
+#define LOADGLIDERDATAACTION_H
+#include <string>
+#include "Glider.h"
 
-class DepthTexture
+class LoadGliderDataAction
 {
 public:
-	DepthTexture();
-	~DepthTexture();
-
-	void copyDepthbuffer();
-
-	unsigned int depth_texture()
-	{
-		return m_depth_texture;
-	};
-
-	const unsigned& width() const
-	{
-		return m_width;
-	}
-
-	const unsigned& height() const
-	{
-		return m_height;
-	}
-
-	static void getJetColor(double value, double min_val, double max_val, float &r, float &g, float &b, float &a);
+	LoadGliderDataAction(std::string filename);
+	Glider* run();
 
 private:
-	void create();
-
-	unsigned int m_width;
-	unsigned int m_height;
-	int m_pReadBuffer;
-	int m_pDrawBuffer;
-
-	unsigned int m_depth_texture;
-
-	bool m_isInitialized;
+	void computeMinMax(Glider * glider);
+	void parseLabels(Glider *glider, std::string line);
+	std::string m_filename;
 };
 
-#endif // DEPTHTEXTURE_H
+#endif // LOADGLIDERDATAACTION_H

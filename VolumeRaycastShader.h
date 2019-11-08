@@ -51,6 +51,7 @@
 
 #include <glm/glm.hpp>
 #include "DepthTexture.h"
+#include <iostream>
 
 class VolumeRaycastShader : public Shader
 	{
@@ -106,36 +107,52 @@ class VolumeRaycastShader : public Shader
 			m_P_inv = P_inv;
 		}
 
-	private:
-		
-		float m_stepSize[3];
+		void set_blending(bool useBlending, float alpha, unsigned int texID)
+		{
+			m_use_blending = useBlending;
+			m_blend_volume = texID;
+			m_blending_alpha = alpha;
+		}
+
+	private:	
 		GLuint m_volume_uniform;
 		GLuint m_vVertex_attribute;
 		GLuint m_MVP_uniform;
+		
+		GLuint m_camPos_uniform;
+
+		float m_stepSize[3];
+		GLuint m_step_size_uniform;
+
+		bool m_clipping;
+		GLuint m_clipping_uniform;
 		GLuint m_clipPlane_uniform;
 
-		GLuint m_camPos_uniform;
-		GLuint m_step_size_uniform;
-		GLuint m_clipping_uniform;
+		float m_threshold;
+		float m_multiplier;
+		int m_channel;
+
 		GLuint m_threshold_uniform;
 		GLuint m_multiplier_uniform;
 		GLuint m_channel_uniform;
 
-		GLuint m_lut_uniform;
-		GLuint m_useLut_uniform;
-
-		float m_threshold;
-		float m_multiplier;
-		bool m_clipping;
-		int m_channel;
 		bool m_useLut;
+		GLuint m_lut_uniform;
+		GLint m_useLut_uniform;
 
 		unsigned int m_depth_texture;
 		unsigned int m_screen_size[2];
+		glm::mat4 m_P_inv;
 		GLuint m_depth_uniform;
 		GLuint m_viewport_uniform;
 		GLuint m_P_inv_uniform;
+		
+		bool m_use_blending;
+		unsigned int m_blend_volume;
+		float m_blending_alpha;
+		GLuint m_useBlend_uniform;
+		GLuint m_blendAlpha_uniform;
+		GLuint m_blendVolume_uniform;
 
-		glm::mat4 m_P_inv;
 	};
 #endif // VOLUMERAYCASTSHADER_H

@@ -20,51 +20,34 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file DepthTexture.h
+///\file Labels.h
 ///\author Benjamin Knorlein
-///\date 6/14/2019
+///\date 6/25/2019
 
 #pragma once
 
-#ifndef DEPTHTEXTURE_H
-#define DEPTHTEXTURE_H
+#ifndef LABELS_H
+#define LABELS_H
+#include <vector>
+#include <glm/mat4x4.hpp>
+#include <string>
 
-class DepthTexture
+class Glider;
+
+class Labels
 {
 public:
-	DepthTexture();
-	~DepthTexture();
+	Labels(Glider * glider);
+	~Labels();
 
-	void copyDepthbuffer();
-
-	unsigned int depth_texture()
-	{
-		return m_depth_texture;
-	};
-
-	const unsigned& width() const
-	{
-		return m_width;
-	}
-
-	const unsigned& height() const
-	{
-		return m_height;
-	}
-
-	static void getJetColor(double value, double min_val, double max_val, float &r, float &g, float &b, float &a);
+	void parse();
+	void draw(glm::mat4 &MV, glm::mat4 &headpose);
 
 private:
-	void create();
+	std::vector<std::string> marker;
+	std::vector<double> marker_idx;
 
-	unsigned int m_width;
-	unsigned int m_height;
-	int m_pReadBuffer;
-	int m_pDrawBuffer;
-
-	unsigned int m_depth_texture;
-
-	bool m_isInitialized;
+	Glider* m_glider;
 };
 
-#endif // DEPTHTEXTURE_H
+#endif // LABELS_H

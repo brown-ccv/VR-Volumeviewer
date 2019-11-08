@@ -20,51 +20,84 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file DepthTexture.h
+///\file Glider.h
 ///\author Benjamin Knorlein
-///\date 6/14/2019
+///\date 6/25/2019
 
 #pragma once
 
-#ifndef DEPTHTEXTURE_H
-#define DEPTHTEXTURE_H
+#ifndef GLIDER_H
+#define GLIDER_H
 
-class DepthTexture
-{
-public:
-	DepthTexture();
-	~DepthTexture();
+#include <vector>
+#include "Tool.h"
+#include <glm/mat4x4.hpp>
+#include "Labels.h"
 
-	void copyDepthbuffer();
-
-	unsigned int depth_texture()
+struct _pt {
+	float vertex[3];
+	_pt(float x, float y, float z)
 	{
-		return m_depth_texture;
+		vertex[0] = x;
+		vertex[1] = y;
+		vertex[2] = z;
 	};
-
-	const unsigned& width() const
-	{
-		return m_width;
-	}
-
-	const unsigned& height() const
-	{
-		return m_height;
-	}
-
-	static void getJetColor(double value, double min_val, double max_val, float &r, float &g, float &b, float &a);
-
-private:
-	void create();
-
-	unsigned int m_width;
-	unsigned int m_height;
-	int m_pReadBuffer;
-	int m_pDrawBuffer;
-
-	unsigned int m_depth_texture;
-
-	bool m_isInitialized;
 };
 
-#endif // DEPTHTEXTURE_H
+class Glider
+{
+public:
+	Glider();
+	~Glider();
+	
+	void updateList();
+
+	void draw();
+
+	std::vector<int>& date(int i)
+	{
+		return m_date[i];
+	}
+
+	std::vector < _pt >& positions()
+	{
+		return m_positions;
+	}
+
+	std::vector<std::string>& values_legend()
+	{
+		return m_values_legend;
+	}
+
+	std::vector< std::vector<float> >& values()
+	{
+		return m_values;
+	}
+
+	std::vector<std::pair < float, float>>& min_max()
+	{
+		return m_min_max;
+	}
+
+	void drawTool(glm::mat4 controllerpose);
+	void drawLabels(glm::mat4 &MV, glm::mat4 &headpose);
+
+	void parseLabels(){ m_label->parse(); }
+
+private:
+	//date in //month - day - hour - minute - second
+	std::vector<int> m_date[5];
+	std::vector < _pt >	m_positions;
+
+	std::vector<std::string> m_values_legend;
+	std::vector< std::vector<float> >m_values;
+	std::vector <std::pair < float,float> > m_min_max;
+
+	int m_current_value;
+	unsigned int m_display_list;
+
+	Tool * m_tool;
+	Labels * m_label;
+};
+
+#endif // GLIDER_H

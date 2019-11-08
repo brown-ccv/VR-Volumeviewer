@@ -153,6 +153,7 @@ void Volume::initGL()
 	});
 
 	delete[] data;
+	data = nullptr;
 
 	m_texture_initialized = true;
 	

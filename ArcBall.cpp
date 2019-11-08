@@ -29,6 +29,7 @@
 #include <glm/glm.hpp>
 #include "glm/ext.hpp"
 #include <iostream>
+#include <glm/gtx/string_cast.hpp>
 
 #ifndef _PI
 #define _PI 3.141592653
@@ -94,10 +95,11 @@ ArcBall::ArcBall() : m_radius(1) ,m_mouse_left_pressed(false),m_mouse_right_pres
 void ArcBall::Rotate(float dx, float dy) {
 
 	glm::vec3  right = glm::cross(m_eye, m_up);
-	glm::mat3 rot = glm::rotate(glm::degrees(dy), right) * glm::rotate(glm::degrees(dx), m_up);
-	
-	m_eye = rot * m_eye;
-	m_up = rot * m_up;
+	glm::mat4 rot = glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+	rot = glm::rotate(rot, glm::degrees(dx), m_up);
+	rot = glm::rotate(rot, glm::degrees(dy), right);
+	m_eye = rot * glm::vec4(m_eye,1);
+	m_up = rot * glm::vec4(m_up, 1);
 }
 
 void ArcBall::Zoom(float distance) {

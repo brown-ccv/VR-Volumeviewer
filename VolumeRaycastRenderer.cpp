@@ -197,6 +197,11 @@ void VolumeRaycastRenderer::set_numSlices(int slices)
 	shader.set_stepSize(1.0f / slices, 1.0f / slices, 1.0f / slices);
 }
 
+void VolumeRaycastRenderer::set_blending(bool useBlending, float alpha, Volume* volume)
+{
+	shader.set_blending(useBlending, alpha, volume->get_texture_id());
+}
+
 void VolumeRaycastRenderer::setChannel(Volume* volume)
 {
 	if (volume->render_channel() == -1)
