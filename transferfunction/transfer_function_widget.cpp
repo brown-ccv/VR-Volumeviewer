@@ -86,6 +86,9 @@ TransferFunctionWidget::TransferFunctionWidget()
 
     // Initialize the colormap alpha channel w/ a linear ramp
     update_colormap();
+
+	for (int i = 0; i < 255; i++)
+		current_histogram.push_back(static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
 }
 
 void TransferFunctionWidget::add_colormap(const Colormap &map)
@@ -222,6 +225,13 @@ void TransferFunctionWidget::draw_ui()
         polyline_pts.push_back(pt_pos);
         draw_list->AddCircleFilled(pt_pos, point_radius, 0xFFFFFFFF);
     }
+
+	for (int i = 0; i < current_histogram.size(); i++) {
+		vec2f lp = vec2f( ((float) i) / current_histogram.size(), 0.0f);
+		vec2f hp = vec2f( ((float) i + 1.0f) / current_histogram.size(), current_histogram[i]);
+		draw_list->AddRectFilled(lp * view_scale + view_offset, hp * view_scale + view_offset, 0x77777777);
+	}
+	
     draw_list->AddPolyline(polyline_pts.data(), polyline_pts.size(), 0xFFFFFFFF, false, 2.f);
     draw_list->PopClipRect();
 }
@@ -244,6 +254,22 @@ std::vector<float> TransferFunctionWidget::get_colormapf()
     }
     return colormapf;
 }
+
+void TransferFunctionWidget::setHistogram(const std::vector<float> &hist)
+{
+	current_histogram = hist;
+}
+
+void TransferFunctionWidget::setBlendedHistogram(const std::vector<float>& hist1, const std::vector<float>& hist2, float alpha)
+{
+	if (hist1.size() != hist2.size())
+		return;
+
+	current_histogram.clear();
+	for (int i = 0; i < hist1.size(); i++)
+		current_histogram.push_back(hist1[i] * alpha + hist2[i] * (1.0f - alpha));
+}
+
 
 void TransferFunctionWidget::get_colormapf(std::vector<float> &color, std::vector<float> &opacity)
 {
@@ -295,7 +321,8 @@ void TransferFunctionWidget::update_colormap()
     // by blending between the neighboring control points
     auto a_it = alpha_control_pts.begin();
     const size_t npixels = current_colormap.size() / 4;
-    for (size_t i = 0; i < npixels; ++i) {
+
+	for (size_t i = 0; i < npixels; ++i) {
         float x = static_cast<float>(i) / npixels;
         auto high = a_it + 1;
         if (x > high->x) {
@@ -304,7 +331,7 @@ void TransferFunctionWidget::update_colormap()
         }
         float t = (x - a_it->x) / (high->x - a_it->x);
         float alpha = (1.f - t) * a_it->y + t * high->y;
-        current_colormap[i * 4 + 3] = static_cast<uint8_t>(clamp(alpha * 255.f, 0.f, 255.f));
+		current_colormap[i * 4 + 3] = static_cast<uint8_t>(clamp(alpha * 255.f, 0.f, 255.f));
     }
 }
 

@@ -64,11 +64,14 @@ class VolumeSliceRenderer : public  VolumeRenderer
 		virtual void set_threshold(float threshold) override;
 		virtual void set_multiplier(float multiplier) override;
 		virtual void set_numSlices(int slices) override;
-	
+		virtual void useMultichannelColormap(bool useMulti);
+
 		virtual void set_blending(bool useBlending, float alpha, Volume* volume) override
 		{
 			//unsupported for now
-		} 
+		}
+
+		
 	private:
 		//function to get the max (abs) dimension of the given vertex v
 		int FindAbsMax(glm::vec3 v);

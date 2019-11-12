@@ -3,6 +3,7 @@
 
 #include "GL/glew.h"
 #include "VRMenuHandler.h"
+#include "transferfunction/transfer_function_multichannel_widget.h"
 #include "transferfunction/transfer_function_widget.h"
 #include "imfilebrowser.h"
 #include <api/MinVR.h>
@@ -106,6 +107,7 @@ private:
 	int m_rendermethod;
 	int m_renderchannel;
 	bool m_use_transferfunction;
+	bool m_use_multi_transfer;
 	
 	std::vector <VolumeRenderer*> m_renders;
 	std::vector <DepthTexture*> m_depthTextures;
@@ -113,6 +115,7 @@ private:
 
 	VRMenuHandler* m_menu_handler;
 
+	TransferFunctionMultiChannelWidget tfn_widget_multi;
 	TransferFunctionWidget tfn_widget;
 	ImGui::FileBrowser fileDialog;
 	

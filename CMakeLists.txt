@@ -45,7 +45,13 @@ set(source_files
   glm.cpp
   FrameBufferObject.cpp
   DepthTexture.cpp
+  #NarragansettBay/Glider.cpp
+  #NarragansettBay/Labels.cpp
+  #NarragansettBay/Tool.cpp 
+  #NarragansettBay/LoadGliderDataAction.cpp 
+  #NarragansettBay/VRFontHandler.cpp
   transferfunction/transfer_function_widget.cpp
+  transferfunction/transfer_function_multichannel_widget.cpp
   ArcBall.cpp
 )
 
@@ -61,7 +67,13 @@ set(header_files
   glm.h
   FrameBufferObject.h
   DepthTexture.h
+  #NarragansettBay/Glider.h
+  #NarragansettBay/Labels.h
+  #NarragansettBay/Tool.h 
+  #NarragansettBay/LoadGliderDataAction.h 
+  #NarragansettBay/VRFontHandler.h
   transferfunction/transfer_function_widget.h
+  transferfunction/transfer_function_multichannel_widget.h
   transferfunction/embedded_colormaps.h
   ArcBall.h
 )
@@ -78,12 +90,22 @@ find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 FIND_PACKAGE(glm REQUIRED )
 FIND_PACKAGE(OpenCV REQUIRED )
+#FIND_PACKAGE(FTGL REQUIRED )
+#FIND_PACKAGE(PNG REQUIRED )
+#FIND_PACKAGE(ZLIB REQUIRED )
+#FIND_PACKAGE(Freetype REQUIRED) # if it fails, check this:
+
+#set(GLE_INCLUDE_DIR "" CACHE FILEPATH "GLE include directory")
+#set(GLE_LIBRARY "" CACHE FILEPATH "GLE library")
 
 include_directories(
   ${OPENGL_INCLUDE_DIR}
   ${MINVR_INCLUDE_DIR}
   ${GLM_INCLUDE_DIRS}
   ${GLEW_INCLUDE_DIRS}
+#  ${GLE_INCLUDE_DIR}
+#  ${FTGL_INCLUDE_DIR}
+#  ${FREETYPE_INCLUDE_DIRS}
 )
 
 set(LIBRARIES
@@ -92,6 +114,11 @@ set(LIBRARIES
 	${GLM_LIBRARIES}
 	${GLEW_LIBRARY}
 	${OPENGL_LIBRARY}
+#	${FTGL_LIBRARIES}
+	#${ZLIB_LIBRARIES}
+#	${GLE_LIBRARY}
+	#${PNG_LIBRARIES}
+#	${FREETYPE_LIBRARIES}
 )
 
 #---------------------- Define the Target ----------------------

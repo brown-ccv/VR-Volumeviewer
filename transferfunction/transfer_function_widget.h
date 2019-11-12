@@ -40,6 +40,8 @@ class TransferFunctionWidget {
     bool colormap_changed = true;
     GLuint colormap_img = -1;
 
+	std::vector<float> current_histogram;
+	
 public:
     TransferFunctionWidget();
 
@@ -58,6 +60,10 @@ public:
 
     // Get back the RGBA32F color data for the transfer function
     std::vector<float> get_colormapf();
+
+	void setHistogram(const std::vector<float> &hist);
+
+	void setBlendedHistogram(const std::vector<float>& hist1, const std::vector<float>& hist2, float alpha);
 
     // Get back the RGBA32F color data for the transfer function
     // as separate color and opacity vectors

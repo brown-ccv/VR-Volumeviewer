@@ -65,6 +65,7 @@ VolumeSliceShader::VolumeSliceShader() : m_threshold{ 0.0f }, m_multiplier{ 0.5 
 		"uniform int channel;\n"
 		"uniform sampler2D lut;\n"					//transferfunction
 		"uniform bool useLut;\n"
+		"uniform bool useMultiLut;\n"
 		"void main()\n"
 		"{\n"
 
@@ -93,10 +94,18 @@ VolumeSliceShader::VolumeSliceShader() : m_threshold{ 0.0f }, m_multiplier{ 0.5 
 
 			"c_out.a = (c_out.a > threshold) ? c_out.a : 0.0f ;\n"
 
+			//transferfunction
+			"if(useLut) {\n"
+				"if(useMultiLut){\n"
+					"c_out.r = texture(lut, vec2(c_out.r,0.5)).r;"
+					"c_out.g = texture(lut, vec2(c_out.g,0.5)).g;"
+					"c_out.b = texture(lut, vec2(c_out.b,0.5)).b;"
+					"c_out.a = max(c_out.r, max(c_out.g,c_out.b)) ; "
+				"}else{\n"
+					"c_out = texture(lut, vec2(c_out.a,0.5));"
+				"}\n"
+			"}\n"
 	
-			"if(useLut) \n"
-				"c_out = texture(lut,  vec2(c_out.a,0.5) );"
-
 			"c_out.a = c_out.a * multiplier; "
 
 			//remove fragments for correct depthbuffer
@@ -121,7 +130,8 @@ void VolumeSliceShader::render(glm::mat4& MVP, glm::mat4 &clipPlane, GLsizei cou
 	glUniform1i(m_clipping_uniform, m_clipping);
 	glUniform1i(m_channel_uniform, m_channel);
 	glUniform1i(m_useLut_uniform, m_useLut);
-
+	glUniform1i(m_useMultiLut_uniform, m_useMultiLut);
+	
 	////draw the triangles
 	glDrawArrays(GL_TRIANGLES, 0, count);
 	////unbind the shader
@@ -143,7 +153,7 @@ void VolumeSliceShader::initGL()
 	m_channel_uniform = glGetUniformLocation(m_programID, "channel");
 	m_lut_uniform = glGetUniformLocation(m_programID, "lut");
 	m_useLut_uniform = glGetUniformLocation(m_programID, "useLut");
-
+	m_useMultiLut_uniform = glGetUniformLocation(m_programID, "useMultiLut");
 	//pass constant uniforms at initialization
 	glUniform1i(m_volume_uniform, 0);
 	glUniform1i(m_lut_uniform, 1);

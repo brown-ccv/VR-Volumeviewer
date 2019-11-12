@@ -48,6 +48,8 @@
 
 #include <cmath>
 #include <glm/gtc/matrix_transform.hpp>
+#include <vector>
+
 struct pt
 {
 	float x;
@@ -153,12 +155,19 @@ struct pt
 			m_render_channel = render_channel;
 		}
 
+		void computeHistogram();
+		
 		void initGL();
 		void uploadtoPBO();
 		
 		bool& texture_initialized()
 		{
 			return m_texture_initialized;
+		}
+
+		const std::vector<float> &getTransferfunction(int channel)
+		{
+			return m_histogram[channel];
 		}
 
 	private:
@@ -185,6 +194,8 @@ struct pt
 		unsigned char * data;
 
 		int m_render_channel;
+
+		std::vector< std::vector<float> > m_histogram;
 	};
 
 #endif // VOLUME_H

@@ -202,6 +202,11 @@ void VolumeRaycastRenderer::set_blending(bool useBlending, float alpha, Volume* 
 	shader.set_blending(useBlending, alpha, volume->get_texture_id());
 }
 
+void VolumeRaycastRenderer::useMultichannelColormap(bool useMulti)
+{
+	shader.useMultichannelColormap(useMulti);
+}
+
 void VolumeRaycastRenderer::setChannel(Volume* volume)
 {
 	if (volume->render_channel() == -1)

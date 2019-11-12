@@ -46,9 +46,8 @@ class VolumeRenderer
 		virtual void set_numSlices(int slices) = 0;
 	
 		virtual void set_blending(bool useBlending, float alpha, Volume* volume) = 0;
-
-
-
+		virtual void useMultichannelColormap(bool useMulti) = 0;
+	
 		void setClipping(bool isClipping, glm::mat4 * clipPlane)
 		{
 			m_clipping = isClipping;

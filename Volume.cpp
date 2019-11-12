@@ -46,26 +46,6 @@ Volume::~Volume()
 		glDeleteTextures(1, &get_texture_id());
 }
 
-void updatePixels(GLubyte* dst, int size)
-{
-	GLubyte color = 0;
-
-	if (!dst)
-		return;
-
-	GLubyte* ptr = (GLubyte*)dst;
-
-	// copy 4 bytes at once
-	for (int i = 0; i < size; ++i)
-	{
-		*ptr = color;
-		++ptr;
-		
-		color += 1;
-		if (color > 100) color = 1;
-	}
-}
-
 void Volume::uploadtoPBO()
 {
 	glGenBuffers(1, &m_pbo);
@@ -79,6 +59,62 @@ void Volume::uploadtoPBO()
 	m_pbo_upload_started = true;
 }
 
+
+void Volume::computeHistogram()
+{
+	std::vector< std::vector<unsigned int> > m_histogram_tmp;
+	for (int i = 0; i < m_channels; i++)
+		m_histogram_tmp.push_back(std::vector<unsigned int>(256, 0));
+
+	if (m_datatypesize == 1) {
+		unsigned char* ptr = reinterpret_cast <unsigned char*> (data);
+		for (int i = 0; i < get_depth() * get_width() * get_height(); i++ )
+		{
+			for(int c = 0 ; c < get_channels();c++)
+			{
+				m_histogram_tmp[c][*ptr]++;
+				ptr++;
+			}
+		}
+	}
+	else if (m_datatypesize == 2) {
+		unsigned short* ptr = reinterpret_cast <unsigned short*> (data);
+		for (int i = 0; i < get_depth() * get_width() * get_height(); i++)
+		{
+			for (int c = 0; c < get_channels(); c++)
+			{
+				m_histogram_tmp[c][*ptr/256]++;
+				ptr++;
+			}
+		}
+	}
+	else if (m_datatypesize == 4) {
+		float* ptr = reinterpret_cast <float*> (data);
+		for (int i = 0; i < get_depth() * get_width() * get_height(); i++)
+		{
+			for (int c = 0; c < get_channels(); c++)
+			{
+				m_histogram_tmp[c][*ptr*255]++;
+				ptr++;
+			}
+		}
+	}
+
+	for (int i = 0; i < m_histogram.size(); i++)
+		m_histogram[i].clear();
+	m_histogram.clear();
+	
+	for (int c = 0; c < m_channels; c++) {
+		unsigned int nbVoxel = get_depth() * get_width() * get_height() - m_histogram_tmp[c][0];
+
+		m_histogram.push_back(std::vector<float>(m_histogram_tmp[c].size()));
+		m_histogram[c][0] = 0; 
+		for (int i = 1; i < m_histogram_tmp[c].size(); i ++)
+		{
+			m_histogram[c][i] = ((float) m_histogram_tmp[c][i]) / nbVoxel * 30;
+		}
+	}
+}
 
 void Volume::initGL()
 {

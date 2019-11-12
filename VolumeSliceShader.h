@@ -85,13 +85,19 @@
 			m_useLut = useLUT;
 		}
 
+		void useMultichannelColormap(bool useMultiLut)
+		{
+			m_useMultiLut = useMultiLut;
+		}
+		
 	private:
 		float m_threshold;
 		float m_multiplier;
 		bool m_clipping;
 		int m_channel;
 		bool m_useLut;
-
+		bool m_useMultiLut;
+		
 		GLuint m_volume_uniform;
 		GLuint m_vVertex_attribute;
 		GLuint m_MVP_uniform;
@@ -105,5 +111,6 @@
 
 		GLuint m_lut_uniform;
 		GLuint m_useLut_uniform;
+		GLuint m_useMultiLut_uniform;
 	};
 #endif // VOLUMESLICERENDERSHADER_H

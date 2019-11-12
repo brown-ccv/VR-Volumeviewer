@@ -187,6 +187,11 @@ void VolumeSliceRenderer::set_numSlices(int slices)
 	}
 }
 
+void VolumeSliceRenderer::useMultichannelColormap(bool useMulti)
+{
+	shader.useMultichannelColormap(useMulti);
+}
+
 int VolumeSliceRenderer::FindAbsMax(glm::vec3 v)
 {
 	v = glm::abs(v);

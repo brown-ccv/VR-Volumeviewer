@@ -87,6 +87,7 @@ VolumeRaycastShader::VolumeRaycastShader() : m_use_blending{ false }, m_blend_vo
 			"uniform int channel;\n"
 			"uniform sampler2D lut;\n"					//transferfunction
 			"uniform bool useLut;\n"
+			"uniform bool useMultiLut;\n"
 			"uniform sampler2D depth;\n"
 			"uniform vec2 viewport;\n"
 			"uniform mat4 P_inv; \n"
@@ -202,10 +203,19 @@ VolumeRaycastShader::VolumeRaycastShader() : m_use_blending{ false }, m_blend_vo
 	
 				//threshold based on alpha
 				"sample.a = (sample.a > threshold) ? sample.a : 0.0f ;\n"
+
+				//transferfunction
+				"if(useLut) {\n"
+					"if(useMultiLut){\n"
+						"sample.r = texture(lut, vec2(sample.r,0.5)).r;"
+						"sample.g = texture(lut, vec2(sample.g,0.5)).g;"
+						"sample.b = texture(lut, vec2(sample.b,0.5)).b;"
+						"sample.a = max(sample.r, max(sample.g,sample.b)) ; "
+					"}else{\n"
+						"sample = texture(lut, vec2(sample.a,0.5));"
+					"}\n"
+				"}\n"
 	
-				"if(useLut) \n"
-					"sample = texture(lut, vec2(sample.a,0.5));"
-				
 				//assume alpha is the highest channel and gamma correction
 				"sample.a = sample.a * multiplier; \n"  ///needs changing
 
@@ -255,6 +265,7 @@ void VolumeRaycastShader::render(glm::mat4 &MVP, glm::mat4 &clipPlane, glm::vec3
 	glUniform1i(m_clipping_uniform, m_clipping);
 	glUniform1i(m_channel_uniform, m_channel);
 	glUniform1i(m_useLut_uniform, m_useLut);
+	glUniform1i(m_useMultiLut_uniform, m_useMultiLut);
 	glUniform2f(m_viewport_uniform, m_screen_size[0], m_screen_size[1]);
 	glUniformMatrix4fv(m_P_inv_uniform, 1, GL_FALSE, glm::value_ptr(m_P_inv));
 	glUniform1i(m_useBlend_uniform, m_use_blending);
@@ -290,6 +301,7 @@ void VolumeRaycastShader::initGL()
 	m_channel_uniform = glGetUniformLocation(m_programID, "channel");
 	m_lut_uniform = glGetUniformLocation(m_programID, "lut");
 	m_useLut_uniform = glGetUniformLocation(m_programID, "useLut");
+	m_useMultiLut_uniform = glGetUniformLocation(m_programID, "useMultiLut");
 	m_viewport_uniform = glGetUniformLocation(m_programID, "viewport");
 	m_depth_uniform = glGetUniformLocation(m_programID, "depth");
 	m_P_inv_uniform = glGetUniformLocation(m_programID, "P_inv");

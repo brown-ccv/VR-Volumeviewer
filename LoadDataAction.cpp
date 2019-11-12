@@ -123,6 +123,7 @@ Volume* LoadDataAction::run()
 			uploadData_32F_raw(m_folder, volume);
 			break;
 	}
+	volume->computeHistogram();
 	return volume;
 }
 

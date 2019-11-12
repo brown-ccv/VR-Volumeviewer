@@ -114,6 +114,11 @@ class VolumeRaycastShader : public Shader
 			m_blending_alpha = alpha;
 		}
 
+		void useMultichannelColormap(bool useMultiLut)
+		{
+			m_useMultiLut = useMultiLut;
+		}
+	
 	private:	
 		GLuint m_volume_uniform;
 		GLuint m_vVertex_attribute;
@@ -137,9 +142,11 @@ class VolumeRaycastShader : public Shader
 		GLuint m_channel_uniform;
 
 		bool m_useLut;
+		bool m_useMultiLut;
 		GLuint m_lut_uniform;
 		GLint m_useLut_uniform;
-
+		GLuint m_useMultiLut_uniform;
+	
 		unsigned int m_depth_texture;
 		unsigned int m_screen_size[2];
 		glm::mat4 m_P_inv;

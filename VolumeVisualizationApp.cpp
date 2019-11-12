@@ -14,7 +14,7 @@ float diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
 
 VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(argc, argv), m_grab{ false }
 , m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }, m_is2d(false), m_menu_handler(NULL)
-, m_clipping{ false }, m_animated(false), m_speed{ 0.05 }, m_frame{ 0.0 }, m_slices(512), m_rendermethod{ 1 }, m_renderchannel{0} ,m_use_transferfunction{ false }, m_dynamic_slices{true}, m_show_menu{true}
+, m_clipping{ false }, m_animated(false), m_speed{ 0.05 }, m_frame{ 0.0 }, m_slices(512), m_rendermethod{ 1 }, m_renderchannel{ 0 }, m_use_transferfunction{ false }, m_use_multi_transfer{false}, m_dynamic_slices{ true }, m_show_menu{ true }
 {
 	int argc_int = this->getLeftoverArgc();
 	char** argv_int = this->getLeftoverArgv();
@@ -178,8 +178,41 @@ void VolumeVisualizationApp::ui_callback()
 	ImGui::Combo("Render Channel", &m_renderchannel, items_channel, IM_ARRAYSIZE(items_channel));
 	
 	ImGui::Checkbox("use transferfunction", &m_use_transferfunction);
-	if(m_use_transferfunction)
-		tfn_widget.draw_ui();
+	if (m_use_transferfunction) {
+		if (m_volumes.size() > 0 && m_volumes[0]->get_channels() > 1 && (m_renderchannel == 0 || m_renderchannel == 5 || m_renderchannel == 6)){
+			for (int i = 0; i < 3; i++) {
+				if (m_animated)
+				{
+					unsigned int active_volume = floor(m_frame);
+					unsigned int active_volume2 = ceil(m_frame);
+					double alpha = m_frame - active_volume;
+					if (active_volume < m_volumes.size() && active_volume2 < m_volumes.size())
+						tfn_widget_multi.setBlendedHistogram(m_volumes[active_volume]->getTransferfunction(i), m_volumes[active_volume2]->getTransferfunction(i), alpha, i);
+				}
+				else {
+					tfn_widget_multi.setHistogram(m_volumes[0]->getTransferfunction(i), i);
+				}
+			}
+			m_use_multi_transfer = true;
+			tfn_widget_multi.draw_ui();
+		}
+		else
+		{
+			if (m_animated)
+			{
+				unsigned int active_volume = floor(m_frame);
+				unsigned int active_volume2 = ceil(m_frame);
+				double alpha = m_frame - active_volume;
+				if (active_volume < m_volumes.size() && active_volume2 < m_volumes.size())
+					tfn_widget.setBlendedHistogram(m_volumes[active_volume]->getTransferfunction(0), m_volumes[active_volume2]->getTransferfunction(0), alpha);
+			}
+			else if(m_volumes.size() > 0) {
+				tfn_widget.setHistogram(m_volumes[0]->getTransferfunction(0));
+			}
+			m_use_multi_transfer = false;
+			tfn_widget.draw_ui();
+		}
+	}
 
 	//file loading
 	fileDialog.Display();
@@ -302,14 +335,6 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 		if (event.getName() == "KbdEsc_Down")
 		{
 			exit(0);
-		}
-		else if (event.getName() == "KbdA_Down")
-		{
-			m_animated = !m_animated;
-			if (m_animated)
-				std::cerr << "Animation ON" << std::endl;
-			else
-				std::cerr << "Animation OFF" << std::endl;
 		}
 		else if (event.getName() == "HTC_Controller_Right_Axis1Button_Down" || event.getName() == "HTC_Controller_1_Axis1Button_Down")
 		{
@@ -590,6 +615,7 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 		ren->set_multiplier(m_multiplier);
 		ren->set_threshold(m_threshold);
 		ren->set_numSlices(m_slices);
+		ren->useMultichannelColormap(m_use_multi_transfer);
 	}
 	
 	if (m_animated)
@@ -599,7 +625,9 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 		
 		if (active_volume < m_volumes.size() && active_volume2 < m_volumes.size() && m_volumes[active_volume]->texture_initialized() && m_volumes[active_volume2]->texture_initialized()) {
 			m_renders[m_rendermethod]->set_blending(true, m_frame - active_volume, m_volumes[active_volume2]);
-			m_renders[m_rendermethod]->render(m_volumes[active_volume], m_volumes[active_volume]->get_volume_mv(), P, m_volumes[active_volume]->get_volume_scale().x / m_volumes[active_volume]->get_volume_scale().z, m_use_transferfunction ? tfn_widget.get_colormap_gpu() : -1, m_renderchannel);
+			
+			m_renders[m_rendermethod]->render(m_volumes[active_volume], m_volumes[active_volume]->get_volume_mv(), P, m_volumes[active_volume]->get_volume_scale().x / m_volumes[active_volume]->get_volume_scale().z,
+				m_use_transferfunction ? (m_use_multi_transfer) ? tfn_widget_multi.get_colormap_gpu() : tfn_widget.get_colormap_gpu() : -1, m_renderchannel);
 		}
 	}
 	else {
@@ -614,7 +642,8 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 
 		for (int i = order.size() - 1; i >= 0; i--) {
 			if (m_volumes[order[i].second]->texture_initialized())
-				m_renders[m_rendermethod]->render(m_volumes[order[i].second], m_volumes[order[i].second]->get_volume_mv(), P, m_volumes[order[i].second]->get_volume_scale().x / m_volumes[order[i].second]->get_volume_scale().z, m_use_transferfunction ? tfn_widget.get_colormap_gpu() : -1, m_renderchannel);
+				m_renders[m_rendermethod]->render(m_volumes[order[i].second], m_volumes[order[i].second]->get_volume_mv(), P, m_volumes[order[i].second]->get_volume_scale().x / m_volumes[order[i].second]->get_volume_scale().z,
+					m_use_transferfunction ? (m_use_multi_transfer) ? tfn_widget_multi.get_colormap_gpu() : tfn_widget.get_colormap_gpu() : -1, m_renderchannel);
 		}
 	}
 
