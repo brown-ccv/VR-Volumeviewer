@@ -20,37 +20,22 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file LoadDataAction.h
+///\file HelperFunctions.h
 ///\author Benjamin Knorlein
-///\date 11/28/2017
+///\date 11/14/2019
 
 #pragma once
 
-#ifndef LOADDATAACTION_H
-#define LOADDATAACTION_H
+#ifndef HELPERFUNCTIONS_H
+#define HELPERFUNCTIONS_H
+
 #include <string>
-#include <vector>
-#include "Volume.h"
-#include <opencv2/core/mat.hpp>
 
-class LoadDataAction
-	{
-		
-	public:
-		LoadDataAction(std::string folder, float* res);
-		Volume* run();
+namespace helper
+{
+	bool ends_with_string(std::string const& str, std::string const& what);
+	bool contains_string(std::string const& str, std::string const& what);
+	bool replace(std::string& str, const std::string& from, const std::string& to);
+}
 
-		private:
-			std::vector<std::string> readTiffs(std::string foldername);
-
-			std::string m_folder;
-			float* m_res;
-
-			void mergeRGB(std::vector <cv::Mat> &image_r, std::vector <cv::Mat> &image_g, std::vector <cv::Mat> &image_b, std::vector <cv::Mat> &image);
-			static void uploadDataCV_8U(std::vector <cv::Mat> image, Volume* volume);
-			static void uploadDataCV_16U(std::vector <cv::Mat> image, Volume* volume);
-			static void uploadData_32F_raw(std::string filename, Volume* volume);
-	};
-
-
-#endif // LOADDATAACTION_H
+#endif // HELPERFUNCTIONS_H

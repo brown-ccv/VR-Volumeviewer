@@ -44,7 +44,11 @@ public:
      */
     VolumeVisualizationApp(int argc, char** argv);
     virtual ~VolumeVisualizationApp();
- 
+
+	void loadTxtFile(std::string filename);
+
+	void loadVolume(std::vector<std::string> vals, promise<Volume*>* promise);
+	
     /** USER INTERFACE CALLBACKS **/
 
 	void ui_callback();
@@ -65,8 +69,6 @@ public:
     
     virtual void onRenderGraphicsContext(const VRGraphicsState& state);
 
-	void loadVolume(std::vector<std::string> vals, promise<Volume*>* promise);
-	
 private:
 	void addLodadedTextures();
 	void initTexture();

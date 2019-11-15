@@ -4,6 +4,10 @@
 #include <cmath>
 #include <cctype>
 #include "LoadDataAction.h"
+#ifdef WITH_TEEM
+	#include "LoadNrrdAction.h"
+#endif
+#include "HelperFunctions.h"
 #include <glm/gtc/type_ptr.inl>
 #include <glm/gtc/matrix_transform.hpp>
 #include "glm.h"
@@ -25,48 +29,12 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 			{
 				m_is2d = true;
 			}
-			else {
-				std::ifstream inFile;
-				inFile.open(argv_int[i]);
+			else if(helper::ends_with_string(std::string(argv_int[i]),".txt"))
+			{
+				loadTxtFile(std::string(argv_int[i]));
+			}
+			else if(helper::ends_with_string(std::string(argv_int[i]), ".nrrd")){
 
-				std::string line;
-
-				while (getline(inFile, line)) {
-					if (line[0] != '#') {
-						std::vector<std::string> vals; // Create vector to hold our words
-						std::stringstream ss(line);
-						std::string buf;
-
-						while (ss >> buf) {
-							vals.push_back(buf);
-						}
-						if (vals.size() > 0) {
-							if (vals[0] == "animated")
-							{
-								m_animated = true;
-							}
-							if (vals[0] == "threshold")
-							{
-								m_threshold = stof(vals[1]);
-							}
-							if (vals[0] == "mesh")
-							{
-								std::cerr << "Load Mesh " << vals[1] << std::endl;
-								std::cerr << "for Volume " << vals[2] << std::endl;
-								m_models_volumeID.push_back(stoi(vals[2]) - 1);
-								m_models_filenames.push_back(vals[1]);
-								m_models_MV.push_back(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
-							}
-							else if (vals[0] == "volume")
-							{
-								promises.push_back(new promise<Volume*>);
-								futures.push_back(promises.back()->get_future());
-								threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
-							}
-						}
-					}
-				}
-				inFile.close();
 			}
 		}
 	}
@@ -88,51 +56,11 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 	menu->setMenuPose(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 2, -1, 1));
 
 	fileDialog.SetTitle("load data");
+#ifdef WITH_NRRD
+	fileDialog.SetTypeFilters({ ".txt", ".nrrd" });
+#elseif
 	fileDialog.SetTypeFilters({ ".txt"});
-}
-
-void VolumeVisualizationApp::loadVolume(std::vector<std::string> vals, promise<Volume*>* promise)
-{
-	std::cerr << "Load volume " << vals[1] << std::endl;
-	std::cerr << "Position " << vals[5] << " , " << vals[6] << " , " << vals[7] << std::endl;
-	std::cerr << "Resolution " << vals[2] << " , " << vals[3] << " , " << vals[4] << std::endl;
-
-	float t_res[3];
-	t_res[0] = stof(vals[2]);
-	t_res[1] = stof(vals[3]);
-	t_res[2] = stof(vals[4]);
-
-	Volume* volume = LoadDataAction(vals[1], &t_res[0]).run();
-
-	volume->set_volume_position({ stof(vals[5]), stof(vals[6]), stof(vals[7]) });
-	volume->set_volume_scale({ 0.0, 0.0, 0.0 });
-	volume->set_volume_mv(glm::mat4());
-
-	if (vals.size() > 9)
-	{
-		std::cerr << "Set render channel to " << vals[9] << std::endl;
-		volume->set_render_channel(std::stoi(vals[9]));
-	}
-	promise->set_value(volume);;
-	std::cerr << "end load" << std::endl;
-}
-
-void VolumeVisualizationApp::addLodadedTextures()
-{
-	int end = threads.size() - 1;
-	for(int i = end; i >=0 ;i--)
-	{
-		if (futures[i]._Is_ready())
-		{
-			m_volumes.push_back(futures[i].get());
-			futures.erase(futures.begin() + i);
-			threads[i]->join();
-			delete threads[i];
-			delete promises[i];	
-			threads.erase(threads.begin() + i);
-			promises.erase(promises.begin() + i);
-		}
-	}
+#endif
 }
 
 VolumeVisualizationApp::~VolumeVisualizationApp()
@@ -141,6 +69,107 @@ VolumeVisualizationApp::~VolumeVisualizationApp()
 		delete m_volumes[i];
 	}
 	m_volumes.clear();
+}
+
+void VolumeVisualizationApp::loadTxtFile(std::string filename)
+{
+	std::ifstream inFile;
+	inFile.open(filename);
+
+	std::string line;
+
+	while (getline(inFile, line)) {
+		if (line[0] != '#') {
+			std::vector<std::string> vals; // Create vector to hold our words
+			std::stringstream ss(line);
+			std::string buf;
+
+			while (ss >> buf) {
+				vals.push_back(buf);
+			}
+			if (vals.size() > 0) {
+				if (vals[0] == "animated")
+				{
+					m_animated = true;
+				}
+				if (vals[0] == "threshold")
+				{
+					m_threshold = stof(vals[1]);
+				}
+				if (vals[0] == "mesh")
+				{
+					std::cerr << "Load Mesh " << vals[1] << std::endl;
+					std::cerr << "for Volume " << vals[2] << std::endl;
+					m_models_volumeID.push_back(stoi(vals[2]) - 1);
+					m_models_filenames.push_back(vals[1]);
+					m_models_MV.push_back(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
+				}
+				else if (vals[0] == "volume")
+				{
+					promises.push_back(new promise<Volume*>);
+					futures.push_back(promises.back()->get_future());
+					threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
+				}
+			}
+		}
+	}
+	inFile.close();
+}
+
+void VolumeVisualizationApp::loadVolume(std::vector<std::string> vals, promise<Volume*>* promise)
+{
+	if(vals.size() == 1 && helper::ends_with_string(vals[0],".nrrd"))
+	{
+		Volume* volume = LoadNrrdAction(vals[0]).run();
+		volume->set_volume_position({ 0.0, 0.0, 0.0 });
+		volume->set_volume_scale({ 0.0, 0.0, 0.0 });
+		volume->set_volume_mv(glm::mat4());
+		promise->set_value(volume);;
+	}
+	else {
+		std::cerr << "Load volume " << vals[1] << std::endl;
+		std::cerr << "Position " << vals[5] << " , " << vals[6] << " , " << vals[7] << std::endl;
+		std::cerr << "Resolution " << vals[2] << " , " << vals[3] << " , " << vals[4] << std::endl;
+
+		float t_res[3];
+		t_res[0] = stof(vals[2]);
+		t_res[1] = stof(vals[3]);
+		t_res[2] = stof(vals[4]);
+
+		Volume* volume = LoadDataAction(vals[1], &t_res[0]).run();
+
+		volume->set_volume_position({ stof(vals[5]), stof(vals[6]), stof(vals[7]) });
+		volume->set_volume_scale({ 0.0, 0.0, 0.0 });
+		volume->set_volume_mv(glm::mat4());
+
+		if (vals.size() > 9)
+		{
+			std::cerr << "Set render channel to " << vals[9] << std::endl;
+			volume->set_render_channel(std::stoi(vals[9]));
+		}
+		promise->set_value(volume);;
+		std::cerr << "end load" << std::endl;
+	}
+}
+
+void VolumeVisualizationApp::addLodadedTextures()
+{
+	int end = threads.size() - 1;
+	for (int i = end; i >= 0; i--)
+	{
+		if (futures[i]._Is_ready())
+		{
+			//if (futures[i].get() != nullptr) {
+				m_volumes.push_back(futures[i].get());
+				futures.erase(futures.begin() + i);
+				threads[i]->join();
+				delete threads[i];
+				delete promises[i];
+				threads.erase(threads.begin() + i);
+				promises.erase(promises.begin() + i);
+			//}
+		}
+	}
 }
 
 void VolumeVisualizationApp::ui_callback()
@@ -219,44 +248,20 @@ void VolumeVisualizationApp::ui_callback()
 
 	if (fileDialog.HasSelected())
 	{
-		std::ifstream inFile;
-		inFile.open(fileDialog.GetSelected().string());
-		fileDialog.ClearSelected();
-		std::string line;
-
-		while (getline(inFile, line)) {
-			if (line[0] != '#') {
-				std::vector<std::string> vals; // Create vector to hold our words
-				std::stringstream ss(line);
-				std::string buf;
-
-				while (ss >> buf) {
-					vals.push_back(buf);
-				}
-				if (vals.size() > 0) {
-					if (vals[0] == "animated")
-					{
-						m_animated = true;
-					}
-					if (vals[0] == "speed")
-					{
-						m_speed = stof(vals[1]);
-					}
-					if (vals[0] == "threshold")
-					{
-						m_threshold = stof(vals[1]);
-					}
-					else if (vals[0] == "volume")
-					{
-						promises.push_back(new promise<Volume*>);
-						futures.push_back(promises.back()->get_future());
-						threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
-					}
-				}
-			}
+		if (helper::ends_with_string(fileDialog.GetSelected().string(), ".txt"))
+		{
+#ifdef WITH_TEEM
+			loadTxtFile(fileDialog.GetSelected().string());
+#endif
 		}
-
-		inFile.close();
+		else if (helper::ends_with_string(fileDialog.GetSelected().string(), ".nrrd")) {
+			std::vector<std::string> vals;
+			vals.push_back(fileDialog.GetSelected().string());	
+			promises.push_back(new promise<Volume*>);
+			futures.push_back(promises.back()->get_future());
+			threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
+		}
+		fileDialog.ClearSelected();
 	}
 	
 	ImGui::End();
@@ -537,7 +542,6 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 	if (m_show_menu) m_menu_handler->renderToTexture();
 }
 
-#include <glm/gtx/string_cast.hpp>
 void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &renderState) {
     // This routine is called once per eye.  This is the place to actually
     // draw the scene...

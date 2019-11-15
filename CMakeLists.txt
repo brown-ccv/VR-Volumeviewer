@@ -30,6 +30,7 @@ project(MinVR-Volume)
 message(STATUS "==== BUILDING ${PROJECT_NAME}")
 message(STATUS "Using install prefix: ${CMAKE_INSTALL_PREFIX}")
 
+option(WITH_TEEM "Adds support of nrrd files through teem" OFF)
 
 
 set(source_files
@@ -53,6 +54,7 @@ set(source_files
   transferfunction/transfer_function_widget.cpp
   transferfunction/transfer_function_multichannel_widget.cpp
   ArcBall.cpp
+  HelperFunctions.cpp
 )
 
 set(header_files
@@ -76,6 +78,7 @@ set(header_files
   transferfunction/transfer_function_multichannel_widget.h
   transferfunction/embedded_colormaps.h
   ArcBall.h
+  HelperFunctions.h
 )
 
 
@@ -108,6 +111,8 @@ include_directories(
 #  ${FREETYPE_INCLUDE_DIRS}
 )
 
+
+
 set(LIBRARIES
 	ImguiVR
 	${OpenCV_LIBS}
@@ -120,6 +125,24 @@ set(LIBRARIES
 	#${PNG_LIBRARIES}
 #	${FREETYPE_LIBRARIES}
 )
+
+if(WITH_TEEM)
+	FIND_PACKAGE(Teem REQUIRED )
+	include(${Teem_USE_FILE})
+	set(LIBRARIES 
+		${LIBRARIES} 
+		teem)
+	add_definitions(-DWITH_TEEM)
+	set(header_files
+		${header_files}
+		LoadNrrdAction.h
+	)
+	set(source_files
+		${source_files}
+		LoadNrrdAction.cpp
+	)
+endif()
+
 
 #---------------------- Define the Target ----------------------
 

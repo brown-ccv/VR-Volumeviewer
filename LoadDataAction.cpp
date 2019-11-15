@@ -37,6 +37,8 @@
 #endif
 
 #include "LoadDataAction.h"
+#include "HelperFunctions.h"
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
@@ -55,14 +57,14 @@ Volume* LoadDataAction::run()
 	float minval[2];
 	std::vector <cv::Mat> images;
 
-	if (ends_with_string(m_folder, "desc"))
+	if (helper::ends_with_string(m_folder, "desc"))
 	{
 		FILE * pFile;
 		pFile = fopen(m_folder.c_str(), "r");
 		fscanf(pFile, "%u,%u,%u,%f,%f\n'", &w, &h, &d, &minval[0], &minval[1]);
 		channels = 1;
 		depth = CV_32F;
-		replace(m_folder, ".desc", ".raw");
+		helper::replace(m_folder, ".desc", ".raw");
 	}
 	else{
 
@@ -73,17 +75,17 @@ Volume* LoadDataAction::run()
 
 		for (auto name : filenames)
 		{
-			if (contains_string(name, "ch1"))
+			if (helper::contains_string(name, "ch1"))
 			{
 				std::cerr << "Load Image " << image_r.size() << " Channel 1 - " << name << std::endl;
 				image_r.push_back(std::move(cv::imread(name, cv::IMREAD_ANYDEPTH | cv::IMREAD_GRAYSCALE)));
 			}
-			else if (contains_string(name, "ch2"))
+			else if (helper::contains_string(name, "ch2"))
 			{
 				std::cerr << "Load Image " << image_g.size() << " Channel 2 - " << name << std::endl;
 				image_g.push_back(std::move(cv::imread(name, cv::IMREAD_ANYDEPTH | cv::IMREAD_GRAYSCALE)));
 			}
-			else if (contains_string(name, "ch3"))
+			else if (helper::contains_string(name, "ch3"))
 			{
 				std::cerr << "Load Image " << image_b.size() << " Channel 3 - " << name << std::endl;
 				image_b.push_back(std::move(cv::imread(name, cv::IMREAD_ANYDEPTH | cv::IMREAD_GRAYSCALE)));
@@ -314,24 +316,6 @@ void LoadDataAction::uploadData_32F_raw(std::string filename, Volume* volume)
 //	}
 //}
 
-bool LoadDataAction::replace(std::string& str, const std::string& from, const std::string& to) {
-	size_t start_pos = str.find(from);
-	if (start_pos == std::string::npos)
-		return false;
-	str.replace(start_pos, from.length(), to);
-	return true;
-}
-
-bool LoadDataAction::ends_with_string(std::string const& str, std::string const& what) {
-	return what.size() <= str.size()
-		&& str.find(what, str.size() - what.size()) != str.npos;
-}
-
-bool LoadDataAction::contains_string(std::string const& str, std::string const& what) {
-	return str.find(what) != std::string::npos;
-}
-
-
 std::vector<std::string> LoadDataAction::readTiffs(std::string foldername)
 {
 	std::vector <std::string> out_vector;
@@ -341,7 +325,7 @@ std::vector<std::string> LoadDataAction::readTiffs(std::string foldername)
 	if ((dir = opendir(foldername.c_str())) != NULL) {
 		/* print all the files and directories within directory */
 		while ((ent = readdir(dir)) != NULL) {
-			if (ends_with_string(ent->d_name, "tif") || ends_with_string(ent->d_name, "tiff") || ends_with_string(ent->d_name, "png"))
+			if (helper::ends_with_string(ent->d_name, "tif") || helper::ends_with_string(ent->d_name, "tiff") || helper::ends_with_string(ent->d_name, "png"))
 			{
 				out_vector.push_back(foldername + OS_SLASH + ent->d_name);
 			}

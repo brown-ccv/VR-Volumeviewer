@@ -20,37 +20,35 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file LoadDataAction.h
+///\file HelperFunctions.cpp
 ///\author Benjamin Knorlein
-///\date 11/28/2017
+///\date 11/14/2019
 
 #pragma once
 
-#ifndef LOADDATAACTION_H
-#define LOADDATAACTION_H
-#include <string>
-#include <vector>
-#include "Volume.h"
-#include <opencv2/core/mat.hpp>
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 
-class LoadDataAction
-	{
-		
-	public:
-		LoadDataAction(std::string folder, float* res);
-		Volume* run();
+#include "HelperFunctions.h"
 
-		private:
-			std::vector<std::string> readTiffs(std::string foldername);
+namespace helper
+{
 
-			std::string m_folder;
-			float* m_res;
+	bool replace(std::string& str, const std::string& from, const std::string& to) {
+		size_t start_pos = str.find(from);
+		if (start_pos == std::string::npos)
+			return false;
+		str.replace(start_pos, from.length(), to);
+		return true;
+	}
 
-			void mergeRGB(std::vector <cv::Mat> &image_r, std::vector <cv::Mat> &image_g, std::vector <cv::Mat> &image_b, std::vector <cv::Mat> &image);
-			static void uploadDataCV_8U(std::vector <cv::Mat> image, Volume* volume);
-			static void uploadDataCV_16U(std::vector <cv::Mat> image, Volume* volume);
-			static void uploadData_32F_raw(std::string filename, Volume* volume);
-	};
+	bool ends_with_string(std::string const& str, std::string const& what) {
+		return what.size() <= str.size()
+			&& str.find(what, str.size() - what.size()) != str.npos;
+	}
 
-
-#endif // LOADDATAACTION_H
+	bool contains_string(std::string const& str, std::string const& what) {
+		return str.find(what) != std::string::npos;
+	}
+}
