@@ -154,21 +154,24 @@ void VolumeVisualizationApp::loadVolume(std::vector<std::string> vals, promise<V
 
 void VolumeVisualizationApp::addLodadedTextures()
 {
-	int end = threads.size() - 1;
-	for (int i = end; i >= 0; i--)
+	bool allready = true;
+	for (auto& f : futures)
 	{
-		if (futures[i]._Is_ready())
+		allready = allready & f._Is_ready();
+	}
+
+	if(allready)
+	{
+		for (int i =0; i < futures.size(); i++)
 		{
-			//if (futures[i].get() != nullptr) {
-				m_volumes.push_back(futures[i].get());
-				futures.erase(futures.begin() + i);
-				threads[i]->join();
-				delete threads[i];
-				delete promises[i];
-				threads.erase(threads.begin() + i);
-				promises.erase(promises.begin() + i);
-			//}
+			m_volumes.push_back(futures[i].get());
+			threads[i]->join();
+			delete threads[i];
+			delete promises[i];
 		}
+		threads.clear();
+		promises.clear();
+		futures.clear();
 	}
 }
 
@@ -234,8 +237,7 @@ void VolumeVisualizationApp::ui_callback()
 				double alpha = m_frame - active_volume;
 				if (active_volume < m_volumes.size() && active_volume2 < m_volumes.size())
 					tfn_widget.setBlendedHistogram(m_volumes[active_volume]->getTransferfunction(0), m_volumes[active_volume2]->getTransferfunction(0), alpha);
-			}
-			else if(m_volumes.size() > 0) {
+			}else if(m_volumes.size() > 0) {
 				tfn_widget.setHistogram(m_volumes[0]->getTransferfunction(0));
 			}
 			m_use_multi_transfer = false;
