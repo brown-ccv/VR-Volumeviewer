@@ -118,7 +118,7 @@ void saveToImage(std::vector <cv::Mat> &images, std::string filename, float* res
 
 	double pi = 3.14159265359;
 	std::stringstream stream;
-	stream << std::fixed << std::setprecision(5) << "_" << res[0] << "_" << res[1] << "_" << res[2];
+	stream << std::fixed << std::setprecision(5) << "_" << res[0] * downscale << "_" << res[1] * downscale << "_" << res[2];
 	std::string resolution = stream.str();
 	
 	image_out.convertTo(image_out, CV_8UC3, 1.0f/256.0f);
