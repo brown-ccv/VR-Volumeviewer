@@ -133,6 +133,8 @@ private:
 	//2D
 	bool m_is2d;
 	ArcBall m_trackball;
+
+	bool convert;
 	
 };
 

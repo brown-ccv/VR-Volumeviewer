@@ -18,7 +18,7 @@ float diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
 
 VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(argc, argv), m_grab{ false }
 , m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }, m_is2d(false), m_menu_handler(NULL)
-, m_clipping{ false }, m_animated(false), m_speed{ 0.05 }, m_frame{ 0.0 }, m_slices(512), m_rendermethod{ 1 }, m_renderchannel{ 0 }, m_use_transferfunction{ false }, m_use_multi_transfer{false}, m_dynamic_slices{ true }, m_show_menu{ true }
+, m_clipping{ false }, m_animated(false), m_speed{ 0.05 }, m_frame{ 0.0 }, m_slices(512), m_rendermethod{ 1 }, m_renderchannel{ 0 }, m_use_transferfunction{ false }, m_use_multi_transfer{false}, m_dynamic_slices{ true }, m_show_menu{ true }, convert{false}
 {
 	int argc_int = this->getLeftoverArgc();
 	char** argv_int = this->getLeftoverArgv();
@@ -28,6 +28,9 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 			if (std::string(argv_int[i]) == std::string("use2DUI"))
 			{
 				m_is2d = true;
+			}
+			else if (std::string(argv_int[i]) == std::string("convert")) {
+				convert = true;
 			}
 			else if(helper::ends_with_string(std::string(argv_int[i]),".txt"))
 			{
@@ -136,7 +139,7 @@ void VolumeVisualizationApp::loadVolume(std::vector<std::string> vals, promise<V
 		t_res[1] = stof(vals[3]);
 		t_res[2] = stof(vals[4]);
 
-		Volume* volume = LoadDataAction(vals[1], &t_res[0]).run();
+		Volume* volume = LoadDataAction(vals[1], &t_res[0]).run(convert);
 
 		volume->set_volume_position({ stof(vals[5]), stof(vals[6]), stof(vals[7]) });
 		volume->set_volume_scale({ 0.0, 0.0, 0.0 });

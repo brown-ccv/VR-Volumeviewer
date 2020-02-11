@@ -38,7 +38,7 @@ class LoadDataAction
 		
 	public:
 		LoadDataAction(std::string folder, float* res);
-		Volume* run();
+		Volume* run(bool convert = false);
 
 		private:
 			std::vector<std::string> readTiffs(std::string foldername);
