@@ -17,7 +17,7 @@ float ambient[] = { 0.5f, 0.5f, 0.5f, 1.0f };
 float diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
 
 VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(argc, argv), m_grab{ false }
-, m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }, m_is2d(false), m_menu_handler(NULL)
+, m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }, m_is2d(false), m_menu_handler(NULL), m_lookingGlass{false}
 , m_clipping{ false }, m_animated(false), m_speed{ 0.05 }, m_frame{ 0.0 }, m_slices(256), m_rendermethod{ 1 }, m_renderchannel{ 0 }, m_use_transferfunction{ false }, m_use_multi_transfer{false}, m_dynamic_slices{ false }, m_show_menu{ true }, convert{false}
 {
 	int argc_int = this->getLeftoverArgc();
@@ -28,6 +28,10 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 			if (std::string(argv_int[i]) == std::string("use2DUI"))
 			{
 				m_is2d = true;
+			}
+			if (std::string(argv_int[i]) == std::string("useHolo"))
+			{
+				m_lookingGlass = true;
 			}
 			else if (std::string(argv_int[i]) == std::string("convert")) {
 				convert = true;
@@ -57,9 +61,17 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 	m_renders.push_back(new VolumeRaycastRenderer());
 
 	std::cerr << " Done loading" << std::endl;
+	float fontsize = 2.0;
+	if (m_is2d) {
+		fontsize = 1.0;
+	}
+	if (m_lookingGlass) { 
+		fontsize = 3.0;
+	}
+
 
 	m_menu_handler = new VRMenuHandler(m_is2d);
-	VRMenu * menu = m_menu_handler->addNewMenu(std::bind(&VolumeVisualizationApp::ui_callback, this), 1024, 1024, 1, 1);
+	VRMenu * menu = m_menu_handler->addNewMenu(std::bind(&VolumeVisualizationApp::ui_callback, this), 1024, 1024, 1, 1, fontsize);
 	menu->setMenuPose(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 2, -1, 1));
 
 	fileDialog.SetTitle("load data");
@@ -187,9 +199,15 @@ void VolumeVisualizationApp::addLodadedTextures()
 void VolumeVisualizationApp::ui_callback()
 {
 	if(m_is2d){
-		ImGui::SetNextWindowSize(ImVec2(500, 700), ImGuiCond_Once);
+		if (m_lookingGlass) {
+			ImGui::SetNextWindowSize(ImVec2(1200, 1400), ImGuiCond_Once);
+		}
+		else {
+			ImGui::SetNextWindowSize(ImVec2(500, 700), ImGuiCond_Once);
+		}
 		ImGui::SetNextWindowPos(ImVec2(40, 40), ImGuiCond_Once);
 	}
+	
 	ImGui::Begin("Volumeviewer");
 	
 	// open file dialog when user clicks this button

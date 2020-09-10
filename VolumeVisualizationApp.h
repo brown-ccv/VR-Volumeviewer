@@ -132,6 +132,7 @@ private:
 
 	//2D
 	bool m_is2d;
+	bool m_lookingGlass;
 	ArcBall m_trackball;
 
 	bool convert;
