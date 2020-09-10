@@ -18,7 +18,7 @@ float diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
 
 VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(argc, argv), m_grab{ false }
 , m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }, m_is2d(false), m_menu_handler(NULL)
-, m_clipping{ false }, m_animated(false), m_speed{ 0.05 }, m_frame{ 0.0 }, m_slices(512), m_rendermethod{ 1 }, m_renderchannel{ 0 }, m_use_transferfunction{ false }, m_use_multi_transfer{false}, m_dynamic_slices{ true }, m_show_menu{ true }, convert{false}
+, m_clipping{ false }, m_animated(false), m_speed{ 0.05 }, m_frame{ 0.0 }, m_slices(256), m_rendermethod{ 1 }, m_renderchannel{ 0 }, m_use_transferfunction{ false }, m_use_multi_transfer{false}, m_dynamic_slices{ false }, m_show_menu{ true }, convert{false}
 {
 	int argc_int = this->getLeftoverArgc();
 	char** argv_int = this->getLeftoverArgv();
@@ -37,7 +37,11 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 				loadTxtFile(std::string(argv_int[i]));
 			}
 			else if(helper::ends_with_string(std::string(argv_int[i]), ".nrrd")){
-
+				std::vector<std::string> vals;
+				vals.push_back(std::string(argv_int[i]));
+				promises.push_back(new std::promise<Volume*>);
+				futures.push_back(promises.back()->get_future());
+				threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
 			}
 		}
 	}
@@ -109,7 +113,7 @@ void VolumeVisualizationApp::loadTxtFile(std::string filename)
 				}
 				else if (vals[0] == "volume")
 				{
-					promises.push_back(new promise<Volume*>);
+					promises.push_back(new std::promise<Volume*>);
 					futures.push_back(promises.back()->get_future());
 					threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
 				}
@@ -119,15 +123,17 @@ void VolumeVisualizationApp::loadTxtFile(std::string filename)
 	inFile.close();
 }
 
-void VolumeVisualizationApp::loadVolume(std::vector<std::string> vals, promise<Volume*>* promise)
+void VolumeVisualizationApp::loadVolume(std::vector<std::string> vals, std::promise<Volume*>* promise)
 {
 	if(vals.size() == 1 && helper::ends_with_string(vals[0],".nrrd"))
 	{
+#ifdef WITH_TEEM
 		Volume* volume = LoadNrrdAction(vals[0]).run();
 		volume->set_volume_position({ 0.0, 0.0, 0.0 });
 		volume->set_volume_scale({ 0.0, 0.0, 0.0 });
 		volume->set_volume_mv(glm::mat4());
 		promise->set_value(volume);;
+#endif
 	}
 	else {
 		std::cerr << "Load volume " << vals[1] << std::endl;
@@ -262,7 +268,7 @@ void VolumeVisualizationApp::ui_callback()
 		else if (helper::ends_with_string(fileDialog.GetSelected().string(), ".nrrd")) {
 			std::vector<std::string> vals;
 			vals.push_back(fileDialog.GetSelected().string());	
-			promises.push_back(new promise<Volume*>);
+			promises.push_back(new std::promise<Volume*>);
 			futures.push_back(promises.back()->get_future());
 			threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
 		}
@@ -290,10 +296,27 @@ void VolumeVisualizationApp::onCursorMove(const VRCursorEvent& event)
 	}
 }
 
+#define count_Packages 
+#ifdef count_Packages
+	int last_received = 0;
+#endif count_Packages
+
 void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event) {
 	if (m_show_menu && m_menu_handler != NULL && m_menu_handler->windowIsActive()) {
 		if (event.getName() == "HTC_Controller_Right_TrackPad0_Y" || event.getName() == "HTC_Controller_1_TrackPad0_Y")
 			m_menu_handler->setAnalogValue(event.getValue());
+	}
+
+	if (event.getName() == "PhotonLoopFinished") {
+		if (!m_is2d)
+			m_menu_handler->renderToTexture();
+		else
+			m_menu_handler->drawMenu();
+
+		if (last_received + 1 != event.getValue()) {
+			std::cerr << "Problem with package , received " << event.getValue() << " expected "  << last_received + 1 << std::endl;
+		}
+		last_received = event.getValue();
 	}
 }
 
@@ -565,7 +588,7 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 
 	//overwrite MV for 2D viewing
 	if(m_is2d)
-		MV = m_trackball.getViewmatrix();
+		MV = MV * m_trackball.getViewmatrix();
 	
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(glm::value_ptr(P));

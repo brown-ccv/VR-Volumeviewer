@@ -47,7 +47,7 @@ public:
 
 	void loadTxtFile(std::string filename);
 
-	void loadVolume(std::vector<std::string> vals, promise<Volume*>* promise);
+	void loadVolume(std::vector<std::string> vals, std::promise<Volume*>* promise);
 	
     /** USER INTERFACE CALLBACKS **/
 
@@ -121,8 +121,8 @@ private:
 	TransferFunctionWidget tfn_widget;
 	ImGui::FileBrowser fileDialog;
 	
-	std::vector <promise<Volume*> * > promises;
-	std::vector <future<Volume*>> futures;
+	std::vector <std::promise<Volume*> * > promises;
+	std::vector <std::future<Volume*>> futures;
 	std::vector <std::thread *> threads;
 
 	std::chrono::steady_clock::time_point m_lastTime;
