@@ -80,7 +80,7 @@ void DepthTexture::create()
 
 		GLint actualbits;
 		glGetIntegerv(GL_DEPTH_BITS, &actualbits); 
-		std::cerr << actualbits << std::endl;
+		//std::cerr << actualbits << std::endl;
 		
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, m_width, m_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 		glBindTexture(GL_TEXTURE_2D, 0);
