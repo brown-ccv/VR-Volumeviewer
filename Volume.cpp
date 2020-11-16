@@ -94,7 +94,12 @@ void Volume::computeHistogram()
 		{
 			for (int c = 0; c < get_channels(); c++)
 			{
-				m_histogram_tmp[c][*ptr*255]++;
+				if ((*ptr) * 255 > 255) {
+					m_histogram_tmp[c][255]++;
+				}
+				else {
+					m_histogram_tmp[c][(*ptr) * 255]++;
+				}
 				ptr++;
 			}
 		}

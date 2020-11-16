@@ -18,7 +18,7 @@ float diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
 
 VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(argc, argv), m_grab{ false }
 , m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }, m_is2d(false), m_menu_handler(NULL), m_lookingGlass{false}
-, m_clipping{ false }, m_animated(false), m_speed{ 0.05 }, m_frame{ 0.0 }, m_slices(256), m_rendermethod{ 1 }, m_renderchannel{ 0 }, m_use_transferfunction{ false }, m_use_multi_transfer{false}, m_dynamic_slices{ false }, m_show_menu{ true }, convert{false}
+, m_clipping{ false }, m_animated(false), m_speed{ 0.01 }, m_frame{ 0.0 }, m_slices(256), m_rendermethod{ 1 }, m_renderchannel{ 0 }, m_use_transferfunction{ false }, m_use_multi_transfer{false}, m_dynamic_slices{ false }, m_show_menu{ true }, convert{false}
 {
 	int argc_int = this->getLeftoverArgc();
 	char** argv_int = this->getLeftoverArgv();
@@ -32,6 +32,7 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 			if (std::string(argv_int[i]) == std::string("useHolo"))
 			{
 				m_lookingGlass = true;
+				m_speed = 0.5;
 			}
 			else if (std::string(argv_int[i]) == std::string("convert")) {
 				convert = true;
