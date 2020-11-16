@@ -322,7 +322,9 @@ void VolumeVisualizationApp::onCursorMove(const VRCursorEvent& event)
 
 void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event) {
 	if (m_show_menu && m_menu_handler != NULL && m_menu_handler->windowIsActive()) {
-		if (event.getName() == "HTC_Controller_Right_TrackPad0_Y" || event.getName() == "HTC_Controller_1_TrackPad0_Y")
+		if (event.getName() == "HTC_Controller_Right_TrackPad0_Y" || event.getName() == "HTC_Controller_1_TrackPad0_Y"
+			|| (event.getName() == "Wand_Joystick_Y_Update" && !(event.getValue() > -0.1 && event.getValue() < 0.1) ))
+				
 			m_menu_handler->setAnalogValue(event.getValue());
 	}
 
@@ -363,18 +365,18 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 	}
 
 	if (m_show_menu && m_menu_handler != NULL && m_menu_handler->windowIsActive()) {
-		if (event.getName() == "HTC_Controller_Right_Axis1Button_Down" || event.getName() == "HTC_Controller_1_Axis1Button_Down")
+		if (event.getName() == "HTC_Controller_Right_Axis1Button_Down" || event.getName() == "HTC_Controller_1_Axis1Button_Down" || event.getName() == "B10_Down")
 		{
 			//left click
 			m_menu_handler->setButtonClick(0, 1);
 		}
-		else if (event.getName() == "HTC_Controller_Right_GripButton_Down" || event.getName() == "HTC_Controller_1_GripButton_Down")
+		else if (event.getName() == "HTC_Controller_Right_GripButton_Down" || event.getName() == "HTC_Controller_1_GripButton_Down" || event.getName() == "Wand_Right_Btn_Down")
 		{
 			//middle click
 			m_menu_handler->setButtonClick(2, 1);
 		}
 		//else if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
-		else if (event.getName() == "HTC_Controller_Right_Axis0Button_Down" || event.getName() == "HTC_Controller_1_Axis0Button_Down")
+		else if (event.getName() == "HTC_Controller_Right_Axis0Button_Down" || event.getName() == "HTC_Controller_1_Axis0Button_Down" || event.getName() == "B08_Down" )
 		{
 			//right click
 			m_menu_handler->setButtonClick(1, 1);
@@ -388,18 +390,18 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 		{
 			exit(0);
 		}
-		else if (event.getName() == "HTC_Controller_Right_Axis1Button_Down" || event.getName() == "HTC_Controller_1_Axis1Button_Down")
+		else if (event.getName() == "HTC_Controller_Right_Axis1Button_Down" || event.getName() == "HTC_Controller_1_Axis1Button_Down" || event.getName() == "B10_Down")
 		{
 			m_grab = true;
 			//std::cerr << "Grab ON" << std::endl;
 		}
 		//else if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
-		else if (event.getName() == "HTC_Controller_Right_Axis0Button_Down" || event.getName() == "HTC_Controller_1_Axis0Button_Down")
+		else if (event.getName() == "HTC_Controller_Right_Axis0Button_Down" || event.getName() == "HTC_Controller_1_Axis0Button_Down" || event.getName() == "Wand_Right_Btn_Down")
 		{
 			m_clipping = true;
 			//std::cerr << "Clipping ON" << std::endl;
 		}
-		else if (event.getName() == "HTC_Controller_Right_GripButton_Down" || event.getName() == "HTC_Controller_1_GripButton_Down")
+		else if (event.getName() == "HTC_Controller_Right_GripButton_Down" || event.getName() == "HTC_Controller_1_GripButton_Down" || event.getName() == "B08_Down")
 		{
 			m_show_menu = !m_show_menu;
 		}
@@ -445,19 +447,19 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 	
 
 	if (m_show_menu && m_menu_handler != NULL) {
-		if (event.getName() == "HTC_Controller_Right_Axis1Button_Up" || event.getName() == "HTC_Controller_1_Axis1Button_Up")
+		if (event.getName() == "HTC_Controller_Right_Axis1Button_Up" || event.getName() == "HTC_Controller_1_Axis1Button_Up" || event.getName() == "B10_Up")
 		{
 			//left click
 			m_menu_handler->setButtonClick(0, 0);
 
 		}
-		else if (event.getName() == "HTC_Controller_Right_GripButton_Up" || event.getName() == "HTC_Controller_1_GripButton_Up")
+		else if (event.getName() == "HTC_Controller_Right_GripButton_Up" || event.getName() == "HTC_Controller_1_GripButton_Up" || event.getName() == "Wand_Right_Btn_Up")
 		{
 			//middle click
 			m_menu_handler->setButtonClick(2, 0);
 		}
 		//else if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
-		else if (event.getName() == "HTC_Controller_Right_Axis0Button_Up" || event.getName() == "HTC_Controller_1_Axis0Button_Up")
+		else if (event.getName() == "HTC_Controller_Right_Axis0Button_Up" || event.getName() == "HTC_Controller_1_Axis0Button_Up" || event.getName() == "B08_Up")
 		{
 			//right click
 			m_menu_handler->setButtonClick(1, 0);
@@ -466,13 +468,13 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 	// This routine is called for all Button_Up events.  Check event->getName()
 	// to see exactly which button has been released.
 	//std::cerr << "onButtonUp " << event.getName() << std::endl;
-	if (event.getName() == "HTC_Controller_Right_Axis1Button_Up" || event.getName() == "HTC_Controller_1_Axis1Button_Up")
+	if (event.getName() == "HTC_Controller_Right_Axis1Button_Up" || event.getName() == "HTC_Controller_1_Axis1Button_Up" || event.getName() == "B10_Up")
 	{
 		m_grab = false;
 		//std::cerr << "Grab OFF" << std::endl;
 	}
 	//else if (event.getName() == "HTC_Controller_Right_AButton_Up" || event.getName() == "HTC_Controller_1_AButton_Up")
-	else if (event.getName() == "HTC_Controller_Right_Axis0Button_Up" || event.getName() == "HTC_Controller_1_Axis0Button_Up")
+	else if (event.getName() == "HTC_Controller_Right_Axis0Button_Up" || event.getName() == "HTC_Controller_1_Axis0Button_Up" || event.getName() == "Wand_Right_Btn_Up")
 	{
 		m_clipping = false;
 		//std::cerr << "Clipping OFF" << std::endl;
@@ -483,7 +485,7 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 
 void VolumeVisualizationApp::onTrackerMove(const VRTrackerEvent &event) {
 	if (m_show_menu && m_menu_handler != NULL) {
-		if (event.getName() == "HTC_Controller_Right_Move" || event.getName() == "HTC_Controller_1_Move") {
+		if (event.getName() == "HTC_Controller_Right_Move" || event.getName() == "HTC_Controller_1_Move" || event.getName() == "Wand0_Move") {
 			m_menu_handler->setControllerPose(glm::make_mat4(event.getTransform()));
 		}
 	}
@@ -492,7 +494,7 @@ void VolumeVisualizationApp::onTrackerMove(const VRTrackerEvent &event) {
 	// This routine is called for all Tracker_Move events.  Check event->getName()
     // to see exactly which tracker has moved, and then access the tracker's new
     // 4x4 transformation matrix with event->getTransform().
-	if (event.getName() == "HTC_Controller_Right_Move" || event.getName() == "HTC_Controller_1_Move") {
+	if (event.getName() == "HTC_Controller_Right_Move" || event.getName() == "HTC_Controller_1_Move" || event.getName() == "Wand0_Move") {
 		glm::mat4 new_pose = glm::make_mat4(event.getTransform());
 		if (m_grab) {
 			// Update the paintingToRoom transform based upon the new transform

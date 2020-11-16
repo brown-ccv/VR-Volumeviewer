@@ -23,6 +23,11 @@ set(CMAKE_CXX_STANDARD 17)
     endif(COMMAND cmake_policy)
 add_definitions(-D_HAS_STD_BYTE=0)
 
+if (UNIX)
+	add_compile_options(-lpthread)
+	add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
+endif (UNIX)
+
 #---------------------- Source for this Project ----------------------
 
 project(MinVR-Volume)
