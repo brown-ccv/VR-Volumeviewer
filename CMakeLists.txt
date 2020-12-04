@@ -23,10 +23,12 @@ set(CMAKE_CXX_STANDARD 17)
     endif(COMMAND cmake_policy)
 add_definitions(-D_HAS_STD_BYTE=0)
 
-if (UNIX)
+#if (UNIX)
 	add_compile_options(-lpthread)
 	add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
-endif (UNIX)
+#endif (UNIX)
+
+SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++17 -pthread")
 
 #---------------------- Source for this Project ----------------------
 
@@ -124,6 +126,7 @@ set(LIBRARIES
 	${GLM_LIBRARIES}
 	${GLEW_LIBRARY}
 	${OPENGL_LIBRARY}
+	stdc++fs
 #	${FTGL_LIBRARIES}
 	#${ZLIB_LIBRARIES}
 #	${GLE_LIBRARY}
@@ -153,5 +156,5 @@ endif()
 
 add_executable(${PROJECT_NAME} ${source_files} ${header_files})
 
-target_link_libraries(${PROJECT_NAME} PUBLIC MinVR::MinVR ${LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC MinVR::MinVR GLEW::GLEW ${LIBRARIES})
 
