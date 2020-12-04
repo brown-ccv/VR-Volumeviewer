@@ -29,6 +29,7 @@
 #include <glm/glm.hpp>
 #include "glm/ext.hpp"
 #include <iostream>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 
 #ifndef _PI

@@ -117,13 +117,13 @@ void saveToImage(std::vector <cv::Mat> &images, std::string filename, float* res
 	//if(images[0].type() == CV_16U)
 
 	double pi = 3.14159265359;
-	std::stringstream stream;
-	stream << std::fixed << std::setprecision(5) << "_" << res[0] * downscale << "_" << res[1] * downscale << "_" << res[2];
-	std::string resolution = stream.str();
+	//std::stringstream stream;
+	//stream << std::fixed << std::setprecision(5) << "_" << res[0] * downscale << "_" << res[1] * downscale << "_" << res[2];
+	//std::string resolution = stream.str();
 	
 	image_out.convertTo(image_out, CV_8UC3, 1.0f/256.0f);
 	cv::cvtColor(image_out, image_out, cv::COLOR_BGR2RGB);
-	cv::imwrite(last_dir->filename().string() + "_slices" + std::to_string(z_slices) + resolution + ".png", image_out, compression_params);
+	//cv::imwrite(last_dir->filename().string() + "_slices" + std::to_string(z_slices) + resolution + ".png", image_out, compression_params);
 }
 
 void equalizeHistogram(std::vector <cv::Mat>& images, unsigned short min_value) {

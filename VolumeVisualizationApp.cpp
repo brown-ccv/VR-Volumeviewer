@@ -18,7 +18,7 @@ float diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
 
 VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(argc, argv), m_grab{ false }
 , m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }, m_is2d(false), m_menu_handler(NULL), m_lookingGlass{false}
-, m_clipping{ false }, m_animated(false), m_speed{ 0.01 }, m_frame{ 0.0 }, m_slices(256), m_rendermethod{ 1 }, m_renderchannel{ 0 }, m_use_transferfunction{ false }, m_use_multi_transfer{false}, m_dynamic_slices{ false }, m_show_menu{ true }, convert{false}
+, m_clipping{ false }, m_animated(false), m_speed{ 0.05 }, m_frame{ 0.0 }, m_slices(256), m_rendermethod{ 1 }, m_renderchannel{ 0 }, m_use_transferfunction{ false }, m_use_multi_transfer{false}, m_dynamic_slices{ false }, m_show_menu{ true }, convert{false}
 {
 	int argc_int = this->getLeftoverArgc();
 	char** argv_int = this->getLeftoverArgv();
@@ -110,6 +110,7 @@ void VolumeVisualizationApp::loadTxtFile(std::string filename)
 			if (vals.size() > 0) {
 				if (vals[0] == "animated")
 				{
+					std::cerr << "Animated"<<std::endl;
 					m_animated = true;
 				}
 				if (vals[0] == "threshold")
@@ -179,7 +180,7 @@ void VolumeVisualizationApp::addLodadedTextures()
 	bool allready = true;
 	for (auto& f : futures)
 	{
-		allready = allready & f._Is_ready();
+		allready = allready & (f.wait_for(std::chrono::seconds(0)) == std::future_status::ready);
 	}
 
 	if(allready)
@@ -280,10 +281,10 @@ void VolumeVisualizationApp::ui_callback()
 	{
 		if (helper::ends_with_string(fileDialog.GetSelected().string(), ".txt"))
 		{
-#ifdef WITH_TEEM
+
 			loadTxtFile(fileDialog.GetSelected().string());
-#endif
 		}
+#ifdef WITH_TEEM
 		else if (helper::ends_with_string(fileDialog.GetSelected().string(), ".nrrd")) {
 			std::vector<std::string> vals;
 			vals.push_back(fileDialog.GetSelected().string());	
@@ -291,6 +292,7 @@ void VolumeVisualizationApp::ui_callback()
 			futures.push_back(promises.back()->get_future());
 			threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
 		}
+#endif
 		fileDialog.ClearSelected();
 	}
 	
@@ -584,6 +586,7 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 	if (m_animated)
 	{
 		m_frame+=m_speed;
+		std::cerr << "Frame " << m_frame << std::endl;
 		if (m_frame >= m_volumes.size() - 1) m_frame = 0.0 ;
 	}
 	rendercount = 0;
