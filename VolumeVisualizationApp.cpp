@@ -12,6 +12,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "glm.h"
 
+#include <filesystem>
+namespace fs = std::filesystem;
+
+
 float noColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 float ambient[] = { 0.5f, 0.5f, 0.5f, 1.0f };
 float diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
@@ -98,6 +102,8 @@ void VolumeVisualizationApp::loadTxtFile(std::string filename)
 
 	std::string line;
 
+	fs::path p_filename(filename);
+
 	while (getline(inFile, line)) {
 		if (line[0] != '#') {
 			std::vector<std::string> vals; // Create vector to hold our words
@@ -120,12 +126,14 @@ void VolumeVisualizationApp::loadTxtFile(std::string filename)
 				{
 					std::cerr << "Load Mesh " << vals[1] << std::endl;
 					std::cerr << "for Volume " << vals[2] << std::endl;
+					vals[1] = p_filename.parent_path().string() + OS_SLASH + vals[1];
 					m_models_volumeID.push_back(stoi(vals[2]) - 1);
-					m_models_filenames.push_back(vals[1]);
+					m_models_filenames.push_back( vals[1]);
 					m_models_MV.push_back(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
 				}
 				else if (vals[0] == "volume")
 				{
+					vals[1] = p_filename.parent_path().string() + OS_SLASH + vals[1];
 					promises.push_back(new std::promise<Volume*>);
 					futures.push_back(promises.back()->get_future());
 					threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
