@@ -22,7 +22,9 @@ float diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
 
 VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(argc, argv), m_grab{ false }
 , m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }, m_is2d(false), m_menu_handler(NULL), m_lookingGlass{false}
-, m_clipping{ false }, m_animated(false), m_speed{ 0.01 }, m_frame{ 0.0 }, m_slices(256), m_rendermethod{ 1 }, m_renderchannel{ 0 }, m_use_transferfunction{ false }, m_use_multi_transfer{ false }, m_dynamic_slices{ false }, m_show_menu{ true }, convert{ false }, m_stopped{false}
+, m_clipping{ false }, m_animated(false), m_speed{ 0.01 }, m_frame{ 0.0 }, m_slices(256), m_rendermethod{ 1 }, m_renderchannel{ 0 }
+, m_use_transferfunction{ false }, m_use_multi_transfer{ false }, m_dynamic_slices{ false }, m_show_menu{ true }, convert{ false }
+, m_stopped{ false }, m_z_scale{ 1.0 }
 {
 	int argc_int = this->getLeftoverArgc();
 	char** argv_int = this->getLeftoverArgv();
@@ -233,7 +235,8 @@ void VolumeVisualizationApp::ui_callback()
 
 	ImGui::SliderFloat("alpha multiplier", &m_multiplier, 0.0f, 1.0f, "%.3f");
 	ImGui::SliderFloat("threshold", &m_threshold, 0.0f, 1.0f, "%.3f");
-	ImGui::SliderFloat("scale", &m_scale, 0.0f, 5.0f, "%.3f");
+	ImGui::SliderFloat("scale", &m_scale, 0.001f, 5.0f, "%.3f");
+	ImGui::SliderFloat("z - scale", &m_z_scale, 0.001f, 5.0f, "%.3f");
 	ImGui::SliderInt("Slices", &m_slices, 10, 1024, "%d");
 	ImGui::Checkbox("automatic slice adjustment", &m_dynamic_slices);
 	
@@ -644,7 +647,7 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 	for (int i = 0; i < m_volumes.size(); i++){
 		glm::mat4 tmp = MV;
 		tmp = tmp* m_object_pose;
-		tmp = glm::scale(tmp, glm::vec3(m_scale, m_scale, m_scale));
+		tmp = glm::scale(tmp, glm::vec3(m_scale, m_scale, m_scale * m_z_scale));
 		if(!m_animated) 
 			tmp = glm::translate(tmp, glm::vec3(m_volumes[i]->get_volume_position().x, m_volumes[i]->get_volume_position().y, m_volumes[i]->get_volume_position().z));
 		m_volumes[i]->set_volume_mv(tmp);
@@ -655,7 +658,7 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 		if (m_volumes.size() > m_models_volumeID[i]) {
 			m_models_MV[i] = m_volumes[m_models_volumeID[i]]->get_volume_mv();
 			m_models_MV[i] = glm::translate(m_models_MV[i], glm::vec3(-0.5f, -0.5f, -0.5f * m_volumes[m_models_volumeID[i]]->get_volume_scale().x / m_volumes[m_models_volumeID[i]]->get_volume_scale().z));
-			m_models_MV[i] = glm::scale(m_models_MV[i], glm::vec3(m_volumes[m_models_volumeID[i]]->get_volume_scale().x, m_volumes[m_models_volumeID[i]]->get_volume_scale().y, m_volumes[m_models_volumeID[i]]->get_volume_scale().x));
+			m_models_MV[i] = glm::scale(m_models_MV[i], glm::vec3(m_volumes[m_models_volumeID[i]]->get_volume_scale().x, m_volumes[m_models_volumeID[i]]->get_volume_scale().y, m_volumes[m_models_volumeID[i]]->get_volume_scale().x* m_z_scale));
 		}
 	}
 
