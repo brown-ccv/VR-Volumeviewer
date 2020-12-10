@@ -271,10 +271,13 @@ void VolumeVisualizationApp::ui_callback()
 				unsigned int active_volume = floor(m_frame);
 				unsigned int active_volume2 = ceil(m_frame);
 				double alpha = m_frame - active_volume;
+				tfn_widget.setMinMax(m_volumes[active_volume]->getMin() * alpha + m_volumes[active_volume2]->getMin() * (1.0 - alpha),
+					m_volumes[active_volume]->getMax() * alpha + m_volumes[active_volume2]->getMax() * (1.0 - alpha));
 				if (active_volume < m_volumes.size() && active_volume2 < m_volumes.size())
 					tfn_widget.setBlendedHistogram(m_volumes[active_volume]->getTransferfunction(0), m_volumes[active_volume2]->getTransferfunction(0), alpha);
 			}else if(m_volumes.size() > 0) {
 				tfn_widget.setHistogram(m_volumes[0]->getTransferfunction(0));
+				tfn_widget.setMinMax(m_volumes[0]->getMin(), m_volumes[0]->getMax());
 			}
 			m_use_multi_transfer = false;
 			tfn_widget.draw_ui();

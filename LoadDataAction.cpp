@@ -227,6 +227,8 @@ Volume* LoadDataAction::run(bool convert)
 		std::vector <cv::Mat> image_g;
 		std::vector <cv::Mat> image_b;
 
+		minval[0] = 0;
+
 		for (auto name : filenames)
 		{
 			if (helper::contains_string(name, "ch1"))
@@ -251,12 +253,16 @@ Volume* LoadDataAction::run(bool convert)
 				cv::cvtColor(images.back(), images.back(), cv::COLOR_BGR2RGB);
 			}
 		}
-		if ( !image_r.empty() ) 
-			equalizeHistogram(image_r, 15 * 256);
-		if (!image_g.empty())
-			equalizeHistogram(image_g, 15 * 256);
-		if (!image_b.empty())
-			equalizeHistogram(image_b, 15 * 256);
+
+		
+		//needs adjustement of min and max value
+		//for now disabled
+		//if ( !image_r.empty() ) 
+		//	equalizeHistogram(image_r, 15 * 256);
+		//if (!image_g.empty())
+		//	equalizeHistogram(image_g, 15 * 256);
+		//if (!image_b.empty())
+		//	equalizeHistogram(image_b, 15 * 256);
 		
 		if (!image_r.empty() || !image_g.empty() || !image_b.empty())
 		{
@@ -265,13 +271,26 @@ Volume* LoadDataAction::run(bool convert)
 
 		channels = images[0].channels();
 		depth = images[0].depth();
+		switch (depth)
+		{
+		case CV_8U:
+			minval[1] = 255.0f;
+			break;
+		case CV_16U:
+			minval[1] = 65535.0f;
+			break;
+		case CV_32F:
+			minval[1] = 1.0f;
+			break;
+		}
 		w = images[0].cols;
 		h = images[0].rows;
 		d = images.size();
 		
-		if(convert)
-			saveToImage(images, m_folder, m_res);
+		//if(convert)
+		//	saveToImage(images, m_folder, m_res);
 	}
+
 	std::cerr << "Loading Volume size:  " << w << " , " << h << " , " << d << "Channels " << channels << std::endl;
 	Volume* volume;
 	switch (depth)
@@ -290,6 +309,7 @@ Volume* LoadDataAction::run(bool convert)
 			break;
 	}
 	volume->computeHistogram();
+	volume->setMinMax(minval[0], minval[1]);
 	return volume;
 }
 

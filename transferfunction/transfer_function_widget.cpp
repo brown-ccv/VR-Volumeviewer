@@ -2,6 +2,8 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <iomanip>
+#include <sstream>
 #include "embedded_colormaps.h"
 
 #ifndef TFN_WIDGET_NO_STB_IMAGE_IMPL
@@ -89,6 +91,10 @@ TransferFunctionWidget::TransferFunctionWidget()
 
 	for (int i = 0; i < 255; i++)
 		current_histogram.push_back(static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
+
+
+	m_min_max_val[0] = 0.0f;
+	m_min_max_val[1] = 1.0f;
 }
 
 void TransferFunctionWidget::add_colormap(const Colormap &map)
@@ -234,6 +240,40 @@ void TransferFunctionWidget::draw_ui()
 	
     draw_list->AddPolyline(polyline_pts.data(), polyline_pts.size(), 0xFFFFFFFF, false, 2.f);
     draw_list->PopClipRect();
+
+	//Add Label tick marks
+	int nbTicks = 5;
+	vec2f tick_pos = ImGui::GetCursorScreenPos();
+	tick_pos.y -= ImGui::GetStyle().ItemSpacing.y;
+	vec2f tick_size = ImGui::GetContentRegionAvail();
+	tick_size.y = 5;
+	draw_list->PushClipRect(tick_pos, ImVec2(tick_pos.x + tick_size.x, tick_pos.y + tick_size.y));
+
+	for (int i = 0; i < nbTicks; i++) {
+		float percentage = float(i) / (nbTicks - 1);
+
+		draw_list->AddLine(ImVec2(tick_pos.x + percentage*(tick_size.x -1), tick_size.y), 
+			ImVec2(tick_pos.x + percentage * (tick_size.x - 1), tick_pos.y + tick_size.y), ImColor(255, 255, 255, 255), 1);
+	}
+	draw_list->PopClipRect();
+
+	//Add Label text
+	const float ItemSpacing = ImGui::GetStyle().ItemSpacing.x;
+	for (int i = 0; i < nbTicks; i++) {
+		float percentage = float(i) / (nbTicks - 1);
+		float val = (m_min_max_val[1] - m_min_max_val[0]) * percentage + m_min_max_val[0];
+		std::stringstream text;
+		text << std::fixed << std::setprecision(4) << val;
+		if (i == 0) {
+		}
+		else if (i == nbTicks - 1) {
+			ImGui::SameLine(ImGui::GetWindowWidth() - ItemSpacing - ImGui::CalcTextSize(text.str().c_str()).x);
+		}
+		else {
+			ImGui::SameLine((ImGui::GetWindowWidth()) * percentage - ImGui::CalcTextSize(text.str().c_str()).x * 0.5);
+		}
+		ImGui::Text(text.str().c_str());
+	}
 }
 
 bool TransferFunctionWidget::changed() const
@@ -259,6 +299,12 @@ void TransferFunctionWidget::setHistogram(const std::vector<float> &hist)
 {
 	current_histogram = hist;
 }
+
+void TransferFunctionWidget::setMinMax(const float min, const float max) {
+	m_min_max_val[0] = min;
+	m_min_max_val[1] = max;
+}
+
 
 void TransferFunctionWidget::setBlendedHistogram(const std::vector<float>& hist1, const std::vector<float>& hist2, float alpha)
 {
