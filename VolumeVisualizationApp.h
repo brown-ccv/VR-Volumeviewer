@@ -88,7 +88,7 @@ private:
 
 	float m_speed;
 	float m_frame;
-
+	float m_stopped;
 	glm::mat4 m_controller_pose;
 	glm::mat4 m_object_pose;
 	glm::mat4 m_to_volume;

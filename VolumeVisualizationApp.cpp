@@ -22,7 +22,7 @@ float diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
 
 VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(argc, argv), m_grab{ false }
 , m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }, m_is2d(false), m_menu_handler(NULL), m_lookingGlass{false}
-, m_clipping{ false }, m_animated(false), m_speed{ 0.01 }, m_frame{ 0.0 }, m_slices(256), m_rendermethod{ 1 }, m_renderchannel{ 0 }, m_use_transferfunction{ false }, m_use_multi_transfer{false}, m_dynamic_slices{ false }, m_show_menu{ true }, convert{false}
+, m_clipping{ false }, m_animated(false), m_speed{ 0.01 }, m_frame{ 0.0 }, m_slices(256), m_rendermethod{ 1 }, m_renderchannel{ 0 }, m_use_transferfunction{ false }, m_use_multi_transfer{ false }, m_dynamic_slices{ false }, m_show_menu{ true }, convert{ false }, m_stopped{false}
 {
 	int argc_int = this->getLeftoverArgc();
 	char** argv_int = this->getLeftoverArgv();
@@ -220,10 +220,10 @@ void VolumeVisualizationApp::ui_callback()
 	ImGui::Begin("Volumeviewer");
 	
 	// open file dialog when user clicks this button
-	if (ImGui::Button("load file", ImVec2(ImGui::GetWindowSize().x * 0.49f, 0.0f)))
+	if (ImGui::Button("load file", ImVec2(ImGui::GetWindowSize().x * 0.5f - 1.5* ImGui::GetStyle().ItemSpacing.x, 0.0f)))
 		fileDialog.Open();
-	ImGui::SameLine(ImGui::GetWindowSize().x * 0.5f,0);
-	if (ImGui::Button("Clear all", ImVec2(ImGui::GetWindowSize().x * 0.49f, 0.0f)))
+	ImGui::SameLine();
+	if (ImGui::Button("Clear all", ImVec2(ImGui::GetWindowSize().x  * 0.5f - 1.5 * ImGui::GetStyle().ItemSpacing.x, 0.0f)))
 	{
 		for (int i = 0; i < m_volumes.size(); i++) {
 			delete m_volumes[i];
@@ -281,6 +281,21 @@ void VolumeVisualizationApp::ui_callback()
 			}
 			m_use_multi_transfer = false;
 			tfn_widget.draw_ui();
+		}
+	}
+
+	if (m_animated) {
+		ImGui::Text("Timestep");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(-100 - ImGui::GetStyle().ItemSpacing.x);
+		float m_frame_display = m_frame + 1;
+		ImGui::SliderFloat("", &m_frame_display,1, m_volumes.size());
+		m_frame = m_frame_display - 1;
+		ImGui::SameLine();
+
+		std::string text = m_stopped ? "Play" : "Stop";
+		if (ImGui::Button(text.c_str(),ImVec2(100,0))) {
+			m_stopped = !m_stopped;
 		}
 	}
 
@@ -592,7 +607,7 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 	
 	initTexture();
 
-	if (m_animated)
+	if (m_animated && ! m_stopped)
 	{
 		m_frame+=m_speed;
 		if (m_frame >= m_volumes.size() - 1) m_frame = 0.0 ;
