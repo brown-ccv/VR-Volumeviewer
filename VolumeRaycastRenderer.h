@@ -72,6 +72,8 @@ class VolumeRaycastRenderer : public  VolumeRenderer
 			shader.setDepthTexture(depth_texture);
 		}
 
+		virtual void setClipMinMax(glm::vec3 min_clip, glm::vec3 max_clip);
+
 	private:
 		void setChannel(Volume* volume);
 

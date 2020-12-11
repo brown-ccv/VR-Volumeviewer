@@ -71,7 +71,8 @@ class VolumeSliceRenderer : public  VolumeRenderer
 			//unsupported for now
 		}
 
-		
+		virtual void setClipMinMax(glm::vec3 min_clip, glm::vec3 max_clip);
+
 	private:
 		//function to get the max (abs) dimension of the given vertex v
 		int FindAbsMax(glm::vec3 v);
@@ -80,7 +81,7 @@ class VolumeSliceRenderer : public  VolumeRenderer
 		void SliceVolume();
 
 		//unit cube vertices
-		static const glm::vec3 vertexList[8];
+		static glm::vec3 vertexList[8];
 
 		////unit cube edges
 		static const int edgeList[8][12];
@@ -104,5 +105,8 @@ class VolumeSliceRenderer : public  VolumeRenderer
 
 		//3D texture slicing shader
 		VolumeSliceShader shader;
+
+		glm::vec3 m_clip_min; 
+		glm::vec3 m_clip_max;
 	};
 #endif // VOLUMESLICERENDER_H

@@ -39,7 +39,7 @@
 //for floating point inaccuracy
 const float EPSILON = 0.0001f;
 
-const glm::vec3 VolumeSliceRenderer::vertexList[8] = { glm::vec3(-0.5, -0.5, -0.5),
+glm::vec3 VolumeSliceRenderer::vertexList[8] = { glm::vec3(-0.5, -0.5, -0.5),
 												glm::vec3(0.5, -0.5, -0.5),
 												glm::vec3(0.5, 0.5, -0.5),
 												glm::vec3(-0.5, 0.5, -0.5),
@@ -190,6 +190,25 @@ void VolumeSliceRenderer::set_numSlices(int slices)
 void VolumeSliceRenderer::useMultichannelColormap(bool useMulti)
 {
 	shader.useMultichannelColormap(useMulti);
+}
+
+void VolumeSliceRenderer::setClipMinMax(glm::vec3 min_clip, glm::vec3 max_clip) {
+
+	if (m_clip_min != min_clip || m_clip_max != max_clip) {
+		m_clip_min = min_clip;
+		m_clip_max = max_clip;
+
+		VolumeSliceRenderer::vertexList[0] = glm::vec3(m_clip_min.x - 0.5, m_clip_min.y - 0.5, m_clip_min.z - 0.5);
+		VolumeSliceRenderer::vertexList[1] = glm::vec3(m_clip_max.x - 0.5, m_clip_min.y - 0.5, m_clip_min.z - 0.5);
+		VolumeSliceRenderer::vertexList[2] = glm::vec3(m_clip_max.x - 0.5, m_clip_max.y - 0.5, m_clip_min.z - 0.5);
+		VolumeSliceRenderer::vertexList[3] = glm::vec3(m_clip_min.x - 0.5, m_clip_max.y - 0.5, m_clip_min.z - 0.5);
+		VolumeSliceRenderer::vertexList[4] = glm::vec3(m_clip_min.x - 0.5, m_clip_min.y - 0.5, m_clip_max.z - 0.5);
+		VolumeSliceRenderer::vertexList[5] = glm::vec3(m_clip_max.x - 0.5, m_clip_min.y - 0.5, m_clip_max.z - 0.5);
+		VolumeSliceRenderer::vertexList[6] = glm::vec3(m_clip_max.x - 0.5, m_clip_max.y - 0.5, m_clip_max.z - 0.5);
+		VolumeSliceRenderer::vertexList[7] = glm::vec3(m_clip_min.x - 0.5, m_clip_max.y - 0.5, m_clip_max.z - 0.5);
+
+		SliceVolume();
+	}
 }
 
 int VolumeSliceRenderer::FindAbsMax(glm::vec3 v)

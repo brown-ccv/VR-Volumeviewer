@@ -24,7 +24,7 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 , m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }, m_is2d(false), m_menu_handler(NULL), m_lookingGlass{false}
 , m_clipping{ false }, m_animated(false), m_speed{ 0.01 }, m_frame{ 0.0 }, m_slices(256), m_rendermethod{ 1 }, m_renderchannel{ 0 }
 , m_use_transferfunction{ false }, m_use_multi_transfer{ false }, m_dynamic_slices{ false }, m_show_menu{ true }, convert{ false }
-, m_stopped{ false }, m_z_scale{ 1.0 }
+, m_stopped{ false }, m_z_scale{ 1.0 }, m_clip_max{ 1.0 }, m_clip_min{0.0}
 {
 	int argc_int = this->getLeftoverArgc();
 	char** argv_int = this->getLeftoverArgv();
@@ -220,88 +220,118 @@ void VolumeVisualizationApp::ui_callback()
 	}
 	
 	ImGui::Begin("Volumeviewer");
-	
-	// open file dialog when user clicks this button
-	if (ImGui::Button("load file", ImVec2(ImGui::GetWindowSize().x * 0.5f - 1.5* ImGui::GetStyle().ItemSpacing.x, 0.0f)))
-		fileDialog.Open();
-	ImGui::SameLine();
-	if (ImGui::Button("Clear all", ImVec2(ImGui::GetWindowSize().x  * 0.5f - 1.5 * ImGui::GetStyle().ItemSpacing.x, 0.0f)))
-	{
-		for (int i = 0; i < m_volumes.size(); i++) {
-			delete m_volumes[i];
-		}
-		m_volumes.clear();
-	}
+	ImGui::BeginTabBar("##tabs");
 
-	ImGui::SliderFloat("alpha multiplier", &m_multiplier, 0.0f, 1.0f, "%.3f");
-	ImGui::SliderFloat("threshold", &m_threshold, 0.0f, 1.0f, "%.3f");
-	ImGui::SliderFloat("scale", &m_scale, 0.001f, 5.0f, "%.3f");
-	ImGui::SliderFloat("z - scale", &m_z_scale, 0.001f, 5.0f, "%.3f");
-	ImGui::SliderInt("Slices", &m_slices, 10, 1024, "%d");
-	ImGui::Checkbox("automatic slice adjustment", &m_dynamic_slices);
-	
-	ImGui::SameLine(ImGui::GetWindowSize().x * 0.5f, 0);
-	ImGui::Text("FPS = %f",m_fps);
-	const char* items[] = { "sliced" , "raycast" };
-	ImGui::Combo("RenderMethod",&m_rendermethod,items, IM_ARRAYSIZE(items));
-	
-	const char* items_channel[] = { "based on data" , "red", "green" , "blue", "alpha", "rgba", "rgba with alpha as max rgb" };
-	ImGui::Combo("Render Channel", &m_renderchannel, items_channel, IM_ARRAYSIZE(items_channel));
-	
-	ImGui::Checkbox("use transferfunction", &m_use_transferfunction);
-	if (m_use_transferfunction) {
-		if (m_volumes.size() > 0 && m_volumes[0]->get_channels() > 1 && (m_renderchannel == 0 || m_renderchannel == 5 || m_renderchannel == 6)){
-			for (int i = 0; i < 3; i++) {
+	if (ImGui::BeginTabItem("General")) {
+		// open file dialog when user clicks this button
+		if (ImGui::Button("load file", ImVec2(ImGui::GetWindowSize().x * 0.5f - 1.5* ImGui::GetStyle().ItemSpacing.x, 0.0f)))
+			fileDialog.Open();
+		ImGui::SameLine();
+		if (ImGui::Button("Clear all", ImVec2(ImGui::GetWindowSize().x  * 0.5f - 1.5 * ImGui::GetStyle().ItemSpacing.x, 0.0f)))
+		{
+			for (int i = 0; i < m_volumes.size(); i++) {
+				delete m_volumes[i];
+			}
+			m_volumes.clear();
+		}
+
+		ImGui::SliderFloat("alpha multiplier", &m_multiplier, 0.0f, 1.0f, "%.3f");
+		ImGui::SliderFloat("threshold", &m_threshold, 0.0f, 1.0f, "%.3f");
+		ImGui::SliderFloat("scale", &m_scale, 0.001f, 5.0f, "%.3f");
+		ImGui::SliderFloat("z - scale", &m_z_scale, 0.001f, 5.0f, "%.3f");
+		ImGui::SliderInt("Slices", &m_slices, 10, 1024, "%d");
+		ImGui::Checkbox("automatic slice adjustment", &m_dynamic_slices);
+
+		ImGui::SameLine(ImGui::GetWindowSize().x * 0.5f, 0);
+		ImGui::Text("FPS = %f", m_fps);
+		const char* items[] = { "sliced" , "raycast" };
+		ImGui::Combo("RenderMethod", &m_rendermethod, items, IM_ARRAYSIZE(items));
+
+		const char* items_channel[] = { "based on data" , "red", "green" , "blue", "alpha", "rgba", "rgba with alpha as max rgb" };
+		ImGui::Combo("Render Channel", &m_renderchannel, items_channel, IM_ARRAYSIZE(items_channel));
+
+		ImGui::Checkbox("use transferfunction", &m_use_transferfunction);
+		if (m_use_transferfunction) {
+			if (m_volumes.size() > 0 && m_volumes[0]->get_channels() > 1 && (m_renderchannel == 0 || m_renderchannel == 5 || m_renderchannel == 6)) {
+				for (int i = 0; i < 3; i++) {
+					if (m_animated)
+					{
+						unsigned int active_volume = floor(m_frame);
+						unsigned int active_volume2 = ceil(m_frame);
+						double alpha = m_frame - active_volume;
+						if (active_volume < m_volumes.size() && active_volume2 < m_volumes.size())
+							tfn_widget_multi.setBlendedHistogram(m_volumes[active_volume]->getTransferfunction(i), m_volumes[active_volume2]->getTransferfunction(i), alpha, i);
+					}
+					else {
+						tfn_widget_multi.setHistogram(m_volumes[0]->getTransferfunction(i), i);
+					}
+				}
+				m_use_multi_transfer = true;
+				tfn_widget_multi.draw_ui();
+			}
+			else
+			{
 				if (m_animated)
 				{
 					unsigned int active_volume = floor(m_frame);
 					unsigned int active_volume2 = ceil(m_frame);
 					double alpha = m_frame - active_volume;
+					tfn_widget.setMinMax(m_volumes[active_volume]->getMin() * alpha + m_volumes[active_volume2]->getMin() * (1.0 - alpha),
+						m_volumes[active_volume]->getMax() * alpha + m_volumes[active_volume2]->getMax() * (1.0 - alpha));
 					if (active_volume < m_volumes.size() && active_volume2 < m_volumes.size())
-						tfn_widget_multi.setBlendedHistogram(m_volumes[active_volume]->getTransferfunction(i), m_volumes[active_volume2]->getTransferfunction(i), alpha, i);
+						tfn_widget.setBlendedHistogram(m_volumes[active_volume]->getTransferfunction(0), m_volumes[active_volume2]->getTransferfunction(0), alpha);
 				}
-				else {
-					tfn_widget_multi.setHistogram(m_volumes[0]->getTransferfunction(i), i);
+				else if (m_volumes.size() > 0) {
+					tfn_widget.setHistogram(m_volumes[0]->getTransferfunction(0));
+					tfn_widget.setMinMax(m_volumes[0]->getMin(), m_volumes[0]->getMax());
 				}
+				m_use_multi_transfer = false;
+				tfn_widget.draw_ui();
 			}
-			m_use_multi_transfer = true;
-			tfn_widget_multi.draw_ui();
 		}
-		else
-		{
-			if (m_animated)
-			{
-				unsigned int active_volume = floor(m_frame);
-				unsigned int active_volume2 = ceil(m_frame);
-				double alpha = m_frame - active_volume;
-				tfn_widget.setMinMax(m_volumes[active_volume]->getMin() * alpha + m_volumes[active_volume2]->getMin() * (1.0 - alpha),
-					m_volumes[active_volume]->getMax() * alpha + m_volumes[active_volume2]->getMax() * (1.0 - alpha));
-				if (active_volume < m_volumes.size() && active_volume2 < m_volumes.size())
-					tfn_widget.setBlendedHistogram(m_volumes[active_volume]->getTransferfunction(0), m_volumes[active_volume2]->getTransferfunction(0), alpha);
-			}else if(m_volumes.size() > 0) {
-				tfn_widget.setHistogram(m_volumes[0]->getTransferfunction(0));
-				tfn_widget.setMinMax(m_volumes[0]->getMin(), m_volumes[0]->getMax());
+
+		if (m_animated) {
+			ImGui::Text("Timestep");
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(-100 - ImGui::GetStyle().ItemSpacing.x);
+			float frame_tmp = m_frame + 1;
+			ImGui::SliderFloat("##Timestep", &frame_tmp, 1, m_volumes.size());
+			m_frame = frame_tmp - 1;
+			ImGui::SameLine();
+
+			std::string text = m_stopped ? "Play" : "Stop";
+			if (ImGui::Button(text.c_str(), ImVec2(100, 0))) {
+				m_stopped = !m_stopped;
 			}
-			m_use_multi_transfer = false;
-			tfn_widget.draw_ui();
 		}
+		ImGui::EndTabItem();
 	}
 
-	if (m_animated) {
-		ImGui::Text("Timestep");
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(-100 - ImGui::GetStyle().ItemSpacing.x);
-		float m_frame_display = m_frame + 1;
-		ImGui::SliderFloat("", &m_frame_display,1, m_volumes.size());
-		m_frame = m_frame_display - 1;
-		ImGui::SameLine();
+	if (ImGui::BeginTabItem("Clipping")) {
 
-		std::string text = m_stopped ? "Play" : "Stop";
-		if (ImGui::Button(text.c_str(),ImVec2(100,0))) {
-			m_stopped = !m_stopped;
+		ImGui::Text("Axis aligned clip");
+		glm::vec2 bound = { m_clip_min.x * 100 ,m_clip_max.x * 100 };
+		ImGui::DragFloatRange2("X", &bound.x, &bound.y, 0.1f, 0.0f, 100.0f, "Min: %.1f %%", "Max: %.1f %%");
+		m_clip_min.x = bound.x / 100; 
+		m_clip_max.x = bound.y / 100;
+
+		bound = { m_clip_min.y * 100 ,m_clip_max.y * 100 };
+		ImGui::DragFloatRange2("Y", &bound.x, &bound.y, 0.1f, 0.0f, 100.0f, "Min: %.1f %%", "Max: %.1f %%");
+		m_clip_min.y = bound.x / 100;
+		m_clip_max.y = bound.y / 100;
+
+		bound = { m_clip_min.z * 100 ,m_clip_max.z * 100 };
+		ImGui::DragFloatRange2("Z", &bound.x, &bound.y, 0.1f, 0.0f, 100.0f, "Min: %.1f %%", "Max: %.1f %%");
+		m_clip_min.z = bound.x / 100;
+		m_clip_max.z = bound.y / 100;
+
+		if (ImGui::Button("Reset")) {
+			m_clip_min = glm::vec3(0.0f);
+			m_clip_max = glm::vec3(1.0f);
 		}
-	}
 
+		ImGui::EndTabItem();
+	}
 	//file loading
 	fileDialog.Display();
 
@@ -667,12 +697,16 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 		glm::mat4 clipPlane = glm::inverse(m_controller_pose) * glm::inverse(MV);
 		for (auto ren : m_renders)
 			ren->setClipping(true, &clipPlane);
-	} else
+	} 
+	else
 	{
 		for (auto ren : m_renders)
 			ren->setClipping(false, nullptr);
 	}
 	
+	for (auto ren : m_renders)
+		ren->setClipMinMax (m_clip_min,m_clip_max);
+
 	//Render meshes
 	for (int i = 0; i < m_models_displayLists.size(); i++){
 		if (m_volumes.size() > m_models_volumeID[i]) {

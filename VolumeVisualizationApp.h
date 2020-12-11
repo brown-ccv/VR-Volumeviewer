@@ -137,7 +137,9 @@ private:
 	ArcBall m_trackball;
 
 	bool convert;
-	
+
+	glm::vec3 m_clip_min;
+	glm::vec3 m_clip_max;
 };
 
 

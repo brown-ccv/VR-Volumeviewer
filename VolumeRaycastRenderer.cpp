@@ -229,3 +229,7 @@ void VolumeRaycastRenderer::setChannel(Volume* volume)
 		shader.set_channel(volume->render_channel());
 	}
 }
+
+void VolumeRaycastRenderer::setClipMinMax(glm::vec3 min_clip, glm::vec3 max_clip) {
+	shader.setClipping(min_clip, max_clip);
+}

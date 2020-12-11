@@ -118,6 +118,11 @@ class VolumeRaycastShader : public Shader
 		{
 			m_useMultiLut = useMultiLut;
 		}
+
+		void setClipping(glm::vec3 min_clip, glm::vec3 max_clip) {
+			m_clip_min = min_clip;
+			m_clip_max = max_clip;
+		}
 	
 	private:	
 		GLuint m_volume_uniform;
@@ -161,5 +166,9 @@ class VolumeRaycastShader : public Shader
 		GLuint m_blendAlpha_uniform;
 		GLuint m_blendVolume_uniform;
 
+		GLuint m_clip_min_uniform;
+		GLuint m_clip_max_uniform;
+		glm::vec3 m_clip_min;
+		glm::vec3 m_clip_max;
 	};
 #endif // VOLUMERAYCASTSHADER_H
