@@ -10,6 +10,7 @@
 #include "HelperFunctions.h"
 #include <glm/gtc/type_ptr.inl>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/euler_angles.hpp>
 #include "glm.h"
 
 #include <filesystem>
@@ -24,7 +25,7 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 , m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }, m_is2d(false), m_menu_handler(NULL), m_lookingGlass{false}
 , m_clipping{ false }, m_animated(false), m_speed{ 0.01 }, m_frame{ 0.0 }, m_slices(256), m_rendermethod{ 1 }, m_renderchannel{ 0 }
 , m_use_transferfunction{ false }, m_use_multi_transfer{ false }, m_dynamic_slices{ false }, m_show_menu{ true }, convert{ false }
-, m_stopped{ false }, m_z_scale{ 1.0 }, m_clip_max{ 1.0 }, m_clip_min{0.0}
+, m_stopped{ false }, m_z_scale{ 1.0 }, m_clip_max{ 1.0 }, m_clip_min{ 0.0 }, m_clip_ypr{ 0.0 }, m_clip_pos{ 0.0 }, m_useCustomClipPlane{false}
 {
 	int argc_int = this->getLeftoverArgc();
 	char** argv_int = this->getLeftoverArgv();
@@ -328,6 +329,20 @@ void VolumeVisualizationApp::ui_callback()
 		if (ImGui::Button("Reset")) {
 			m_clip_min = glm::vec3(0.0f);
 			m_clip_max = glm::vec3(1.0f);
+		}
+
+		ImGui::Checkbox("Custom Clipping plane", &m_useCustomClipPlane);
+		if (m_useCustomClipPlane) {
+			ImGui::SliderAngle("Pitch", &m_clip_ypr.y, -90, 90);
+			ImGui::SliderAngle("Roll", &m_clip_ypr.z, -180, 180);
+
+			ImGui::SliderFloat("Position X", &m_clip_pos.x, -0.5, 0.5);
+			ImGui::SliderFloat("Position y", &m_clip_pos.y, -0.5, 0.5);
+			ImGui::SliderFloat("Position z", &m_clip_pos.z, -0.5, 0.5);
+			if (ImGui::Button("Reset##Reset2")) {
+				m_clip_ypr = glm::vec3(0.0f);
+				m_clip_pos = glm::vec3(0.0f);
+			}
 		}
 
 		ImGui::EndTabItem();
@@ -693,8 +708,15 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 	}
 
 	//Set cuttingplane
-	if (m_clipping){
+	if (m_clipping || m_useCustomClipPlane){
 		glm::mat4 clipPlane = glm::inverse(m_controller_pose) * glm::inverse(MV);
+
+		if (m_useCustomClipPlane) {
+			clipPlane = glm::eulerAngleYXZ(m_clip_ypr.x,m_clip_ypr.y, m_clip_ypr.z);
+			clipPlane = glm::translate(clipPlane, m_clip_pos);
+			clipPlane = clipPlane * glm::inverse(MV);
+		}
+
 		for (auto ren : m_renders)
 			ren->setClipping(true, &clipPlane);
 	} 

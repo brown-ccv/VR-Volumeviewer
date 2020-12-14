@@ -140,6 +140,10 @@ private:
 
 	glm::vec3 m_clip_min;
 	glm::vec3 m_clip_max;
+
+	bool m_useCustomClipPlane;
+	glm::vec3 m_clip_ypr;
+	glm::vec3 m_clip_pos;
 };
 
 
