@@ -26,6 +26,7 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 , m_clipping{ false }, m_animated(false), m_speed{ 0.01 }, m_frame{ 0.0 }, m_slices(256), m_rendermethod{ 1 }, m_renderchannel{ 0 }
 , m_use_transferfunction{ false }, m_use_multi_transfer{ false }, m_dynamic_slices{ false }, m_show_menu{ true }, convert{ false }
 , m_stopped{ false }, m_z_scale{ 1.0 }, m_clip_max{ 1.0 }, m_clip_min{ 0.0 }, m_clip_ypr{ 0.0 }, m_clip_pos{ 0.0 }, m_useCustomClipPlane{false}
+, m_wasd_pressed{ 0 }, m_useCameraCenterRotations{ false }
 {
 	int argc_int = this->getLeftoverArgc();
 	char** argv_int = this->getLeftoverArgv();
@@ -305,6 +306,9 @@ void VolumeVisualizationApp::ui_callback()
 				m_stopped = !m_stopped;
 			}
 		}
+
+		ImGui::Checkbox("Camera centric rotations", &m_useCameraCenterRotations);
+		m_trackball.setCameraCenterRotation(m_useCameraCenterRotations);
 		ImGui::EndTabItem();
 	}
 
@@ -384,7 +388,7 @@ void VolumeVisualizationApp::onCursorMove(const VRCursorEvent& event)
 {
 	if (event.getName() == "Mouse_Move" && m_menu_handler != NULL)
 	{
-		m_trackball.mouseMove(event.getPos()[0], event.getPos()[1]);
+		m_trackball.mouse_move(event.getPos()[0], event.getPos()[1]);
 		m_menu_handler->setCursorPos(event.getPos()[0], event.getPos()[1]);
 	}
 }
@@ -397,9 +401,19 @@ void VolumeVisualizationApp::onCursorMove(const VRCursorEvent& event)
 void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event) {
 	if (m_show_menu && m_menu_handler != NULL && m_menu_handler->windowIsActive()) {
 		if (event.getName() == "HTC_Controller_Right_TrackPad0_Y" || event.getName() == "HTC_Controller_1_TrackPad0_Y"
-			|| (event.getName() == "Wand_Joystick_Y_Update" && !(event.getValue() > -0.1 && event.getValue() < 0.1) ))
-				
+			|| (event.getName() == "Wand_Joystick_Y_Update" && !(event.getValue() > -0.1 && event.getValue() < 0.1)))
 			m_menu_handler->setAnalogValue(event.getValue());
+
+		if (event.getName() == "MouseWheel_Spin") {
+			std::cerr << event.getValue() << std::endl;
+			m_menu_handler->setAnalogValue(event.getValue() * 10);
+		}
+	}
+	else {
+		if (event.getName() == "MouseWheel_Spin") {
+			m_trackball.mouse_scroll(event.getValue() * 0.01);
+		}
+		
 	}
 
 	if (event.getName() == "PhotonLoopFinished") {
@@ -426,7 +440,11 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 		{
 			m_menu_handler->setButtonClick(1, 1);
 		}
-	}else
+		else if (event.getName() == "MouseBtnMiddle_Down") {
+			m_menu_handler->setButtonClick(2, 0);
+		}
+	}
+	else
 	{
 		if (event.getName() == "MouseBtnLeft_Down")
 		{
@@ -435,6 +453,9 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 		else if (event.getName() == "MouseBtnRight_Down")
 		{
 			m_trackball.mouse_pressed(1, true);
+		}
+		else if (event.getName() == "MouseBtnMiddle_Down") {
+			m_trackball.mouse_pressed(2, true);
 		}
 	}
 
@@ -480,6 +501,26 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 			m_show_menu = !m_show_menu;
 		}
 	}
+	if (!(m_show_menu && m_menu_handler != NULL && m_menu_handler->windowIsActive())) {
+		if (event.getName() == "KbdW_Down") {
+			m_wasd_pressed = m_wasd_pressed | W;
+		}
+		if (event.getName() == "KbdA_Down") {
+			m_wasd_pressed = m_wasd_pressed | A;
+		}
+		if (event.getName() == "KbdS_Down") {
+			m_wasd_pressed = m_wasd_pressed | S;
+		}
+		if (event.getName() == "KbdD_Down") {
+			m_wasd_pressed = m_wasd_pressed | D;
+		}
+		if (event.getName() == "KbdQ_Down") {
+			m_wasd_pressed = m_wasd_pressed | Q;
+		}
+		if (event.getName() == "KbdE_Down") {
+			m_wasd_pressed = m_wasd_pressed | E;
+		}
+	}
 }
 
 
@@ -518,6 +559,10 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 		m_trackball.mouse_pressed(1, false);
 		if (m_menu_handler != NULL) m_menu_handler->setButtonClick(1, 0);
 	}
+	else if (event.getName() == "MouseBtnMiddle_Up") {
+		m_trackball.mouse_pressed(2, false);
+		if (m_menu_handler != NULL) m_menu_handler->setButtonClick(2, 0);
+	}
 	
 
 	if (m_show_menu && m_menu_handler != NULL) {
@@ -553,7 +598,25 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 		m_clipping = false;
 		//std::cerr << "Clipping OFF" << std::endl;
 	}
-	
+
+	if (event.getName() == "KbdW_Up") {
+		m_wasd_pressed = m_wasd_pressed & ~W;
+	}
+	if (event.getName() == "KbdA_Up") {
+		m_wasd_pressed = m_wasd_pressed & ~A;
+	}
+	if (event.getName() == "KbdS_Up") {
+		m_wasd_pressed = m_wasd_pressed & ~S;
+	}
+	if (event.getName() == "KbdD_Up") {
+		m_wasd_pressed = m_wasd_pressed & ~D;
+	}
+	if (event.getName() == "KbdQ_Up") {
+		m_wasd_pressed = m_wasd_pressed & ~Q;
+	}
+	if (event.getName() == "KbdE_Up") {
+		m_wasd_pressed = m_wasd_pressed & ~E;
+	}
 }
 
 
@@ -663,6 +726,8 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 	rendercount = 0;
 
 	if (m_show_menu) m_menu_handler->renderToTexture();
+	if(m_wasd_pressed)
+		m_trackball.wasd_pressed(m_wasd_pressed);
 }
 
 void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &renderState) {
@@ -683,7 +748,7 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 
 	//overwrite MV for 2D viewing
 	if(m_is2d)
-		MV = MV * m_trackball.getViewmatrix();
+		MV = m_trackball.getViewmatrix();
 	
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(glm::value_ptr(P));

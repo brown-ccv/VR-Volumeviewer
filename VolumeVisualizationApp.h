@@ -144,6 +144,9 @@ private:
 	bool m_useCustomClipPlane;
 	glm::vec3 m_clip_ypr;
 	glm::vec3 m_clip_pos;
+
+	int m_wasd_pressed;
+	bool m_useCameraCenterRotations;
 };
 
 

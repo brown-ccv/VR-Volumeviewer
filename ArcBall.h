@@ -30,6 +30,16 @@
 #include <glm/glm.hpp>
 #include <string>
 
+enum WASD_KEYS
+{
+	W = 1 << 0, // binary 000001
+	A = 1 << 1, // binary 000010
+	S = 1 << 2, // binary 000100
+	D = 1 << 3, // binary 001000
+	Q = 1 << 4, // binary 010000
+	E = 1 << 5, // binary 100000
+};
+
 /** Adds a HeadMatrix to the RenderState that gets updated repeatedly based
     upon head tracking events.
  */
@@ -41,14 +51,20 @@ class ArcBall {
 		virtual ~ArcBall();
 
 		void mouse_pressed(int button, bool isDown);
-		void mouseMove(float x, float y);
+		void mouse_move(float x, float y);
+		void mouse_scroll(float dist);
+		void setCameraCenterRotation( bool useCameraCenter);
+		void wasd_pressed(int awsd);
+
 		glm::mat4 &getViewmatrix()
 		{
 			updateCameraMatrix();
 			return viewmatrix;
 		}
+
 	protected:
 		void Rotate(float dTheta, float dPhi);
+		void RotateEyeAxis(float dy);
 		void Zoom(float distance);
 		void Pan(float dx, float dy);
 		void updateCameraMatrix();
@@ -61,13 +77,13 @@ class ArcBall {
 		glm::mat4 viewmatrix;
 		bool m_mouse_left_pressed;
 		bool m_mouse_right_pressed;
-	
+		bool m_mouse_center_pressed; 
 		float last_x, last_y;
 		float m_PanFactor;
 		float m_RotateFactor;
 		float m_cameraScrollFactor;
-			
 
+		bool m_rotate_camera_center;
 };
 
 #endif
