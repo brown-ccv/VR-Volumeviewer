@@ -36,7 +36,8 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-VolumeRaycastShader::VolumeRaycastShader() : m_use_blending{ false }, m_blend_volume{ 0 }, m_blending_alpha{0} //: m_threshold{ 0.0f }, m_multiplier{ 0.5 }
+VolumeRaycastShader::VolumeRaycastShader() : m_use_blending{ false }, m_blend_volume{ 0 }, m_blending_alpha{ 0 }, m_clip_min{ 0.0 }, m_clip_max{ 1.0 }
+//: m_threshold{ 0.0f }, m_multiplier{ 0.5 }
 {
 
 	/*m_viewport[0] = 1.0;
@@ -61,12 +62,10 @@ VolumeRaycastShader::VolumeRaycastShader() : m_use_blending{ false }, m_blend_vo
 
 		m_fragmentShader =
 			"#version 330 core\n"
-			"vec2 intersect_box(vec3 orig, vec3 dir) { \n"
-			"const vec3 box_min = vec3(0); \n"
-			"const vec3 box_max = vec3(1); \n"
+			"vec2 intersect_box(vec3 orig, vec3 dir, vec3 clip_min, vec3 clip_max) { \n"
 			"vec3 inv_dir = 1.0 / dir; \n"
-			"vec3 tmin_tmp = (box_min - orig) * inv_dir; \n"
-			"vec3 tmax_tmp = (box_max - orig) * inv_dir; \n"
+			"vec3 tmin_tmp = (clip_min - orig) * inv_dir; \n"
+			"vec3 tmax_tmp = (clip_max - orig) * inv_dir; \n"
 			"vec3 tmin = min(tmin_tmp, tmax_tmp); \n"
 			"vec3 tmax = max(tmin_tmp, tmax_tmp); \n"
 			"float t0 = max(tmin.x, max(tmin.y, tmin.z)); \n"
@@ -94,6 +93,8 @@ VolumeRaycastShader::VolumeRaycastShader() : m_use_blending{ false }, m_blend_vo
 			"uniform bool useBlend;\n"
 			"uniform sampler3D blendVolume;\n"					//volume dataset
 			"uniform float blendAlpha;\n"
+			"uniform vec3 clip_min;\n"
+			"uniform vec3 clip_max;\n"
 			"void main()\n"
 			"{\n"
 			//get the 3D texture coordinates for lookup into the volume dataset
@@ -105,7 +106,7 @@ VolumeRaycastShader::VolumeRaycastShader() : m_use_blending{ false }, m_blend_vo
 			"vec3 geomDir = normalize( dataPos - camPos); \n"
 
 			//get the t values for the intersection with the box"
-			"vec2 t_hit = intersect_box(camPos, geomDir); \n"
+			"vec2 t_hit = intersect_box(camPos, geomDir,clip_min,clip_max); \n"
 
 			// We don't want to sample voxels behind the eye if it's
 			// inside the volume, so keep the starting point at or in front
@@ -270,6 +271,8 @@ void VolumeRaycastShader::render(glm::mat4 &MVP, glm::mat4 &clipPlane, glm::vec3
 	glUniformMatrix4fv(m_P_inv_uniform, 1, GL_FALSE, glm::value_ptr(m_P_inv));
 	glUniform1i(m_useBlend_uniform, m_use_blending);
 	glUniform1f(m_blendAlpha_uniform, m_blending_alpha);
+	glUniform3f(m_clip_min_uniform, m_clip_min.x, m_clip_min.y, m_clip_min.z);
+	glUniform3f(m_clip_max_uniform, m_clip_max.x, m_clip_max.y, m_clip_max.z);
 
 	//////draw the triangles
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, 0);
@@ -311,6 +314,8 @@ void VolumeRaycastShader::initGL()
 	m_useBlend_uniform = glGetUniformLocation(m_programID, "useBlend");
 	m_blendAlpha_uniform = glGetUniformLocation(m_programID, "blendAlpha");
 	m_blendVolume_uniform = glGetUniformLocation(m_programID, "blendVolume");
+	m_clip_min_uniform = glGetUniformLocation(m_programID, "clip_min");
+	m_clip_max_uniform = glGetUniformLocation(m_programID, "clip_max");
 
 	////pass constant uniforms at initialization
 	glUniform1i(m_volume_uniform, 0);

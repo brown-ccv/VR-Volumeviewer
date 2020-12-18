@@ -130,6 +130,19 @@ struct pt
 			m_volume_scale = pt;
 		}
 
+		void setMinMax(float min, float max) {
+			m_min = min;
+			m_max = max;
+		}
+
+		const float getMin() {
+			return m_min;
+		}
+
+		const float getMax() {
+			return m_max;
+		}
+
 		const glm::mat4& get_volume_mv() const
 		{
 			return m_volume_MV;
@@ -174,6 +187,9 @@ struct pt
 		unsigned int m_width;
 		unsigned int m_height;
 		unsigned int m_depth;
+		float m_min;
+		float m_max;
+
 
 		unsigned int m_channels;
 

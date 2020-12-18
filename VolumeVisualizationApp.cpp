@@ -10,6 +10,7 @@
 #include "HelperFunctions.h"
 #include <glm/gtc/type_ptr.inl>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/euler_angles.hpp>
 #include "glm.h"
 
 #include <filesystem>
@@ -22,7 +23,10 @@ float diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
 
 VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(argc, argv), m_grab{ false }
 , m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }, m_is2d(false), m_menu_handler(NULL), m_lookingGlass{false}
-, m_clipping{ false }, m_animated(false), m_speed{ 0.05 }, m_frame{ 0.0 }, m_slices(256), m_rendermethod{ 1 }, m_renderchannel{ 0 }, m_use_transferfunction{ false }, m_use_multi_transfer{false}, m_dynamic_slices{ false }, m_show_menu{ true }, convert{false}
+, m_clipping{ false }, m_animated(false), m_speed{ 0.01 }, m_frame{ 0.0 }, m_slices(256), m_rendermethod{ 1 }, m_renderchannel{ 0 }
+, m_use_transferfunction{ false }, m_use_multi_transfer{ false }, m_dynamic_slices{ false }, m_show_menu{ true }, convert{ false }
+, m_stopped{ false }, m_z_scale{ 1.0 }, m_clip_max{ 1.0 }, m_clip_min{ 0.0 }, m_clip_ypr{ 0.0 }, m_clip_pos{ 0.0 }, m_useCustomClipPlane{false}
+, m_wasd_pressed{ 0 }, m_useCameraCenterRotations{ false }, m_movieAction{ nullptr }, m_moviename{"movie.mp4"}
 {
 	int argc_int = this->getLeftoverArgc();
 	char** argv_int = this->getLeftoverArgv();
@@ -219,69 +223,148 @@ void VolumeVisualizationApp::ui_callback()
 	}
 	
 	ImGui::Begin("Volumeviewer");
-	
-	// open file dialog when user clicks this button
-	if (ImGui::Button("load file", ImVec2(ImGui::GetWindowSize().x * 0.49f, 0.0f)))
-		fileDialog.Open();
-	ImGui::SameLine(ImGui::GetWindowSize().x * 0.5f,0);
-	if (ImGui::Button("Clear all", ImVec2(ImGui::GetWindowSize().x * 0.49f, 0.0f)))
-	{
-		for (int i = 0; i < m_volumes.size(); i++) {
-			delete m_volumes[i];
-		}
-		m_volumes.clear();
-	}
+	ImGui::BeginTabBar("##tabs");
 
-	ImGui::SliderFloat("alpha multiplier", &m_multiplier, 0.0f, 1.0f, "%.3f");
-	ImGui::SliderFloat("threshold", &m_threshold, 0.0f, 1.0f, "%.3f");
-	ImGui::SliderFloat("scale", &m_scale, 0.0f, 5.0f, "%.3f");
-	ImGui::SliderInt("Slices", &m_slices, 10, 1024, "%d");
-	ImGui::Checkbox("automatic slice adjustment", &m_dynamic_slices);
-	
-	ImGui::SameLine(ImGui::GetWindowSize().x * 0.5f, 0);
-	ImGui::Text("FPS = %f",m_fps);
-	const char* items[] = { "sliced" , "raycast" };
-	ImGui::Combo("RenderMethod",&m_rendermethod,items, IM_ARRAYSIZE(items));
-	
-	const char* items_channel[] = { "based on data" , "red", "green" , "blue", "alpha", "rgba", "rgba with alpha as max rgb" };
-	ImGui::Combo("Render Channel", &m_renderchannel, items_channel, IM_ARRAYSIZE(items_channel));
-	
-	ImGui::Checkbox("use transferfunction", &m_use_transferfunction);
-	if (m_use_transferfunction) {
-		if (m_volumes.size() > 0 && m_volumes[0]->get_channels() > 1 && (m_renderchannel == 0 || m_renderchannel == 5 || m_renderchannel == 6)){
-			for (int i = 0; i < 3; i++) {
+	if (ImGui::BeginTabItem("General")) {
+		// open file dialog when user clicks this button
+		if (ImGui::Button("load file", ImVec2(ImGui::GetWindowSize().x * 0.5f - 1.5* ImGui::GetStyle().ItemSpacing.x, 0.0f)))
+			fileDialog.Open();
+		ImGui::SameLine();
+		if (ImGui::Button("Clear all", ImVec2(ImGui::GetWindowSize().x  * 0.5f - 1.5 * ImGui::GetStyle().ItemSpacing.x, 0.0f)))
+		{
+			for (int i = 0; i < m_volumes.size(); i++) {
+				delete m_volumes[i];
+			}
+			m_volumes.clear();
+		}
+
+		ImGui::SliderFloat("alpha multiplier", &m_multiplier, 0.0f, 1.0f, "%.3f");
+		ImGui::SliderFloat("threshold", &m_threshold, 0.0f, 1.0f, "%.3f");
+		ImGui::SliderFloat("scale", &m_scale, 0.001f, 5.0f, "%.3f");
+		ImGui::SliderFloat("z - scale", &m_z_scale, 0.001f, 5.0f, "%.3f");
+		ImGui::SliderInt("Slices", &m_slices, 10, 1024, "%d");
+		ImGui::Checkbox("automatic slice adjustment", &m_dynamic_slices);
+
+		ImGui::SameLine(ImGui::GetWindowSize().x * 0.5f, 0);
+		ImGui::Text("FPS = %f", m_fps);
+		const char* items[] = { "sliced" , "raycast" };
+		ImGui::Combo("RenderMethod", &m_rendermethod, items, IM_ARRAYSIZE(items));
+
+		const char* items_channel[] = { "based on data" , "red", "green" , "blue", "alpha", "rgba", "rgba with alpha as max rgb" };
+		ImGui::Combo("Render Channel", &m_renderchannel, items_channel, IM_ARRAYSIZE(items_channel));
+
+		ImGui::Checkbox("use transferfunction", &m_use_transferfunction);
+		if (m_use_transferfunction) {
+			if (m_volumes.size() > 0 && m_volumes[0]->get_channels() > 1 && (m_renderchannel == 0 || m_renderchannel == 5 || m_renderchannel == 6)) {
+				for (int i = 0; i < 3; i++) {
+					if (m_animated)
+					{
+						unsigned int active_volume = floor(m_frame);
+						unsigned int active_volume2 = ceil(m_frame);
+						double alpha = m_frame - active_volume;
+						if (active_volume < m_volumes.size() && active_volume2 < m_volumes.size())
+							tfn_widget_multi.setBlendedHistogram(m_volumes[active_volume]->getTransferfunction(i), m_volumes[active_volume2]->getTransferfunction(i), alpha, i);
+					}
+					else {
+						tfn_widget_multi.setHistogram(m_volumes[0]->getTransferfunction(i), i);
+					}
+				}
+				m_use_multi_transfer = true;
+				tfn_widget_multi.draw_ui();
+			}
+			else
+			{
 				if (m_animated)
 				{
 					unsigned int active_volume = floor(m_frame);
 					unsigned int active_volume2 = ceil(m_frame);
 					double alpha = m_frame - active_volume;
+					tfn_widget.setMinMax(m_volumes[active_volume]->getMin() * alpha + m_volumes[active_volume2]->getMin() * (1.0 - alpha),
+						m_volumes[active_volume]->getMax() * alpha + m_volumes[active_volume2]->getMax() * (1.0 - alpha));
 					if (active_volume < m_volumes.size() && active_volume2 < m_volumes.size())
-						tfn_widget_multi.setBlendedHistogram(m_volumes[active_volume]->getTransferfunction(i), m_volumes[active_volume2]->getTransferfunction(i), alpha, i);
+						tfn_widget.setBlendedHistogram(m_volumes[active_volume]->getTransferfunction(0), m_volumes[active_volume2]->getTransferfunction(0), alpha);
 				}
-				else {
-					tfn_widget_multi.setHistogram(m_volumes[0]->getTransferfunction(i), i);
+				else if (m_volumes.size() > 0) {
+					tfn_widget.setHistogram(m_volumes[0]->getTransferfunction(0));
+					tfn_widget.setMinMax(m_volumes[0]->getMin(), m_volumes[0]->getMax());
 				}
+				m_use_multi_transfer = false;
+				tfn_widget.draw_ui();
 			}
-			m_use_multi_transfer = true;
-			tfn_widget_multi.draw_ui();
 		}
-		else
-		{
-			if (m_animated)
+
+		if (m_animated) {
+			ImGui::Text("Timestep");
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(-100 - ImGui::GetStyle().ItemSpacing.x);
+			float frame_tmp = m_frame + 1;
+			ImGui::SliderFloat("##Timestep", &frame_tmp, 1, m_volumes.size());
+			m_frame = frame_tmp - 1;
+			ImGui::SameLine();
+
+			std::string text = m_stopped ? "Play" : "Stop";
+			if (ImGui::Button(text.c_str(), ImVec2(100, 0))) {
+				m_stopped = !m_stopped;
+			}
+
+
+			if (ImGui::Button("Write Movie"))
 			{
-				unsigned int active_volume = floor(m_frame);
-				unsigned int active_volume2 = ceil(m_frame);
-				double alpha = m_frame - active_volume;
-				if (active_volume < m_volumes.size() && active_volume2 < m_volumes.size())
-					tfn_widget.setBlendedHistogram(m_volumes[active_volume]->getTransferfunction(0), m_volumes[active_volume2]->getTransferfunction(0), alpha);
-			}else if(m_volumes.size() > 0) {
-				tfn_widget.setHistogram(m_volumes[0]->getTransferfunction(0));
+				if (m_movieAction)
+					delete m_movieAction;
+
+				m_movieAction = new CreateMovieAction();
+				m_frame = 0;
+				m_show_menu = false;
 			}
-			m_use_multi_transfer = false;
-			tfn_widget.draw_ui();
 		}
+
+		ImGui::Checkbox("Camera centric rotations", &m_useCameraCenterRotations);
+		m_trackball.setCameraCenterRotation(m_useCameraCenterRotations);
+		ImGui::EndTabItem();
+
+		
 	}
 
+	if (ImGui::BeginTabItem("Clipping")) {
+
+		ImGui::Text("Axis aligned clip");
+		glm::vec2 bound = { m_clip_min.x * 100 ,m_clip_max.x * 100 };
+		ImGui::DragFloatRange2("X", &bound.x, &bound.y, 0.1f, 0.0f, 100.0f, "Min: %.1f %%", "Max: %.1f %%");
+		m_clip_min.x = bound.x / 100; 
+		m_clip_max.x = bound.y / 100;
+
+		bound = { m_clip_min.y * 100 ,m_clip_max.y * 100 };
+		ImGui::DragFloatRange2("Y", &bound.x, &bound.y, 0.1f, 0.0f, 100.0f, "Min: %.1f %%", "Max: %.1f %%");
+		m_clip_min.y = bound.x / 100;
+		m_clip_max.y = bound.y / 100;
+
+		bound = { m_clip_min.z * 100 ,m_clip_max.z * 100 };
+		ImGui::DragFloatRange2("Z", &bound.x, &bound.y, 0.1f, 0.0f, 100.0f, "Min: %.1f %%", "Max: %.1f %%");
+		m_clip_min.z = bound.x / 100;
+		m_clip_max.z = bound.y / 100;
+
+		if (ImGui::Button("Reset")) {
+			m_clip_min = glm::vec3(0.0f);
+			m_clip_max = glm::vec3(1.0f);
+		}
+
+		ImGui::Checkbox("Custom Clipping plane", &m_useCustomClipPlane);
+		if (m_useCustomClipPlane) {
+			ImGui::SliderAngle("Pitch", &m_clip_ypr.y, -90, 90);
+			ImGui::SliderAngle("Roll", &m_clip_ypr.z, -180, 180);
+
+			ImGui::SliderFloat("Position X", &m_clip_pos.x, -0.5, 0.5);
+			ImGui::SliderFloat("Position y", &m_clip_pos.y, -0.5, 0.5);
+			ImGui::SliderFloat("Position z", &m_clip_pos.z, -0.5, 0.5);
+			if (ImGui::Button("Reset##Reset2")) {
+				m_clip_ypr = glm::vec3(0.0f);
+				m_clip_pos = glm::vec3(0.0f);
+			}
+		}
+
+		ImGui::EndTabItem();
+	}
 	//file loading
 	fileDialog.Display();
 
@@ -320,7 +403,7 @@ void VolumeVisualizationApp::onCursorMove(const VRCursorEvent& event)
 {
 	if (event.getName() == "Mouse_Move" && m_menu_handler != NULL)
 	{
-		m_trackball.mouseMove(event.getPos()[0], event.getPos()[1]);
+		m_trackball.mouse_move(event.getPos()[0], event.getPos()[1]);
 		m_menu_handler->setCursorPos(event.getPos()[0], event.getPos()[1]);
 	}
 }
@@ -333,9 +416,19 @@ void VolumeVisualizationApp::onCursorMove(const VRCursorEvent& event)
 void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event) {
 	if (m_show_menu && m_menu_handler != NULL && m_menu_handler->windowIsActive()) {
 		if (event.getName() == "HTC_Controller_Right_TrackPad0_Y" || event.getName() == "HTC_Controller_1_TrackPad0_Y"
-			|| (event.getName() == "Wand_Joystick_Y_Update" && !(event.getValue() > -0.1 && event.getValue() < 0.1) ))
-				
+			|| (event.getName() == "Wand_Joystick_Y_Update" && !(event.getValue() > -0.1 && event.getValue() < 0.1)))
 			m_menu_handler->setAnalogValue(event.getValue());
+
+		if (event.getName() == "MouseWheel_Spin") {
+			std::cerr << event.getValue() << std::endl;
+			m_menu_handler->setAnalogValue(event.getValue() * 10);
+		}
+	}
+	else {
+		if (event.getName() == "MouseWheel_Spin") {
+			m_trackball.mouse_scroll(event.getValue() * 0.01);
+		}
+		
 	}
 
 	if (event.getName() == "PhotonLoopFinished") {
@@ -362,7 +455,11 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 		{
 			m_menu_handler->setButtonClick(1, 1);
 		}
-	}else
+		else if (event.getName() == "MouseBtnMiddle_Down") {
+			m_menu_handler->setButtonClick(2, 0);
+		}
+	}
+	else
 	{
 		if (event.getName() == "MouseBtnLeft_Down")
 		{
@@ -371,6 +468,9 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 		else if (event.getName() == "MouseBtnRight_Down")
 		{
 			m_trackball.mouse_pressed(1, true);
+		}
+		else if (event.getName() == "MouseBtnMiddle_Down") {
+			m_trackball.mouse_pressed(2, true);
 		}
 	}
 
@@ -416,6 +516,26 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 			m_show_menu = !m_show_menu;
 		}
 	}
+	if (!(m_show_menu && m_menu_handler != NULL && m_menu_handler->windowIsActive())) {
+		if (event.getName() == "KbdW_Down") {
+			m_wasd_pressed = m_wasd_pressed | W;
+		}
+		if (event.getName() == "KbdA_Down") {
+			m_wasd_pressed = m_wasd_pressed | A;
+		}
+		if (event.getName() == "KbdS_Down") {
+			m_wasd_pressed = m_wasd_pressed | S;
+		}
+		if (event.getName() == "KbdD_Down") {
+			m_wasd_pressed = m_wasd_pressed | D;
+		}
+		if (event.getName() == "KbdQ_Down") {
+			m_wasd_pressed = m_wasd_pressed | Q;
+		}
+		if (event.getName() == "KbdE_Down") {
+			m_wasd_pressed = m_wasd_pressed | E;
+		}
+	}
 }
 
 
@@ -454,6 +574,10 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 		m_trackball.mouse_pressed(1, false);
 		if (m_menu_handler != NULL) m_menu_handler->setButtonClick(1, 0);
 	}
+	else if (event.getName() == "MouseBtnMiddle_Up") {
+		m_trackball.mouse_pressed(2, false);
+		if (m_menu_handler != NULL) m_menu_handler->setButtonClick(2, 0);
+	}
 	
 
 	if (m_show_menu && m_menu_handler != NULL) {
@@ -489,7 +613,25 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 		m_clipping = false;
 		//std::cerr << "Clipping OFF" << std::endl;
 	}
-	
+
+	if (event.getName() == "KbdW_Up") {
+		m_wasd_pressed = m_wasd_pressed & ~W;
+	}
+	if (event.getName() == "KbdA_Up") {
+		m_wasd_pressed = m_wasd_pressed & ~A;
+	}
+	if (event.getName() == "KbdS_Up") {
+		m_wasd_pressed = m_wasd_pressed & ~S;
+	}
+	if (event.getName() == "KbdD_Up") {
+		m_wasd_pressed = m_wasd_pressed & ~D;
+	}
+	if (event.getName() == "KbdQ_Up") {
+		m_wasd_pressed = m_wasd_pressed & ~Q;
+	}
+	if (event.getName() == "KbdE_Up") {
+		m_wasd_pressed = m_wasd_pressed & ~E;
+	}
 }
 
 
@@ -591,15 +733,16 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 	
 	initTexture();
 
-	if (m_animated)
+	if (m_animated && ! m_stopped)
 	{
 		m_frame+=m_speed;
-		std::cerr << "Frame " << m_frame << std::endl;
-		if (m_frame >= m_volumes.size() - 1) m_frame = 0.0 ;
+		if (m_frame > m_volumes.size() - 1) m_frame = 0.0 ;
 	}
 	rendercount = 0;
 
 	if (m_show_menu) m_menu_handler->renderToTexture();
+	if(m_wasd_pressed)
+		m_trackball.wasd_pressed(m_wasd_pressed);
 }
 
 void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &renderState) {
@@ -620,7 +763,7 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 
 	//overwrite MV for 2D viewing
 	if(m_is2d)
-		MV = MV * m_trackball.getViewmatrix();
+		MV = m_trackball.getViewmatrix();
 	
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(glm::value_ptr(P));
@@ -629,7 +772,7 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 	for (int i = 0; i < m_volumes.size(); i++){
 		glm::mat4 tmp = MV;
 		tmp = tmp* m_object_pose;
-		tmp = glm::scale(tmp, glm::vec3(m_scale, m_scale, m_scale));
+		tmp = glm::scale(tmp, glm::vec3(m_scale, m_scale, m_scale * m_z_scale));
 		if(!m_animated) 
 			tmp = glm::translate(tmp, glm::vec3(m_volumes[i]->get_volume_position().x, m_volumes[i]->get_volume_position().y, m_volumes[i]->get_volume_position().z));
 		m_volumes[i]->set_volume_mv(tmp);
@@ -640,21 +783,32 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 		if (m_volumes.size() > m_models_volumeID[i]) {
 			m_models_MV[i] = m_volumes[m_models_volumeID[i]]->get_volume_mv();
 			m_models_MV[i] = glm::translate(m_models_MV[i], glm::vec3(-0.5f, -0.5f, -0.5f * m_volumes[m_models_volumeID[i]]->get_volume_scale().x / m_volumes[m_models_volumeID[i]]->get_volume_scale().z));
-			m_models_MV[i] = glm::scale(m_models_MV[i], glm::vec3(m_volumes[m_models_volumeID[i]]->get_volume_scale().x, m_volumes[m_models_volumeID[i]]->get_volume_scale().y, m_volumes[m_models_volumeID[i]]->get_volume_scale().x));
+			m_models_MV[i] = glm::scale(m_models_MV[i], glm::vec3(m_volumes[m_models_volumeID[i]]->get_volume_scale().x, m_volumes[m_models_volumeID[i]]->get_volume_scale().y, m_volumes[m_models_volumeID[i]]->get_volume_scale().x* m_z_scale));
 		}
 	}
 
 	//Set cuttingplane
-	if (m_clipping){
+	if (m_clipping || m_useCustomClipPlane){
 		glm::mat4 clipPlane = glm::inverse(m_controller_pose) * glm::inverse(MV);
+
+		if (m_useCustomClipPlane) {
+			clipPlane = glm::eulerAngleYXZ(m_clip_ypr.x,m_clip_ypr.y, m_clip_ypr.z);
+			clipPlane = glm::translate(clipPlane, m_clip_pos);
+			clipPlane = clipPlane * glm::inverse(MV);
+		}
+
 		for (auto ren : m_renders)
 			ren->setClipping(true, &clipPlane);
-	} else
+	} 
+	else
 	{
 		for (auto ren : m_renders)
 			ren->setClipping(false, nullptr);
 	}
 	
+	for (auto ren : m_renders)
+		ren->setClipMinMax (m_clip_min,m_clip_max);
+
 	//Render meshes
 	for (int i = 0; i < m_models_displayLists.size(); i++){
 		if (m_volumes.size() > m_models_volumeID[i]) {
@@ -711,11 +865,22 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 		}
 	}
 
-	if (m_is2d)
+	if (m_show_menu && m_is2d)
 		m_menu_handler->drawMenu();
 	
 	glFlush();
 
 	rendercount++;
 	
+	if (m_movieAction) {
+		std::cerr << "Add Frame" << std::endl;
+		m_movieAction->addFrame();
+		if (m_frame >  m_volumes.size() - 1 - m_speed) {
+			std::cerr << "Save Movie" << std::endl;
+			m_movieAction->save(m_moviename);
+			delete m_movieAction;
+			m_movieAction = nullptr;
+			m_show_menu = true;
+		}
+	}
 }

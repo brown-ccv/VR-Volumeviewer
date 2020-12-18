@@ -41,7 +41,8 @@ class TransferFunctionWidget {
     GLuint colormap_img = -1;
 
 	std::vector<float> current_histogram;
-	
+	float m_min_max_val[2];
+
 public:
     TransferFunctionWidget();
 
@@ -62,6 +63,8 @@ public:
     std::vector<float> get_colormapf();
 
 	void setHistogram(const std::vector<float> &hist);
+
+	void setMinMax(const float min, const float max);
 
 	void setBlendedHistogram(const std::vector<float>& hist1, const std::vector<float>& hist2, float alpha);
 

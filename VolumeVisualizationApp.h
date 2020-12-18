@@ -34,7 +34,7 @@ using namespace MinVR;
 #endif
 
 #include "VolumeSliceRenderer.h"
-
+#include "CreateMovieAction.h"
 
 
 class VolumeVisualizationApp : public VRApp {
@@ -88,7 +88,8 @@ private:
 
 	float m_speed;
 	float m_frame;
-
+	float m_stopped;
+	float m_z_scale;
 	glm::mat4 m_controller_pose;
 	glm::mat4 m_object_pose;
 	glm::mat4 m_to_volume;
@@ -136,7 +137,19 @@ private:
 	ArcBall m_trackball;
 
 	bool convert;
-	
+
+	glm::vec3 m_clip_min;
+	glm::vec3 m_clip_max;
+
+	bool m_useCustomClipPlane;
+	glm::vec3 m_clip_ypr;
+	glm::vec3 m_clip_pos;
+
+	int m_wasd_pressed;
+	bool m_useCameraCenterRotations;
+
+	CreateMovieAction * m_movieAction;
+	std::string m_moviename;
 };
 
 

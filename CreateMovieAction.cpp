@@ -20,24 +20,21 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file VolumeSliceRcastRender.h
+///\file LoadDataAction.cpp
 ///\author Benjamin Knorlein
-///\date 05/24/2019
-/// Based on the book : OpenGL Development Cookbook  by Muhammad Mobeen Movania
+///\date 12/16/2020
 
 #pragma once
 
-#ifndef VOLUMESLICERCASTRENDER_H
-#define VOLUMESLICERCASTRENDER_H
+#include "CreateMovieAction.h"
 
-#include "GL/glew.h"
+#include <opencv2/highgui/highgui.hpp>
 
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 #include <GL/gl.h>
 #include <gl/GLU.h>
-#define M_PI 3.14159265358979323846
 #elif defined(__APPLE__)
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/glu.h>
@@ -46,43 +43,51 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #endif
+#include <iostream>
 
-#include <glm/glm.hpp>
-#include "VolumeRaycastShader.h"
-#include "VolumeRenderer.h"
-
-class VolumeRaycastRenderer : public  VolumeRenderer
-	{
-	public:
-		VolumeRaycastRenderer();
-		~VolumeRaycastRenderer();
-
-		virtual void initGL() override;
-		virtual void render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale, GLint colormap, int renderChannel) override;
-
-		virtual void set_threshold(float threshold) override;
-		virtual void set_multiplier(float multiplier) override;
-		virtual void set_blending(bool useBlending, float alpha, Volume* volume) override;
-		virtual void useMultichannelColormap(bool useMulti);
-
-		virtual void set_numSlices(int slices) override;
+CreateMovieAction::CreateMovieAction()
+{
 	
-		void setDepthTexture(DepthTexture* depth_texture)
-		{
-			shader.setDepthTexture(depth_texture);
+}
+
+CreateMovieAction::~CreateMovieAction()
+{
+	clear();
+}
+
+void CreateMovieAction::save(std::string filename) {
+	if (m_frames.empty())
+		return; m_frames[0].cols;
+
+	cv::VideoWriter outputVideo;
+	outputVideo.open(filename, outputVideo.fourcc('m', 'p', '4', 'v'),  30, cv::Size(m_frames[0].cols, m_frames[0].rows),true);
+	if (outputVideo.isOpened())
+	{
+		for (auto &frame : m_frames) {
+			cv::flip(frame, frame, 0);
+			outputVideo << frame;
 		}
+		outputVideo.release();
+	}
+}
 
-		virtual void setClipMinMax(glm::vec3 min_clip, glm::vec3 max_clip);
+void CreateMovieAction::clear() {
+	for (auto &frame : m_frames) {
+		delete[] frame.data;
+		frame.release();
+	}
+	m_frames.clear();
+}
 
-	private:
-		void setChannel(Volume* volume);
+void CreateMovieAction::addFrame() {
+	GLint dims[4] = { 0 };
+	glGetIntegerv(GL_VIEWPORT, dims);
 
-		////volume vertex array and buffer objects
-		GLuint cubeVBOID;
-		GLuint cubeVAOID;
-		GLuint cubeIndicesID;
+	glReadBuffer(GL_FRONT);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-		//3D texture slicing shader
-		VolumeRaycastShader shader;
-	};
-#endif // VOLUMESLICERCASTRENDER_H
+	unsigned char* pixels = new unsigned char[3 * dims[2] * dims[3]];
+	glReadPixels(0, 0, dims[2], dims[3], GL_BGR_EXT, GL_UNSIGNED_BYTE, pixels);
+
+	m_frames.push_back(cv::Mat(dims[3], dims[2], CV_8UC3, pixels));
+}

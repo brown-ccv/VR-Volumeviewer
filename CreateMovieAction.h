@@ -20,45 +20,33 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file VolumeRenderer.h
+///\file CreateMovieAction.h
 ///\author Benjamin Knorlein
-///\date 5/24/2019
+///\date 12/16/2020
 
 #pragma once
 
-#ifndef VOLUMERENDER_H
-#define VOLUMERENDER_H
+#ifndef CREATEMOVIEACTION_H
+#define CREATEMOVIEACTION_H
 
-#include "FrameBufferObject.h"
-#include "Volume.h"
+#include <opencv2/core/mat.hpp>
 
-class VolumeRenderer
+class CreateMovieAction
 	{
+		
 	public:
-		VolumeRenderer(){};
-		virtual ~VolumeRenderer(){};
+		CreateMovieAction();
+		~CreateMovieAction();
 
-		virtual void initGL() = 0;
-		virtual void render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale, GLint colorma, int renderChannel) = 0;
+		void addFrame();
 
-		virtual void set_threshold(float threshold) = 0;
-		virtual void set_multiplier(float multiplier) = 0;
-		virtual void set_numSlices(int slices) = 0;
-	
-		virtual void set_blending(bool useBlending, float alpha, Volume* volume) = 0;
-		virtual void useMultichannelColormap(bool useMulti) = 0;
-	
-		virtual void setClipMinMax(glm::vec3 min_clip, glm::vec3 max_clip) = 0;
+		void clear();
 
-		void setClipping(bool isClipping, glm::mat4 * clipPlane)
-		{
-			m_clipping = isClipping;
-			if (m_clipping)
-				m_clipPlane = *clipPlane;
-		};
+		void save(std::string filename);
 
-	protected:
-		bool m_clipping;
-		glm::mat4 m_clipPlane; 
+		private:
+			std::vector<cv::Mat> m_frames;
 	};
-#endif // VOLUMERENDER_H
+
+
+#endif // CREATEMOVIEACTION_H
