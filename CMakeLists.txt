@@ -60,6 +60,7 @@ set(source_files
   transferfunction/transfer_function_multichannel_widget.cpp
   ArcBall.cpp
   HelperFunctions.cpp
+  CreateMovieAction.cpp
 )
 
 set(header_files
@@ -84,6 +85,7 @@ set(header_files
   transferfunction/embedded_colormaps.h
   ArcBall.h
   HelperFunctions.h
+  CreateMovieAction.h
 )
 
 

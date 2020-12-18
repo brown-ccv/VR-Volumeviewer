@@ -26,7 +26,7 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 , m_clipping{ false }, m_animated(false), m_speed{ 0.01 }, m_frame{ 0.0 }, m_slices(256), m_rendermethod{ 1 }, m_renderchannel{ 0 }
 , m_use_transferfunction{ false }, m_use_multi_transfer{ false }, m_dynamic_slices{ false }, m_show_menu{ true }, convert{ false }
 , m_stopped{ false }, m_z_scale{ 1.0 }, m_clip_max{ 1.0 }, m_clip_min{ 0.0 }, m_clip_ypr{ 0.0 }, m_clip_pos{ 0.0 }, m_useCustomClipPlane{false}
-, m_wasd_pressed{ 0 }, m_useCameraCenterRotations{ false }
+, m_wasd_pressed{ 0 }, m_useCameraCenterRotations{ false }, m_movieAction{ nullptr }, m_moviename{"movie.mp4"}
 {
 	int argc_int = this->getLeftoverArgc();
 	char** argv_int = this->getLeftoverArgv();
@@ -305,11 +305,24 @@ void VolumeVisualizationApp::ui_callback()
 			if (ImGui::Button(text.c_str(), ImVec2(100, 0))) {
 				m_stopped = !m_stopped;
 			}
+
+
+			if (ImGui::Button("Write Movie"))
+			{
+				if (m_movieAction)
+					delete m_movieAction;
+
+				m_movieAction = new CreateMovieAction();
+				m_frame = 0;
+				m_show_menu = false;
+			}
 		}
 
 		ImGui::Checkbox("Camera centric rotations", &m_useCameraCenterRotations);
 		m_trackball.setCameraCenterRotation(m_useCameraCenterRotations);
 		ImGui::EndTabItem();
+
+		
 	}
 
 	if (ImGui::BeginTabItem("Clipping")) {
@@ -721,7 +734,7 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 	if (m_animated && ! m_stopped)
 	{
 		m_frame+=m_speed;
-		if (m_frame >= m_volumes.size() - 1) m_frame = 0.0 ;
+		if (m_frame > m_volumes.size() - 1) m_frame = 0.0 ;
 	}
 	rendercount = 0;
 
@@ -850,11 +863,22 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 		}
 	}
 
-	if (m_is2d)
+	if (m_show_menu && m_is2d)
 		m_menu_handler->drawMenu();
 	
 	glFlush();
 
 	rendercount++;
 	
+	if (m_movieAction) {
+		std::cerr << "Add Frame" << std::endl;
+		m_movieAction->addFrame();
+		if (m_frame >  m_volumes.size() - 1 - m_speed) {
+			std::cerr << "Save Movie" << std::endl;
+			m_movieAction->save(m_moviename);
+			delete m_movieAction;
+			m_movieAction = nullptr;
+			m_show_menu = true;
+		}
+	}
 }

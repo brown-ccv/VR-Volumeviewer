@@ -35,7 +35,7 @@
 #define _PI 3.141592653
 #endif
 
-ArcBall::ArcBall() : m_radius(1) ,m_mouse_left_pressed(false),m_mouse_right_pressed(false),last_x(0), last_y(0)
+ArcBall::ArcBall() : m_radius(1) ,m_mouse_left_pressed(false), m_mouse_center_pressed(false), m_mouse_right_pressed(false),last_x(0), last_y(0)
 , m_PanFactor(1), m_RotateFactor(1), m_cameraScrollFactor(0.1), m_target(0, 0, 0), m_eye(0, 0, 1), m_up(0, 1, 0), m_rotate_camera_center{false}
 	{
 		

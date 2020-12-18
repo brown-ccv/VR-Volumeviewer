@@ -34,7 +34,7 @@ using namespace MinVR;
 #endif
 
 #include "VolumeSliceRenderer.h"
-
+#include "CreateMovieAction.h"
 
 
 class VolumeVisualizationApp : public VRApp {
@@ -147,6 +147,9 @@ private:
 
 	int m_wasd_pressed;
 	bool m_useCameraCenterRotations;
+
+	CreateMovieAction * m_movieAction;
+	std::string m_moviename;
 };
 
 
