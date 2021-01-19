@@ -18,8 +18,8 @@ namespace fs = std::filesystem;
 
 
 float noColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-float ambient[] = { 0.5f, 0.5f, 0.5f, 1.0f };
-float diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
+float ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+float diffuse[] = { 0.5f, 0.5f, 0.5f, 1.0f };
 
 VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(argc, argv), m_grab{ false }
 , m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }, m_is2d(false), m_menu_handler(NULL), m_lookingGlass{false}
@@ -780,8 +780,8 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 	for (int i = 0; i < m_models_displayLists.size(); i++){
 		if (m_volumes.size() > m_models_volumeID[i]) {
 			m_models_MV[i] = m_volumes[m_models_volumeID[i]]->get_volume_mv();
-			m_models_MV[i] = glm::translate(m_models_MV[i], glm::vec3(-0.5f, -0.5f, -0.5f * m_volumes[m_models_volumeID[i]]->get_volume_scale().x / m_volumes[m_models_volumeID[i]]->get_volume_scale().z));
-			m_models_MV[i] = glm::scale(m_models_MV[i], glm::vec3(m_volumes[m_models_volumeID[i]]->get_volume_scale().x, m_volumes[m_models_volumeID[i]]->get_volume_scale().y, m_volumes[m_models_volumeID[i]]->get_volume_scale().x* m_z_scale));
+			m_models_MV[i] = glm::translate(m_models_MV[i], glm::vec3(-0.5f, -0.5f, -0.5f * m_volumes[m_models_volumeID[i]]->get_volume_scale().x / (m_volumes[m_models_volumeID[i]]->get_volume_scale().z)));
+			m_models_MV[i] = glm::scale(m_models_MV[i], glm::vec3(m_volumes[m_models_volumeID[i]]->get_volume_scale().x, m_volumes[m_models_volumeID[i]]->get_volume_scale().y, m_volumes[m_models_volumeID[i]]->get_volume_scale().x));
 		}
 	}
 
