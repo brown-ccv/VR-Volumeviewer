@@ -10,6 +10,8 @@
 #include "HelperFunctions.h"
 #include <glm/gtc/type_ptr.inl>
 #include <glm/gtc/matrix_transform.hpp>
+
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 #include "glm.h"
 
@@ -310,6 +312,8 @@ void VolumeVisualizationApp::ui_callback()
 
 			if (ImGui::Button("Write Movie"))
 			{
+				fs::create_directory("movie");
+
 				if (m_movieAction)
 					delete m_movieAction;
 
@@ -365,6 +369,8 @@ void VolumeVisualizationApp::ui_callback()
 
 		ImGui::EndTabItem();
 	}
+	ImGui::EndTabBar();
+
 	//file loading
 	fileDialog.Display();
 
@@ -873,10 +879,12 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 	rendercount++;
 	
 	if (m_movieAction) {
+		glFinish();
 		std::cerr << "Add Frame" << std::endl;
 		m_movieAction->addFrame();
 		if (m_frame >  m_volumes.size() - 1 - m_speed) {
 			std::cerr << "Save Movie" << std::endl;
+
 			m_movieAction->save(m_moviename);
 			delete m_movieAction;
 			m_movieAction = nullptr;

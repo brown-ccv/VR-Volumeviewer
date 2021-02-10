@@ -44,8 +44,9 @@
 #include <GL/glu.h>
 #endif
 #include <iostream>
+#include <iomanip>      // std::setw
 
-CreateMovieAction::CreateMovieAction()
+CreateMovieAction::CreateMovieAction() : m_frame{0}
 {
 	
 }
@@ -64,7 +65,7 @@ void CreateMovieAction::save(std::string filename) {
 	if (outputVideo.isOpened())
 	{
 		for (auto &frame : m_frames) {
-			cv::flip(frame, frame, 0);
+			//cv::flip(frame, frame, 0);
 			outputVideo << frame;
 		}
 		outputVideo.release();
@@ -83,11 +84,18 @@ void CreateMovieAction::addFrame() {
 	GLint dims[4] = { 0 };
 	glGetIntegerv(GL_VIEWPORT, dims);
 
-	glReadBuffer(GL_FRONT);
+	glReadBuffer(GL_BACK);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
 	unsigned char* pixels = new unsigned char[3 * dims[2] * dims[3]];
 	glReadPixels(0, 0, dims[2], dims[3], GL_BGR_EXT, GL_UNSIGNED_BYTE, pixels);
 
 	m_frames.push_back(cv::Mat(dims[3], dims[2], CV_8UC3, pixels));
+
+	std::stringstream ss;
+	ss << std::setw(10) << std::setfill('0') << m_frame;
+	std::string s = ss.str();
+	cv::flip(m_frames.back(), m_frames.back(), 0);
+	cv::imwrite("movie//" + s + ".jpg", m_frames.back());
+;	m_frame++;
 }

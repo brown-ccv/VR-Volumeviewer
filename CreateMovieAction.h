@@ -46,6 +46,7 @@ class CreateMovieAction
 
 		private:
 			std::vector<cv::Mat> m_frames;
+			int m_frame;
 	};
 
 
