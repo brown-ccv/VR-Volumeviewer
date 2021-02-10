@@ -13,6 +13,8 @@
 #include <glm/gtx/euler_angles.hpp>
 #include "glm.h"
 
+#include "LoadDescriptionAction.h"
+#include "FontHandler.h"
 #include <filesystem>
 namespace fs = std::filesystem;
 
@@ -126,13 +128,31 @@ void VolumeVisualizationApp::loadTxtFile(std::string filename)
 				{
 					m_threshold = stof(vals[1]);
 				}
+				if (vals[0] == "label")
+				{
+					std::cerr << "add Label " << vals[1] << std::endl;
+					std::cerr << "at position " << vals[2] << " , " << vals[3] << " , " << vals[4] << std::endl;
+					std::cerr << "text at position " << vals[2] << " , " << vals[3] << " , " << vals[5] << std::endl;
+					std::cerr << "text Size " << vals[6] << std::endl;
+					std::cerr << "for Volume " << vals[7] << std::endl;
+					m_labels.add(vals[1], stof(vals[2]), stof(vals[3]), stof(vals[4]), stof(vals[5]), stof(vals[6]), stoi(vals[7]) - 1);
+				}
+				if (vals[0] == "desc")
+				{
+					std::cerr << "Load Description " << vals[1] << std::endl;
+					std::cerr << "with size " << vals[2] << std::endl;
+					m_descriptionHeight = stoi(vals[2]);
+					m_descriptionFilename = p_filename.parent_path().string() + OS_SLASH + vals[1];
+					m_description = LoadDescriptionAction(m_descriptionFilename).run();
+					std::cerr << m_description[0] << std::endl;
+				}
 				if (vals[0] == "mesh")
 				{
 					std::cerr << "Load Mesh " << vals[1] << std::endl;
 					std::cerr << "for Volume " << vals[2] << std::endl;
 					vals[1] = p_filename.parent_path().string() + OS_SLASH + vals[1];
 					m_models_volumeID.push_back(stoi(vals[2]) - 1);
-					m_models_filenames.push_back( vals[1]);
+					m_models_filenames.push_back(vals[1]);
 					m_models_MV.push_back(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
 				}
 				else if (vals[0] == "volume")
@@ -235,6 +255,14 @@ void VolumeVisualizationApp::ui_callback()
 				delete m_volumes[i];
 			}
 			m_volumes.clear();
+			m_description.clear();
+			m_labels.clear();
+
+			m_models_filenames.clear();
+			m_models_displayLists.clear();
+			m_models_position.clear();
+			m_models_volumeID.clear();
+			m_models_MV.clear();
 		}
 
 		ImGui::SliderFloat("alpha multiplier", &m_multiplier, 0.0f, 1.0f, "%.3f");
@@ -746,6 +774,12 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &renderState) {
     // This routine is called once per eye.  This is the place to actually
     // draw the scene...
+	if (m_is2d) {
+		m_headpose = glm::make_mat4(renderState.getViewMatrix());
+		m_headpose = glm::inverse(m_headpose);
+	}
+	
+	
 	glClearColor(0, 0, 0, 1);
 	glClearDepth(1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -811,12 +845,20 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 	for (int i = 0; i < m_models_displayLists.size(); i++){
 		if (m_volumes.size() > m_models_volumeID[i]) {
 			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
 			glLoadMatrixf(glm::value_ptr(m_models_MV[i]));
 			glColor3f(1.0f, 1.0f, 1.0f);
 			glCallList(m_models_displayLists[i]);
+			glPopMatrix();
 		}
 	}
 	
+	//render labels
+	m_labels.draw(m_models_MV,m_headpose, m_z_scale);
+
+	if(m_is2d && !m_description.empty())
+		FontHandler::getInstance()->renderMultiLineTextBox2D(m_description, 50, 950, 200, m_descriptionHeight);
+
 	//render menu	
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(glm::value_ptr(glm::make_mat4(renderState.getViewMatrix())));
@@ -863,9 +905,26 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 		}
 	}
 
+	//draw UI
 	if (m_show_menu && m_is2d)
 		m_menu_handler->drawMenu();
-	
+
+	//draw Transferfunction
+	if (m_is2d && m_use_transferfunction) {
+		tfn_widget.drawLegend();
+	}
+
+	//drawTime
+	if (m_is2d && m_animated) {
+		unsigned int active_volume = floor(m_frame);
+		unsigned int active_volume2 = ceil(m_frame);
+		if (active_volume < m_volumes.size() && active_volume2 < m_volumes.size() && m_volumes[active_volume]->texture_initialized() && m_volumes[active_volume2]->texture_initialized()){
+			float alpha = m_frame - active_volume;
+			time_t time = m_volumes[active_volume]->getTime() * (1 - alpha) + m_volumes[active_volume2]->getTime() * alpha;
+			FontHandler::getInstance()->drawClock(time);
+		}
+	}
+
 	glFlush();
 
 	rendercount++;

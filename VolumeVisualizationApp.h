@@ -9,6 +9,7 @@
 #include <api/MinVR.h>
 #include "FrameBufferObject.h"
 #include "Volume.h"
+#include "Labels.h"
 #include "VolumeRaycastRenderer.h"
 #include "DepthTexture.h"
 #include <future>
@@ -100,6 +101,7 @@ private:
 	std::vector<pt> m_models_position;
 	std::vector<int> m_models_volumeID;
 	std::vector<glm::mat4> m_models_MV;
+	Labels m_labels;
 
 	GLfloat m_light_pos[4];
 	
@@ -150,6 +152,10 @@ private:
 
 	CreateMovieAction * m_movieAction;
 	std::string m_moviename;
+
+	std::vector<std::string> m_description;
+	int m_descriptionHeight;
+	std::string m_descriptionFilename;
 };
 
 

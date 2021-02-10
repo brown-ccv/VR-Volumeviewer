@@ -135,6 +135,14 @@ struct pt
 			m_max = max;
 		}
 
+		void setTime(time_t tp) {
+			m_time = tp;
+		}
+
+		time_t getTime() {
+			return m_time;
+		}
+
 		const float getMin() {
 			return m_min;
 		}
@@ -189,7 +197,7 @@ struct pt
 		unsigned int m_depth;
 		float m_min;
 		float m_max;
-
+		time_t m_time;
 
 		unsigned int m_channels;
 

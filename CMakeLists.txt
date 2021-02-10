@@ -51,16 +51,14 @@ set(source_files
   glm.cpp
   FrameBufferObject.cpp
   DepthTexture.cpp
-  #NarragansettBay/Glider.cpp
-  #NarragansettBay/Labels.cpp
-  #NarragansettBay/Tool.cpp 
-  #NarragansettBay/LoadGliderDataAction.cpp 
-  #NarragansettBay/VRFontHandler.cpp
+  Labels.cpp
+  FontHandler.cpp
   transferfunction/transfer_function_widget.cpp
   transferfunction/transfer_function_multichannel_widget.cpp
   ArcBall.cpp
   HelperFunctions.cpp
   CreateMovieAction.cpp
+  LoadDescriptionAction.cpp
 )
 
 set(header_files
@@ -75,23 +73,23 @@ set(header_files
   glm.h
   FrameBufferObject.h
   DepthTexture.h
-  #NarragansettBay/Glider.h
-  #NarragansettBay/Labels.h
-  #NarragansettBay/Tool.h 
-  #NarragansettBay/LoadGliderDataAction.h 
-  #NarragansettBay/VRFontHandler.h
+  Labels.h
+  FontHandler.h
   transferfunction/transfer_function_widget.h
   transferfunction/transfer_function_multichannel_widget.h
   transferfunction/embedded_colormaps.h
   ArcBall.h
   HelperFunctions.h
   CreateMovieAction.h
+  LoadDescriptionAction.h
 )
 
 
 #---------------------- Find & Add Dependencies ----------------------
 
 set(EXTERNAL_CMAKE_SCRIPTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
+ADD_DEFINITIONS(-D FTGL_LIBRARY_STATIC)
 
 # MinVR (linked with an imported cmake target so no need to specify include dirs)
 find_package(MinVR REQUIRED)
@@ -100,22 +98,16 @@ find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 FIND_PACKAGE(glm REQUIRED )
 FIND_PACKAGE(OpenCV REQUIRED )
-#FIND_PACKAGE(FTGL REQUIRED )
-#FIND_PACKAGE(PNG REQUIRED )
-#FIND_PACKAGE(ZLIB REQUIRED )
-#FIND_PACKAGE(Freetype REQUIRED) # if it fails, check this:
-
-#set(GLE_INCLUDE_DIR "" CACHE FILEPATH "GLE include directory")
-#set(GLE_LIBRARY "" CACHE FILEPATH "GLE library")
+FIND_PACKAGE(FTGL REQUIRED )
+FIND_PACKAGE(Freetype REQUIRED) 
 
 include_directories(
   ${OPENGL_INCLUDE_DIR}
   ${MINVR_INCLUDE_DIR}
   ${GLM_INCLUDE_DIRS}
   ${GLEW_INCLUDE_DIRS}
-#  ${GLE_INCLUDE_DIR}
-#  ${FTGL_INCLUDE_DIR}
-#  ${FREETYPE_INCLUDE_DIRS}
+  ${FTGL_INCLUDE_DIR}
+  ${FREETYPE_INCLUDE_DIRS}
 )
 
 
@@ -126,11 +118,8 @@ set(LIBRARIES
 	${GLM_LIBRARIES}
 	${GLEW_LIBRARY}
 	${OPENGL_LIBRARY}
-#	${FTGL_LIBRARIES}
-	#${ZLIB_LIBRARIES}
-#	${GLE_LIBRARY}
-	#${PNG_LIBRARIES}
-#	${FREETYPE_LIBRARIES}
+	${FTGL_LIBRARIES}
+	${FREETYPE_LIBRARIES}
 )
 
 if(WITH_TEEM)

@@ -77,6 +77,8 @@ public:
 		return colormap_img;
 	}
 	
+	void drawLegend();
+
 private:
     void update_gpu_image();
 

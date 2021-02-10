@@ -210,12 +210,13 @@ Volume* LoadDataAction::run(bool convert)
 	unsigned int channels,depth,w,h,d;
 	float minval[2];
 	std::vector <cv::Mat> images;
-
+	time_t posix_time;
 	if (helper::ends_with_string(m_folder, "desc"))
 	{
 		FILE * pFile;
 		pFile = fopen(m_folder.c_str(), "r");
 		fscanf(pFile, "%u,%u,%u,%f,%f\n'", &w, &h, &d, &minval[0], &minval[1]);
+		fscanf(pFile, "%lld\n'", &posix_time);
 		channels = 1;
 		depth = CV_32F;
 		helper::replace(m_folder, ".desc", ".raw");
@@ -310,6 +311,7 @@ Volume* LoadDataAction::run(bool convert)
 	}
 	volume->computeHistogram();
 	volume->setMinMax(minval[0], minval[1]);
+	volume->setTime(posix_time);
 	return volume;
 }
 

@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <sstream>
 #include "embedded_colormaps.h"
+#include "../FontHandler.h"
 
 #ifndef TFN_WIDGET_NO_STB_IMAGE_IMPL
 #define STB_IMAGE_IMPLEMENTATION
@@ -72,15 +73,14 @@ TransferFunctionWidget::vec2f::operator ImVec2() const
 TransferFunctionWidget::TransferFunctionWidget()
 {
     // Load up the embedded colormaps as the default options
-    load_embedded_preset(paraview_cool_warm, sizeof(paraview_cool_warm), "ParaView Cool Warm");
+	load_embedded_preset(cool_warm_extended, sizeof(cool_warm_extended), "Cool Warm Extended");
+	load_embedded_preset(paraview_cool_warm, sizeof(paraview_cool_warm), "ParaView Cool Warm");
     load_embedded_preset(rainbow, sizeof(rainbow), "Rainbow");
     load_embedded_preset(matplotlib_plasma, sizeof(matplotlib_plasma), "Matplotlib Plasma");
     load_embedded_preset(matplotlib_virdis, sizeof(matplotlib_virdis), "Matplotlib Virdis");
     load_embedded_preset(samsel_linear_green, sizeof(samsel_linear_green), "Samsel Linear Green");
-    load_embedded_preset(
-        samsel_linear_ygb_1211g, sizeof(samsel_linear_ygb_1211g), "Samsel Linear YGB 1211G");
-    load_embedded_preset(cool_warm_extended, sizeof(cool_warm_extended), "Cool Warm Extended");
-    load_embedded_preset(blackbody, sizeof(blackbody), "Black Body");
+    load_embedded_preset(samsel_linear_ygb_1211g, sizeof(samsel_linear_ygb_1211g), "Samsel Linear YGB 1211G");
+     load_embedded_preset(blackbody, sizeof(blackbody), "Black Body");
     load_embedded_preset(jet, sizeof(jet), "Jet");
     load_embedded_preset(blue_gold, sizeof(blue_gold), "Blue Gold");
     load_embedded_preset(ice_fire, sizeof(ice_fire), "Ice Fire");
@@ -327,6 +327,93 @@ void TransferFunctionWidget::get_colormapf(std::vector<float> &color, std::vecto
         color[i * 3 + 2] = current_colormap[i * 4 + 2] / 255.f;
         opacity[i] = current_colormap[i * 4 + 3] / 255.f;
     }
+}
+
+void TransferFunctionWidget::drawLegend() {
+	GLint viewport[4];
+	GLfloat projection[16];
+	GLfloat modelview[16];
+
+	int min [2] = { 50 , 100 };
+	int max [2] = { 400 , 120 };
+
+
+	glGetIntegerv(GL_VIEWPORT, &viewport[0]);
+	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0]);
+	glGetFloatv(GL_MODELVIEW_MATRIX, &modelview[0]);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0, viewport[2], 0, viewport[3], -1, 1);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	glDisable(GL_LIGHTING);
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glBindTexture(GL_TEXTURE_2D, colormap_img);
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0, 1);
+	glVertex3f(min[0], max[1], 0);
+	glTexCoord2f(1, 1);
+	glVertex3f(max[0], max[1], 0);
+	glTexCoord2f(1, 0);
+	glVertex3f(max[0], 0.5f * (min[1] + max[1]), 0);
+	glTexCoord2f(0, 0);
+	glVertex3f(min[0], 0.5f * (min[1] + max[1]), 0);
+	glEnd();
+	glDisable(GL_BLEND);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glBindTexture(GL_TEXTURE_2D, colormap_img);
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0, 1);
+	glVertex3f(min[0], 0.5f * (min[1] + max[1]), 0);
+	glTexCoord2f(1, 1);
+	glVertex3f(max[0], 0.5f * (min[1] + max[1]), 0);
+	glTexCoord2f(1, 0);
+	glVertex3f(max[0], min[1], 0);
+	glTexCoord2f(0, 0);
+	glVertex3f(min[0], min[1], 0);
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	
+
+	//Add Label tick marks
+	int nbTicks = 4;
+	float diff = (max[0] - min[0])/nbTicks;
+	for (int i = 0; i <= nbTicks; i++) {
+		float pos_x = min[0] + i * diff;
+		glBegin(GL_LINES);
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		glVertex3f(pos_x, min[1], 0);
+		glVertex3f(pos_x, min[1] - 5, 0);
+		glEnd();
+
+		float percentage = float(i) / (nbTicks);
+		float val = (m_min_max_val[1] - m_min_max_val[0]) * percentage + m_min_max_val[0];
+		std::stringstream text;
+		text << std::fixed << std::setprecision(4) << val;
+		
+		FontHandler::getInstance()->renderTextBox(text.str(), pos_x - 100 , min[1] - 15, 0, 200.0, 10, TextAlignment::CENTER);
+	}
+
+	glEnable(GL_LIGHTING);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadMatrixf(projection);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadMatrixf(modelview);
+
+
+
 }
 
 void TransferFunctionWidget::update_gpu_image()
