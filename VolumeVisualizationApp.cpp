@@ -211,7 +211,11 @@ void VolumeVisualizationApp::addLodadedTextures()
 	bool allready = true;
 	for (auto& f : futures)
 	{
+#ifdef _MSC_VER
 		allready = allready & f._Is_ready();
+#else
+		allready = allready & (f.wait_for(std::chrono::seconds(0)) == std::future_status::ready);
+#endif
 	}
 
 	if(allready)
@@ -399,10 +403,9 @@ void VolumeVisualizationApp::ui_callback()
 	{
 		if (helper::ends_with_string(fileDialog.GetSelected().string(), ".txt"))
 		{
-#ifdef WITH_TEEM
 			loadTxtFile(fileDialog.GetSelected().string());
-#endif
 		}
+#ifdef WITH_TEEM
 		else if (helper::ends_with_string(fileDialog.GetSelected().string(), ".nrrd")) {
 			std::vector<std::string> vals;
 			vals.push_back(fileDialog.GetSelected().string());	
@@ -410,6 +413,7 @@ void VolumeVisualizationApp::ui_callback()
 			futures.push_back(promises.back()->get_future());
 			threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
 		}
+#endif
 		fileDialog.ClearSelected();
 	}
 	

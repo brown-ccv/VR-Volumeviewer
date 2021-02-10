@@ -26,6 +26,7 @@ add_definitions(-D_HAS_STD_BYTE=0)
 if (UNIX)
 	add_compile_options(-lpthread)
 	add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
+	SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++17 -pthread")
 endif (UNIX)
 
 #---------------------- Source for this Project ----------------------
@@ -122,6 +123,13 @@ set(LIBRARIES
 	${FREETYPE_LIBRARIES}
 )
 
+if (UNIX)
+	set(LIBRARIES
+		$LIBRARIES
+		stdc++fs
+	)
+endif (UNIX)
+
 if(WITH_TEEM)
 	FIND_PACKAGE(Teem REQUIRED )
 	include(${Teem_USE_FILE})
@@ -144,5 +152,5 @@ endif()
 
 add_executable(${PROJECT_NAME} ${source_files} ${header_files})
 
-target_link_libraries(${PROJECT_NAME} PUBLIC MinVR::MinVR ${LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC MinVR::MinVR GLEW::GLEW ${LIBRARIES})
 
