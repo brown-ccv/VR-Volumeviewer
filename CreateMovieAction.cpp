@@ -42,12 +42,18 @@
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
 #include <GL/glu.h>
+#include <iomanip> // std::setw 
 #endif
 #include <iostream>
 
-CreateMovieAction::CreateMovieAction()
+    
+
+
+CreateMovieAction::CreateMovieAction() 
 {
-	
+#ifndef _MSC_VER
+	m_frame = 0;
+#endif
 }
 
 CreateMovieAction::~CreateMovieAction()
@@ -82,12 +88,26 @@ void CreateMovieAction::clear() {
 void CreateMovieAction::addFrame() {
 	GLint dims[4] = { 0 };
 	glGetIntegerv(GL_VIEWPORT, dims);
-
+#ifdef _MSC_VER
 	glReadBuffer(GL_FRONT);
+#else
+	glReadBuffer(GL_BACK);
+#endif
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
 	unsigned char* pixels = new unsigned char[3 * dims[2] * dims[3]];
 	glReadPixels(0, 0, dims[2], dims[3], GL_BGR_EXT, GL_UNSIGNED_BYTE, pixels);
-
+#ifdef _MSC_VER
 	m_frames.push_back(cv::Mat(dims[3], dims[2], CV_8UC3, pixels));
+#else
+	std::stringstream ss;
+	ss << std::setw(10) << std::setfill('0') << m_frame;
+	std::string s = ss.str();
+	cv::flip(m_frames.back(), m_frames.back(), 0);
+	cv::imwrite("movie//" + s + ".jpg", m_frames.back());
+	m_frame++;
+#endif
+
+
+
 }

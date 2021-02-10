@@ -10,6 +10,7 @@
 #include "HelperFunctions.h"
 #include <glm/gtc/type_ptr.inl>
 #include <glm/gtc/matrix_transform.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 #include "glm.h"
 
@@ -341,6 +342,9 @@ void VolumeVisualizationApp::ui_callback()
 
 			if (ImGui::Button("Write Movie"))
 			{
+#ifndef _MSC_VER
+				fs::create_directory("movie");
+#endif
 				if (m_movieAction)
 					delete m_movieAction;
 
@@ -352,10 +356,9 @@ void VolumeVisualizationApp::ui_callback()
 
 		ImGui::Checkbox("Camera centric rotations", &m_useCameraCenterRotations);
 		m_trackball.setCameraCenterRotation(m_useCameraCenterRotations);
-		ImGui::EndTabItem();
-
-		
+		ImGui::EndTabItem();	
 	}
+	ImGui::EndTabBar();
 
 	if (ImGui::BeginTabItem("Clipping")) {
 
@@ -934,11 +937,16 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 	rendercount++;
 	
 	if (m_movieAction) {
+#ifndef _MSC_VER
+		glFinish();
+#endif
 		std::cerr << "Add Frame" << std::endl;
 		m_movieAction->addFrame();
 		if (m_frame >  m_volumes.size() - 1 - m_speed) {
 			std::cerr << "Save Movie" << std::endl;
+#ifdef _MSC_VER
 			m_movieAction->save(m_moviename);
+#endif
 			delete m_movieAction;
 			m_movieAction = nullptr;
 			m_show_menu = true;
