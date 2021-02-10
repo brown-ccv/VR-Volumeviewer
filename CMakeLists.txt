@@ -125,7 +125,7 @@ set(LIBRARIES
 
 if (UNIX)
 	set(LIBRARIES
-		$LIBRARIES
+		${LIBRARIES}
 		stdc++fs
 	)
 endif (UNIX)

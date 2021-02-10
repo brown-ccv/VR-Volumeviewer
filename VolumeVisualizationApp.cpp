@@ -358,8 +358,7 @@ void VolumeVisualizationApp::ui_callback()
 		m_trackball.setCameraCenterRotation(m_useCameraCenterRotations);
 		ImGui::EndTabItem();	
 	}
-	ImGui::EndTabBar();
-
+	
 	if (ImGui::BeginTabItem("Clipping")) {
 
 		ImGui::Text("Axis aligned clip");
@@ -399,6 +398,7 @@ void VolumeVisualizationApp::ui_callback()
 
 		ImGui::EndTabItem();
 	}
+	ImGui::EndTabBar();
 	//file loading
 	fileDialog.Display();
 

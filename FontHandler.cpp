@@ -8,6 +8,7 @@
 #include <time.h>
 #include <iomanip>
 #include <sstream>
+#include <cmath>
 
 #define TEXTBORDER 0.003
 
