@@ -1,0 +1,10 @@
+mesh data/OSOM_with_texture.obj 1
+desc data/ExampleDescription.txt 40
+label Providence 282.3593  480.8620   57.0000 170 15 1
+label Narragansett 222.3225  293.5203   71.3028 170 15 1
+label Block_Island 172.3455  178.6527   60.9086 170 15 1
+label New_London 48.6138  236.5409   85.3028 170 15 1
+label New_Bedford 422.4869  326.0600   56.0115 170 15 1
+label Marthas_Vineyard 437.9874  183.3571   56.0000 170 15 1
+label Fall_River 376.7867  383.9177   56.0000 170 15 1
+label Gardiners_Island 67.7552  131.1020   77.3028 170 15 1
