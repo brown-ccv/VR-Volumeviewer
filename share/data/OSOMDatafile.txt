@@ -1,5 +1,5 @@
-mesh data/OSOM_with_texture.obj 1
-desc data/ExampleDescription.txt 40
+mesh OSOM_with_texture.obj 1
+desc ExampleDescription.txt 40
 label Providence 282.3593  480.8620   57.0000 170 15 1
 label Narragansett 222.3225  293.5203   71.3028 170 15 1
 label Block_Island 172.3455  178.6527   60.9086 170 15 1

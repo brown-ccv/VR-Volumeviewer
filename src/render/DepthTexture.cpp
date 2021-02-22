@@ -30,7 +30,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "DepthTexture.h"
+#include "../../include/render/DepthTexture.h"
 #include <GL/glew.h>
 #include <iostream>
 

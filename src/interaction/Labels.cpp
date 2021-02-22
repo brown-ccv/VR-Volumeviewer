@@ -46,10 +46,10 @@
 #include <GL/glu.h>
 #endif
 
-#include "Labels.h"
+#include "../../include/interaction/Labels.h"
 #include <string>
 #include <math/VRMath.h>
-#include "FontHandler.h"
+#include "../../include/render/FontHandler.h"
 #include <glm/gtc/type_ptr.inl>
 
 Labels::Labels()

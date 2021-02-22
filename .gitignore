@@ -3,3 +3,5 @@ build*/*
 share/scripts/OSOM/*
 */.DS_Store
 .DS_Store
+Executable/
+share/datasets/

@@ -20,9 +20,9 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file LoadDescriptionAction.cpp
+///\file HelperFunctions.cpp
 ///\author Benjamin Knorlein
-///\date 01/20/2021
+///\date 11/14/2019
 
 #pragma once
 
@@ -30,62 +30,25 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "LoadDescriptionAction.h"
-#include <iostream>
-#include <fstream>
+#include "../../include/interaction/HelperFunctions.h"
 
-LoadDescriptionAction::LoadDescriptionAction(std::string file):m_file(file)
+namespace helper
 {
-	
-}
 
-std::istream& LoadDescriptionAction::safeGetline(std::istream& is, std::string& t)
-{
-	t.clear();
-
-	// The characters in the stream are read one-by-one using a std::streambuf.
-	// That is faster than reading them one-by-one using the std::istream.
-	// Code that uses streambuf this way must be guarded by a sentry object.
-	// The sentry object performs various tasks,
-	// such as thread synchronization and updating the stream state.
-
-	std::istream::sentry se(is, true);
-	std::streambuf* sb = is.rdbuf();
-
-	for (;;)
-	{
-		int c = sb->sbumpc();
-		switch (c)
-		{
-		case '\n':
-			return is;
-		case '\r':
-			if (sb->sgetc() == '\n')
-				sb->sbumpc();
-			return is;
-		case EOF:
-			// Also handle the case when the last line has no line ending
-			if (t.empty())
-			{
-				is.setstate(std::ios::eofbit);
-			}
-			return is;
-		default:
-			t += (char)c;
-		}
+	bool replace(std::string& str, const std::string& from, const std::string& to) {
+		size_t start_pos = str.find(from);
+		if (start_pos == std::string::npos)
+			return false;
+		str.replace(start_pos, from.length(), to);
+		return true;
 	}
-}
 
-
-std::vector <std::string> LoadDescriptionAction::run()
-{
-	std::vector <std::string> text;
-	std::ifstream fin;
-	fin.open(m_file);
-	std::string line;
-	while (!safeGetline(fin, line).eof())
-	{
-		text.push_back(line);
+	bool ends_with_string(std::string const& str, std::string const& what) {
+		return what.size() <= str.size()
+			&& str.find(what, str.size() - what.size()) != str.npos;
 	}
-	return text;
+
+	bool contains_string(std::string const& str, std::string const& what) {
+		return str.find(what) != std::string::npos;
+	}
 }

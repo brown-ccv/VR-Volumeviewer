@@ -1,21 +1,21 @@
 
-#include "VolumeVisualizationApp.h"
+#include "../../include/vrapp/VolumeVisualizationApp.h"
 
 #include <cmath>
 #include <cctype>
-#include "LoadDataAction.h"
+#include "../../include/loader/LoadDataAction.h"
 #ifdef WITH_TEEM
-	#include "LoadNrrdAction.h"
+	#include "../../include/loader/LoadNrrdAction.h"
 #endif
-#include "HelperFunctions.h"
+#include "../../include/interaction/HelperFunctions.h"
 #include <glm/gtc/type_ptr.inl>
 #include <glm/gtc/matrix_transform.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
-#include "glm.h"
+#include "../../libs/glm.h"
 
-#include "LoadDescriptionAction.h"
-#include "FontHandler.h"
+#include "../../include/loader/LoadDescriptionAction.h"
+#include "../../include/render/FontHandler.h"
 #include <filesystem>
 namespace fs = std::filesystem;
 
@@ -25,7 +25,7 @@ float ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
 float diffuse[] = { 0.5f, 0.5f, 0.5f, 1.0f };
 
 VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(argc, argv), m_grab{ false }
-, m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }, m_is2d(false), m_menu_handler(NULL), m_lookingGlass{false}
+, m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }, m_is2d(true), m_menu_handler(NULL), m_lookingGlass{false}
 , m_clipping{ false }, m_animated(false), m_speed{ 0.01 }, m_frame{ 0.0 }, m_slices(256), m_rendermethod{ 1 }, m_renderchannel{ 0 }
 , m_use_transferfunction{ false }, m_use_multi_transfer{ false }, m_dynamic_slices{ false }, m_show_menu{ true }, convert{ false }
 , m_stopped{ false }, m_z_scale{ 1.0 }, m_clip_max{ 1.0 }, m_clip_min{ 0.0 }, m_clip_ypr{ 0.0 }, m_clip_pos{ 0.0 }, m_useCustomClipPlane{false}

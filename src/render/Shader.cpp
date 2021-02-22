@@ -26,7 +26,7 @@
 
 #include <GL/glew.h>
 
-#include "Shader.h"
+#include "../../include/render/Shader.h"
 #include <iostream>
 #include <vector>
 

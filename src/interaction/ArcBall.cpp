@@ -25,7 +25,7 @@
 ///\date 10/17/2019
 
 
-#include "ArcBall.h"
+#include "../../include/interaction/ArcBall.h"
 #include <glm/glm.hpp>
 #include "glm/ext.hpp"
 #include <iostream>

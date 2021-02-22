@@ -40,49 +40,49 @@ option(WITH_TEEM "Adds support of nrrd files through teem" OFF)
 
 
 set(source_files
-  main.cpp
-  VolumeVisualizationApp.cpp
-  LoadDataAction.cpp
-  Shader.cpp
-  Volume.cpp
-  VolumeSliceRenderer.cpp
-  VolumeSliceShader.cpp
-  VolumeRaycastRenderer.cpp
-  VolumeRaycastShader.cpp
-  glm.cpp
-  FrameBufferObject.cpp
-  DepthTexture.cpp
-  Labels.cpp
-  FontHandler.cpp
-  transferfunction/transfer_function_widget.cpp
-  transferfunction/transfer_function_multichannel_widget.cpp
-  ArcBall.cpp
-  HelperFunctions.cpp
-  CreateMovieAction.cpp
-  LoadDescriptionAction.cpp
+  src/main.cpp
+  src/vrapp/VolumeVisualizationApp.cpp
+  src/loader/LoadDataAction.cpp
+  src/render/Shader.cpp
+  src/render/Volume.cpp
+  src/render/VolumeSliceRenderer.cpp
+  src/render/VolumeSliceShader.cpp
+  src/render/VolumeRaycastRenderer.cpp
+  src/render/VolumeRaycastShader.cpp
+  libs/glm.cpp
+  src/render/FrameBufferObject.cpp
+  src/render/DepthTexture.cpp
+  src/interaction/Labels.cpp
+  src/render/FontHandler.cpp
+  libs/transferfunction/transfer_function_widget.cpp
+  libs/transferfunction/transfer_function_multichannel_widget.cpp
+  src/interaction/ArcBall.cpp
+  src/interaction/HelperFunctions.cpp
+  src/interaction/CreateMovieAction.cpp
+  src/loader/LoadDescriptionAction.cpp
 )
 
 set(header_files
-  VolumeVisualizationApp.h
-  LoadDataAction.h
-  Shader.h
-  Volume.h
-  VolumeSliceRenderer.h
-  VolumeSliceShader.h
-  VolumeRaycastRenderer.h
-  VolumeRaycastShader.h
-  glm.h
-  FrameBufferObject.h
-  DepthTexture.h
-  Labels.h
-  FontHandler.h
-  transferfunction/transfer_function_widget.h
-  transferfunction/transfer_function_multichannel_widget.h
-  transferfunction/embedded_colormaps.h
-  ArcBall.h
-  HelperFunctions.h
-  CreateMovieAction.h
-  LoadDescriptionAction.h
+  include/vrapp/VolumeVisualizationApp.h
+  include/loader/LoadDataAction.h
+  include/render/Shader.h
+  include/render/Volume.h
+  include/render/VolumeSliceRenderer.h
+  include/render/VolumeSliceShader.h
+  include/render/VolumeRaycastRenderer.h
+  include/render/VolumeRaycastShader.h
+  libs/glm.h
+  include/render/FrameBufferObject.h
+  include/render/DepthTexture.h
+  include/interaction/Labels.h
+  include/render/FontHandler.h
+  libs/transferfunction/transfer_function_widget.h
+  libs/transferfunction/transfer_function_multichannel_widget.h
+  libs/transferfunction/embedded_colormaps.h
+  include/interaction/ArcBall.h
+  include/interaction/HelperFunctions.h
+  include/interaction/CreateMovieAction.h
+  include/loader/LoadDescriptionAction.h
 )
 
 
@@ -139,11 +139,11 @@ if(WITH_TEEM)
 	add_definitions(-DWITH_TEEM)
 	set(header_files
 		${header_files}
-		LoadNrrdAction.h
+		include/loader/LoadNrrdAction.h
 	)
 	set(source_files
 		${source_files}
-		LoadNrrdAction.cpp
+		src/loader/LoadNrrdAction.cpp
 	)
 endif()
 
@@ -153,4 +153,12 @@ endif()
 add_executable(${PROJECT_NAME} ${source_files} ${header_files})
 
 target_link_libraries(${PROJECT_NAME} PUBLIC MinVR::MinVR GLEW::GLEW ${LIBRARIES})
+
+file(GLOB_RECURSE _source_list *.cpp* *.h* *.hpp*)
+foreach(_source IN ITEMS ${_source_list})
+    get_filename_component(_source_path "${_source}" PATH)
+    string(REPLACE "${CMAKE_SOURCE_DIR}" "" _group_path "${_source_path}")
+    string(REPLACE "/" "\\" _group_path "${_group_path}")
+    source_group("${_group_path}" FILES "${_source}")
+endforeach()
 

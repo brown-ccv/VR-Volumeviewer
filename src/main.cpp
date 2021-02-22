@@ -1,4 +1,4 @@
-#include "VolumeVisualizationApp.h"
+#include "../include/vrapp/VolumeVisualizationApp.h"
 
 int main(int argc, char **argv) {
     

@@ -26,7 +26,7 @@
 
 #pragma once
 
-#include "CreateMovieAction.h"
+#include "../../include/interaction/CreateMovieAction.h"
 
 #include <opencv2/highgui/highgui.hpp>
 

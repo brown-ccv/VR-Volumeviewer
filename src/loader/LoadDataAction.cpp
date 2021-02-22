@@ -26,8 +26,8 @@
 
 #pragma once
 
-#include "LoadDataAction.h"
-#include "HelperFunctions.h"
+#include "../../include/loader/LoadDataAction.h"
+#include "../../include/interaction/HelperFunctions.h"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>

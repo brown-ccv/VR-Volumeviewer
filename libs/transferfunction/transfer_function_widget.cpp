@@ -5,7 +5,7 @@
 #include <iomanip>
 #include <sstream>
 #include "embedded_colormaps.h"
-#include "../FontHandler.h"
+#include "../../include/render/FontHandler.h"
 
 #ifndef TFN_WIDGET_NO_STB_IMAGE_IMPL
 #define STB_IMAGE_IMPLEMENTATION

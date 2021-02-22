@@ -31,7 +31,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "VolumeRaycastShader.h"
+#include "../../include/render/VolumeRaycastShader.h"
 #include <GL/glew.h>
 
 #include <glm/gtc/type_ptr.hpp>

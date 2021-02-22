@@ -3,17 +3,17 @@
 
 #include "GL/glew.h"
 #include "VRMenuHandler.h"
-#include "transferfunction/transfer_function_multichannel_widget.h"
-#include "transferfunction/transfer_function_widget.h"
+#include "../../libs/transferfunction/transfer_function_multichannel_widget.h"
+#include "../../libs/transferfunction/transfer_function_widget.h"
 #include "imfilebrowser.h"
 #include <api/MinVR.h>
-#include "FrameBufferObject.h"
-#include "Volume.h"
-#include "Labels.h"
-#include "VolumeRaycastRenderer.h"
-#include "DepthTexture.h"
+#include "../render/FrameBufferObject.h"
+#include "../render/Volume.h"
+#include "../interaction/Labels.h"
+#include "../render/VolumeRaycastRenderer.h"
+#include "../render/DepthTexture.h"
 #include <future>
-#include "ArcBall.h"
+#include "../interaction/ArcBall.h"
 
 using namespace MinVR;
 
@@ -34,8 +34,8 @@ using namespace MinVR;
 #include <GL/glu.h>
 #endif
 
-#include "VolumeSliceRenderer.h"
-#include "CreateMovieAction.h"
+#include "../render/VolumeSliceRenderer.h"
+#include "../interaction/CreateMovieAction.h"
 
 
 class VolumeVisualizationApp : public VRApp {

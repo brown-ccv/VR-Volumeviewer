@@ -20,25 +20,27 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file LoadNrrdAction.h
+///\file LoadDescriptionAction.h
 ///\author Benjamin Knorlein
-///\date 11/14/2019
+///\date 01/20/2021
 
 #pragma once
 
-#ifndef LOADNRRDACTION_H
-#define LOADNRRDACTION_H
+#ifndef LOADDESCRIPTIONACTION_H
+#define LOADDESCRIPTIONACTION_H
 
 #include <string>
-#include "Volume.h"
+#include "../render/Volume.h"
 
-class LoadNrrdAction
+class LoadDescriptionAction
 {
 public:
-	LoadNrrdAction(std::string file);
-	Volume* run();
+	LoadDescriptionAction(std::string file);
+	std::vector<std::string> run();
 
 private:
+	std::istream& safeGetline(std::istream& is, std::string& t);
+
 	std::string m_file;
 };
 

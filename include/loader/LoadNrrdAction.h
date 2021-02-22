@@ -20,47 +20,26 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
 //  ----------------------------------
 //  
-///\file LoadDataAction.h
+///\file LoadNrrdAction.h
 ///\author Benjamin Knorlein
-///\date 11/28/2017
+///\date 11/14/2019
 
 #pragma once
 
-#ifndef LOADDATAACTION_H
-#define LOADDATAACTION_H
+#ifndef LOADNRRDACTION_H
+#define LOADNRRDACTION_H
+
 #include <string>
-#include <vector>
-#include "Volume.h"
-#include <opencv2/core/mat.hpp>
+#include "../render/Volume.h"
 
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#include <windows.h>
-#define OS_SLASH "\\"
-#include "external/msvc/dirent.h"
-#else
-#define OS_SLASH "//"
-#include <dirent.h>
-#endif
+class LoadNrrdAction
+{
+public:
+	LoadNrrdAction(std::string file);
+	Volume* run();
 
-class LoadDataAction
-	{
-		
-	public:
-		LoadDataAction(std::string folder, float* res);
-		Volume* run(bool convert = false);
+private:
+	std::string m_file;
+};
 
-		private:
-			std::vector<std::string> readTiffs(std::string foldername);
-
-			std::string m_folder;
-			float* m_res;
-
-			void mergeRGB(std::vector <cv::Mat> &image_r, std::vector <cv::Mat> &image_g, std::vector <cv::Mat> &image_b, std::vector <cv::Mat> &image);
-			static void uploadDataCV_8U(std::vector <cv::Mat> image, Volume* volume);
-			static void uploadDataCV_16U(std::vector <cv::Mat> image, Volume* volume);
-			static void uploadData_32F_raw(std::string filename, Volume* volume);
-	};
-
-
-#endif // LOADDATAACTION_H
+#endif // IFDEF_H

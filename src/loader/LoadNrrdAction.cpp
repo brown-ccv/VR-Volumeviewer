@@ -30,7 +30,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "LoadNrrdAction.h"
+#include "../../include/loader/LoadNrrdAction.h"
 #include <iostream>
 #include "teem/nrrd.h"
 
