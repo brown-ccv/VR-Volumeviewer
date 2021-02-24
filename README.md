@@ -9,6 +9,7 @@ This tool is fully integrated with [MinVR](https://github.com/MinVR/MinVR), a so
 * [OpenCV](https://github.com/opencv/opencv)
 * [MinVR](https://github.com/MinVR/MinVR)
 * Support for OpenGL 3.3 or greater.
+* [Teem](http://teem.sourceforge.net/download/index.html) *Make sure to build it with gzip support*
 
 :warning: VR mode ONLY supported on Windows (You might need to download and install [steam](https://store.steampowered.com/steamvr)  )
 
@@ -24,19 +25,21 @@ This tool is fully integrated with [MinVR](https://github.com/MinVR/MinVR), a so
 :warning: Some links to OpenCV and MinVR might have to be set manually.
 
 ### How to use it
-   
-The Volume Viewer has an interactive UI to open your data files and visualize it on screen.
+  
+It supports obj files for vertex mesheses, and [NRRD](http://teem.sourceforge.net/nrrd/format.html) file format for volume data.
 
+### Loading data
 
-[image1]
+Using the UI, click on *load file*, and in the next window navigate to the folder where your data is located. Select a file with nrrd or obj extension and click on "ok".
 
-It supports meshes (obj files). Volume data supports [NRRD](http://teem.sourceforge.net/nrrd/format.html) and ..raw formats.
+<img src="docs/imgs/volume-viewer-nrrd.png" width="350" height="300">
 
+<img src="docs/imgs/volume-viewer-nrrd-result.png" width="350" height="300">
 
- #### Description files
+#### Description files
  
- In order to load data, you must create a text file which includes the description of the scene to be loaded.
- The following is an example, each line represents an element in the scene :
+ To display more complex scenes, you must create a *description file* that contains line by line all the elements to be loaded.
+ The following is an example on how a discription file looks like:
  
 ```
 mesh OSOM_with_texture.obj 1
