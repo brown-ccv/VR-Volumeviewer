@@ -1,3 +1,21 @@
-[submodule "ext/opencv"]
-	path = ext/opencv
+[submodule "external/zlib"]
+	path = external/zlib
+	url = https://github.com/madler/zlib.git
+[submodule "external/opencv"]
+	path = external/opencv
 	url = https://github.com/opencv/opencv.git
+[submodule "external/MinVR"]
+	path = external/MinVR
+	url = https://github.com/MinVR/MinVR.git
+[submodule "external/VR-Imgui"]
+	path = external/VR-Imgui
+	url = https://github.com/brown-ccv/VR-imgui.git
+[submodule "external/freetype"]
+	path = external/freetype
+	url = https://gitlab.freedesktop.org/freetype/freetype.git
+[submodule "external/ftgl"]
+	path = external/ftgl
+	url = https://github.com/ulrichard/ftgl.git
+[submodule "external/glm"]
+	path = external/glm
+	url = https://github.com/g-truc/glm.git
