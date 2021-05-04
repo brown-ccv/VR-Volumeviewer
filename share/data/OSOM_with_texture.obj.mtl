@@ -10,5 +10,5 @@ Ks 1.000000 1.000000 1.000000
 Tr 1.000000
 illum 2
 Ns 0.000000
-map_Kd D:/work/MINVR_DEV/VR-Volumeviewer/share/data/OSOM_texture.png
+map_Kd OSOM_texture.png
 
