@@ -49,6 +49,8 @@ set(source_files
   src/render/VolumeSliceShader.cpp
   src/render/VolumeRaycastRenderer.cpp
   src/render/VolumeRaycastShader.cpp
+  src/render/Model.cpp
+  src/render/Texture.cpp
   libs/glm.cpp
   src/render/FrameBufferObject.cpp
   src/render/DepthTexture.cpp
@@ -71,6 +73,8 @@ set(header_files
   include/render/VolumeSliceShader.h
   include/render/VolumeRaycastRenderer.h
   include/render/VolumeRaycastShader.h
+  include/render/Model.h
+  include/render/Texture.h
   libs/glm.h
   include/render/FrameBufferObject.h
   include/render/DepthTexture.h
@@ -121,6 +125,12 @@ set(LIBRARIES
 	${OPENGL_LIBRARY}
 	${FTGL_LIBRARIES}
 	${FREETYPE_LIBRARIES}
+	stb_image
+	GLMLoader
+	Model
+	Texture
+	ShaderProgram
+	
 )
 
 if (UNIX)
@@ -147,6 +157,11 @@ if(WITH_TEEM)
 	)
 endif()
 
+add_subdirectory(libs/GLMLoader)
+add_subdirectory(libs/Model)
+add_subdirectory(libs/Texture)
+add_subdirectory(libs/ShaderProgram)
+add_subdirectory(libs/stb_image)
 
 #---------------------- Define the Target ----------------------
 

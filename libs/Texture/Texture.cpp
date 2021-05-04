@@ -1,7 +1,7 @@
-#include "../../include/render/Texture.h"
+#include "Texture.h"
 //#include <FreeImage\FreeImage.h>
-#include "../../libs/transferfunction/stb_image.h"
-#include <assert.h>
+#include "../transferfunction/stb_image.h"
+#include <cassert>
 #include <iostream>
 
 Texture::Texture(GLenum TextureTarget, const std::string& filename) : myTextureTarget(TextureTarget)
