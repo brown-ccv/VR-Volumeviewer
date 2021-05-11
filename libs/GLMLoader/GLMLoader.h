@@ -32,23 +32,21 @@
 #ifndef GLMLOADER_H_
 #define GLMLOADER_H_
 
-#include "../GLMLoader/VertexBuffer.h"
-#include "../Model/Model.h"
-
-//class GLMmodel;
 
 
+#include <string>
+
+class Model;
 class GLMLoader
 {
 
 	
 public:
 
-	static Model* loadModel(std::string& filename);
 
 	static Model* loadObjModel(std::string& filename);
 
-//	static Model* loadObjModel(GLMmodel* pmodel);
+
 };
 
 

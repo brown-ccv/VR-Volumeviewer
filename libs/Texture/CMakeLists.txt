@@ -1,3 +1,8 @@
+
+include_directories(
+  ../stb_image
+)
+
 add_library( 
 Texture
 Texture.cpp

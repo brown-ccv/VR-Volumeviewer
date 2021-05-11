@@ -12,7 +12,7 @@
 
 #include <unordered_map>
 
-using namespace glm;
+
 
 
 class ShaderProgram
@@ -20,7 +20,7 @@ class ShaderProgram
 
 public:
 	ShaderProgram();
-	void LoadShaders(const char* vertex_filenname, const char* fragment_filename);
+	void LoadShaders(const std::string& vertex_filenname, const std::string& fragment_filename);
 	~ShaderProgram();
 	void start();
 	void stop();
@@ -29,16 +29,16 @@ public:
 
 	void setUniformi(const char* name, int value);
 	void setUniformf(const char* name, float value);
-	void setUniform(const char* name, vec3 vector);
-	void setUniform(const char* name, vec4 vector);
-	void setUniform(const char* name, mat4 matrix);
+	void setUniform(const char* name, glm::vec3& vector);
+	void setUniform(const char* name, glm::vec4& vector);
+	void setUniform(const char* name, glm::mat4& matrix);
 	void setUniformMatrix4fv(const char* name, const GLfloat* matrix);
 
 	GLuint GetProgramId();
 
 private:
 
-	GLuint progarmId;
+	GLuint m_progarm_id;
 	void VerifiProgram(GLuint programId);
 	bool InUse();
 	GLuint LoadShader(const char* vertex_filenname, int type);

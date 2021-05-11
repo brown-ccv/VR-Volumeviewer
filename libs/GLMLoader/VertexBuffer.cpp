@@ -42,62 +42,62 @@
 
 
 
-VertexBuffer::VertexBuffer() : myInitialised(false), myVaoId(0), myVboId(0), myNboId(0), myTboId(0),
-myIboId(), myDataReady(false), myNumIndices(0)
+VertexBuffer::VertexBuffer() : m_initialized(false), m_vao_id(0), m_vbo_id(0), m_nbo_id(0), m_tbo_id(0),
+m_ibo_id(), m_data_ready(false), m_num_indices(0)
 {
 
 }
 
 VertexBuffer::~VertexBuffer()
 {
-	if (myInitialised)
+	if (m_initialized)
 	{
-		if (myVboId != 0)glDeleteBuffers(1, &myVboId);
-		if (myNboId != 0)glDeleteBuffers(1, &myNboId);
-		if (myTboId != 0)glDeleteBuffers(1, &myTboId);
-		if (myIboId != 0)glDeleteBuffers(1, &myIboId);
+		if (m_vbo_id != 0)glDeleteBuffers(1, &m_vbo_id);
+		if (m_nbo_id != 0)glDeleteBuffers(1, &m_nbo_id);
+		if (m_tbo_id != 0)glDeleteBuffers(1, &m_tbo_id);
+		if (m_ibo_id != 0)glDeleteBuffers(1, &m_ibo_id);
 
-		myInitialised = false;
+		m_initialized = false;
 	}
 	
 }
 
-void VertexBuffer::setData(std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals,
-	std::vector<glm::vec2>& texcoords, std::vector<unsigned int>& indices)
+void VertexBuffer::setData(const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals,
+	const std::vector<glm::vec2>& texcoords, const std::vector<unsigned int>& indices)
 {
 
 	if (vertices.size()) {
-		myVertices = vertices;
+		m_vertices = vertices;
 	}
 
 	if (normals.size()) {
-		myNormals = normals;
+		m_normals = normals;
 	}
 
 	if (texcoords.size()) {
-		myTexcoords = texcoords;
+		m_texcoords = texcoords;
 	}
 
 	if (indices.size()) {
-		myNumIndices = indices.size();
-		myIndices = indices;
+		m_num_indices = indices.size();
+		m_indices = indices;
 	}
-	myDataReady = true;
+	m_data_ready = true;
 }
 
 void VertexBuffer::render()
 {
 	std::lock_guard<std::mutex> guard(mutex);
-	if (!myInitialised)
+	if (!m_initialized)
 	{
-		if (!myDataReady)
+		if (!m_data_ready)
 			return;
 
 		setupVBO();
 	}
 
-	glBindVertexArray(myVaoId);
-	glDrawElements(GL_TRIANGLES, myNumIndices, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(m_vao_id);
+	glDrawElements(GL_TRIANGLES, m_num_indices, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 
 
@@ -106,87 +106,87 @@ void VertexBuffer::render()
 
 std::vector<glm::vec3>& VertexBuffer::vertices()
 {
-	return myVertices;
+	return m_vertices;
 }
 
 std::vector<glm::vec3>& VertexBuffer::normals()
 {
-	return myNormals;
+	return m_normals;
 }
 
 
 std::vector<glm::vec2>& VertexBuffer::texcoords()
 {
-	return myTexcoords;
+	return m_texcoords;
 }
 
 
 std::vector<unsigned int>& VertexBuffer::indices()
 {
-	return myIndices;
+	return m_indices;
 }
 
 void VertexBuffer::setColorsBuffer(const std::vector<glm::vec3>& colors)
 {
-	myColors = colors;
+	m_colors = colors;
 } 
 
 void VertexBuffer::setupVBO()
 {
-	if (!myDataReady) return;
+	if (!m_data_ready) return;
 
 
 
-	glGenVertexArrays(1, &myVaoId);
-	glBindVertexArray(myVaoId);
+	glGenVertexArrays(1, &m_vao_id);
+	glBindVertexArray(m_vao_id);
 
 
-	if (!myVertices.empty()) 
+	if (!m_vertices.empty()) 
 	{
-		glGenBuffers(1, &myVboId);
-		glBindBuffer(GL_ARRAY_BUFFER, myVboId);
-		glBufferData(GL_ARRAY_BUFFER, myVertices.size() * sizeof(glm::vec3), &myVertices[0], GL_STATIC_DRAW);
+		glGenBuffers(1, &m_vbo_id);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vbo_id);
+		glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3), &m_vertices[0], GL_STATIC_DRAW);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (GLvoid*)0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
-	if (!myNormals.empty()) 
+	if (!m_normals.empty()) 
 	{
-		glGenBuffers(1, &myNboId);
-		glBindBuffer(GL_ARRAY_BUFFER, myNboId);
-		glBufferData(GL_ARRAY_BUFFER, myNormals.size() * sizeof(glm::vec3), &myNormals[0], GL_STATIC_DRAW);
+		glGenBuffers(1, &m_nbo_id);
+		glBindBuffer(GL_ARRAY_BUFFER, m_nbo_id);
+		glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(glm::vec3), &m_normals[0], GL_STATIC_DRAW);
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (GLvoid*)0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
 
-	if (!myTexcoords.empty())
+	if (!m_texcoords.empty())
 	{
-		glGenBuffers(1, &myTboId);
-		glBindBuffer(GL_ARRAY_BUFFER, myTboId);
-		glBufferData(GL_ARRAY_BUFFER, myTexcoords.size() * sizeof(glm::vec2), &myTexcoords[0], GL_STATIC_DRAW);
+		glGenBuffers(1, &m_tbo_id);
+		glBindBuffer(GL_ARRAY_BUFFER, m_tbo_id);
+		glBufferData(GL_ARRAY_BUFFER, m_texcoords.size() * sizeof(glm::vec2), &m_texcoords[0], GL_STATIC_DRAW);
 		glEnableVertexAttribArray(2);
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (GLvoid*)0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
-	if (!myColors.empty())
+	if (!m_colors.empty())
 	{
-		glGenBuffers(1, &myCboId);
-		glBindBuffer(GL_ARRAY_BUFFER, myCboId);
-		glBufferData(GL_ARRAY_BUFFER, myColors.size() * sizeof(glm::vec3), &myColors[0], GL_STATIC_DRAW);
+		glGenBuffers(1, &m_cbo_id);
+		glBindBuffer(GL_ARRAY_BUFFER, m_cbo_id);
+		glBufferData(GL_ARRAY_BUFFER, m_colors.size() * sizeof(glm::vec3), &m_colors[0], GL_STATIC_DRAW);
 		glEnableVertexAttribArray(3);
 		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (GLvoid*)0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
-	if (!myIndices.empty())
+	if (!m_indices.empty())
 	{
-		glGenBuffers(1, &myIboId);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, myIboId);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, myIndices.size() * sizeof(unsigned int), &myIndices[0],GL_STATIC_DRAW);
+		glGenBuffers(1, &m_ibo_id);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo_id);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned int), &m_indices[0],GL_STATIC_DRAW);
 	}
 	glBindVertexArray(0);
 	
@@ -195,5 +195,5 @@ void VertexBuffer::setupVBO()
     std::cout << errorCode;
   }
 
-	myInitialised = true;
+	m_initialized = true;
 }

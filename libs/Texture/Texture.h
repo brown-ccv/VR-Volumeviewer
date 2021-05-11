@@ -31,9 +31,9 @@ private:
 
 	
 
-	GLuint texture_id;
-	GLenum myTextureTarget;
-	const char* myFileName;
+	GLuint m_texture_id;
+	GLenum m_texture_target;
+	const char* m_file_name;
 };
 
 #endif // FRAMEBUFFER_H_

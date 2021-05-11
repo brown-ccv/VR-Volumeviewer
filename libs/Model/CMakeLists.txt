@@ -1,3 +1,10 @@
+
+include_directories(
+  ../GLMLoader
+  ../Texture
+  ../ShaderProgram
+)
+
 add_library( 
 Model
 Model.cpp

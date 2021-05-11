@@ -49,8 +49,7 @@ set(source_files
   src/render/VolumeSliceShader.cpp
   src/render/VolumeRaycastRenderer.cpp
   src/render/VolumeRaycastShader.cpp
-  src/render/Model.cpp
-  src/render/Texture.cpp
+  
   libs/glm.cpp
   src/render/FrameBufferObject.cpp
   src/render/DepthTexture.cpp
@@ -73,8 +72,7 @@ set(header_files
   include/render/VolumeSliceShader.h
   include/render/VolumeRaycastRenderer.h
   include/render/VolumeRaycastShader.h
-  include/render/Model.h
-  include/render/Texture.h
+  
   libs/glm.h
   include/render/FrameBufferObject.h
   include/render/DepthTexture.h

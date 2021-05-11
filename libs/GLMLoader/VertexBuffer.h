@@ -45,9 +45,9 @@ public:
 
 	~VertexBuffer();
 
-	//void setData(unsigned int numvertices, float* vertices, float* normals, float * texcoords, unsigned int numTriangles, unsigned int* indices);
-	void setData( std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals,
-		std::vector<glm::vec2>& texcoords, std::vector<unsigned int>& indices);
+	
+	void setData(const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals,
+		const std::vector<glm::vec2>& texcoords, const std::vector<unsigned int>& indices);
 
 	void render();
 
@@ -64,26 +64,25 @@ public:
 
 
 private:
-	bool myInitialised;
+	bool m_initialized;
 
 	void setupVBO();
-	unsigned int myVaoId;
-	unsigned int myVboId;
-	unsigned int myNboId;
-	unsigned int myTboId;
-	unsigned int myCboId;
-	unsigned int myIboId;
+	unsigned int m_vao_id;
+	unsigned int m_vbo_id;
+	unsigned int m_nbo_id;
+	unsigned int m_tbo_id;
+	unsigned int m_cbo_id;
+	unsigned int m_ibo_id;
+	unsigned int m_numvertices;
+	unsigned int m_num_indices;
 
-	
-	
-	unsigned int myNumvertices;
-	unsigned int myNumIndices;
-	bool myDataReady;
-	std::vector<glm::vec3> myVertices;
-	std::vector<glm::vec3> myNormals;
-	std::vector<glm::vec2> myTexcoords;
-	std::vector<glm::vec3> myColors;
-	std::vector<unsigned int> myIndices;
+	bool m_data_ready;
+
+	std::vector<glm::vec3> m_vertices;
+	std::vector<glm::vec3> m_normals;
+	std::vector<glm::vec2> m_texcoords;
+	std::vector<glm::vec3> m_colors;
+	std::vector<unsigned int> m_indices;
 
 	std::mutex mutex;
 

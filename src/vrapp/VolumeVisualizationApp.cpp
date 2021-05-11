@@ -8,15 +8,22 @@
 	#include "../../include/loader/LoadNrrdAction.h"
 #endif
 #include "../../include/interaction/HelperFunctions.h"
-#include <glm/gtc/type_ptr.inl>
-#include <glm/gtc/matrix_transform.hpp>
-#define GLM_ENABLE_EXPERIMENTAL
+//#include <glm/gtc/type_ptr.inl>
+//#include <glm/gtc/matrix_transform.hpp>
+//#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 #include "../../libs/glm.h"
+
+#include "GLMLoader.h"
+#include "Texture.h"
+#include "Model.h"
 
 #include "../../include/loader/LoadDescriptionAction.h"
 #include "../../include/render/FontHandler.h"
 #include <filesystem>
+
+
+
 namespace fs = std::filesystem;
 
 
@@ -28,8 +35,9 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 , m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }, m_is2d(true), m_menu_handler(NULL), m_lookingGlass{false}
 , m_clipping{ false }, m_animated(false), m_speed{ 0.01 }, m_frame{ 0.0 }, m_slices(256), m_rendermethod{ 1 }, m_renderchannel{ 0 }
 , m_use_transferfunction{ false }, m_use_multi_transfer{ false }, m_dynamic_slices{ false }, m_show_menu{ true }, convert{ false }
-, m_stopped{ false }, m_z_scale{ 1.0 }, m_clip_max{ 1.0 }, m_clip_min{ 0.0 }, m_clip_ypr{ 0.0 }, m_clip_pos{ 0.0 }, m_useCustomClipPlane{false}
+, m_stopped{ false }, m_z_scale{ 0.16 }, m_clip_max{ 1.0 }, m_clip_min{ 0.0 }, m_clip_ypr{ 0.0 }, m_clip_pos{ 0.0 }, m_useCustomClipPlane{false}
 , m_wasd_pressed{ 0 }, m_useCameraCenterRotations{ false }, m_movieAction{ nullptr }, m_moviename{"movie.mp4"}
+, mesh_model(nullptr), m_renderVolume(true), m_numVolumes(0), m_selectedVolume(0), m_selectedTrnFnc(0)
 {
 	int argc_int = this->getLeftoverArgc();
 	char** argv_int = this->getLeftoverArgv();
@@ -54,10 +62,21 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 			}
 			else if(helper::ends_with_string(std::string(argv_int[i]), ".nrrd")){
 				std::vector<std::string> vals;
-				vals.push_back(std::string(argv_int[i]));
-				promises.push_back(new std::promise<Volume*>);
-				futures.push_back(promises.back()->get_future());
-				threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
+				vals.push_back(std::string(argv_int[i]));	
+				std::vector<std::promise<Volume*>*> v;
+				std::promise<Volume*>* pm = new std::promise<Volume*>();
+				
+				v.push_back(pm);
+				promises.push_back(v);
+				
+				std::vector<std::future<Volume*>>* fut = new std::vector<std::future<Volume*>>;
+				fut->push_back(pm->get_future());
+				futures.push_back(fut);
+				
+				std::vector <std::thread*> ths;
+				std::vector<std::promise<Volume*>*> v2= promises.back();
+				ths.emplace_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, v2.back()));
+				threads.push_back(ths);
 			}
 		}
 	}
@@ -97,7 +116,12 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 VolumeVisualizationApp::~VolumeVisualizationApp()
 {
 	for (int i = 0; i < m_volumes.size(); i++){
-		delete m_volumes[i];
+		std::vector< Volume* > v = m_volumes[i];
+		for (int j = 0; j < v.size(); j++)
+		{
+			delete v[i];
+		}
+		
 	}
 	m_volumes.clear();
 }
@@ -121,15 +145,16 @@ void VolumeVisualizationApp::loadTxtFile(std::string filename)
 				vals.push_back(buf);
 			}
 			if (vals.size() > 0) {
-				if (vals[0] == "animated")
+				std::string tag = vals[0];
+				if (tag == "animated")
 				{
 					m_animated = true;
 				}
-				if (vals[0] == "threshold")
+				if (tag == "threshold")
 				{
 					m_threshold = stof(vals[1]);
 				}
-				if (vals[0] == "label")
+				if (tag == "label")
 				{
 					std::cerr << "add Label " << vals[1] << std::endl;
 					std::cerr << "at position " << vals[2] << " , " << vals[3] << " , " << vals[4] << std::endl;
@@ -138,7 +163,7 @@ void VolumeVisualizationApp::loadTxtFile(std::string filename)
 					std::cerr << "for Volume " << vals[7] << std::endl;
 					m_labels.add(vals[1], stof(vals[2]), stof(vals[3]), stof(vals[4]), stof(vals[5]), stof(vals[6]), stoi(vals[7]) - 1);
 				}
-				if (vals[0] == "desc")
+				if (tag == "desc")
 				{
 					std::cerr << "Load Description " << vals[1] << std::endl;
 					std::cerr << "with size " << vals[2] << std::endl;
@@ -147,21 +172,89 @@ void VolumeVisualizationApp::loadTxtFile(std::string filename)
 					m_description = LoadDescriptionAction(m_descriptionFilename).run();
 					std::cerr << m_description[0] << std::endl;
 				}
-				if (vals[0] == "mesh")
+				if (tag == "mesh")
 				{
-					std::cerr << "Load Mesh " << vals[1] << std::endl;
-					std::cerr << "for Volume " << vals[2] << std::endl;
+				//	std::cerr << "Load Mesh " << vals[1] << std::endl;
+				//	std::cerr << "for Volume " << vals[2] << std::endl;
 					vals[1] = p_filename.parent_path().string() + OS_SLASH + vals[1];
+					std::cerr << "Load Mesh " <<  vals[1] << std::endl;
 					m_models_volumeID.push_back(stoi(vals[2]) - 1);
 					m_models_filenames.push_back(vals[1]);
 					m_models_MV.push_back(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
+					shaderFilePath = p_filename.parent_path().string() + OS_SLASH + "shaders";
+
 				}
-				else if (vals[0] == "volume")
+				if (tag == "texture")
 				{
+          
+					//std::cerr << "for Volume " << vals[2] << std::endl;
+					textureFilePath = p_filename.parent_path().string() + OS_SLASH + vals[1];
+					std::cerr << "Load texture " << textureFilePath << std::endl;
+					m_texture = new Texture(GL_TEXTURE_2D, textureFilePath);
+
+				}
+				if (tag == "numVolumes")
+				{
+					m_numVolumes = std::stoi(vals[1]);
+					dataLabels.resize(m_numVolumes);
+					for (int i = 0; i < m_numVolumes;i++)
+					{
+						dataLabels[i] = vals[i + 2];
+					}
+					m_volumes.resize(m_numVolumes);
+					promises.resize(m_numVolumes);
+					futures.resize(m_numVolumes);
+					threads.resize(m_numVolumes);
+					tfn_widget_multi.resize(1);
+					tfn_widget.resize(1);
+					selectedTrFn.resize(1);
+					selectedTrFn[0].resize(m_numVolumes);
+					for (int i = 0; i < m_numVolumes; i++)
+					{
+						selectedTrFn[0][i] = false;
+					}
+				}
+				else if (tag.rfind("volume") == 0)
+				{
+					char str[3];
+          int i;
+
+					std::string strVolumeIndex = tag.substr(6);
+					size_t volumeIndex = std::stoi(strVolumeIndex);
+
+					
 					vals[1] = p_filename.parent_path().string() + OS_SLASH + vals[1];
-					promises.push_back(new std::promise<Volume*>);
-					futures.push_back(promises.back()->get_future());
-					threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
+
+					
+					
+          std::vector<std::promise<Volume*>*>& v = promises[volumeIndex - 1];
+          std::promise<Volume*>* pm = new std::promise<Volume*>();
+
+          v.push_back(pm);
+
+          //promises[volumeIndex-1]=v;
+
+					std::vector<std::future<Volume*>>* fut;
+					if (!futures[volumeIndex-1])
+					{
+						futures[volumeIndex -1 ] = new std::vector<std::future<Volume*>>;
+						
+					}
+					fut = futures[volumeIndex - 1];
+					
+          fut->push_back(pm->get_future());
+          futures[volumeIndex - 1] = fut;
+
+          std::vector <std::thread*>& ths = threads[volumeIndex - 1];
+          std::vector<std::promise<Volume*>*> v2 = promises[volumeIndex - 1];
+          ths.emplace_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, v2.back()));
+
+          //threads[volumeIndex - 1] = ths;
+
+
+					/*promises[volumeIndex -1].push_back(new std::promise<Volume*>);
+					futures[volumeIndex - 1]->push_back(promises[i].back()->get_future());
+					threads[volumeIndex - 1].push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises[i].back()));*/
 				}
 			}
 		}
@@ -210,23 +303,39 @@ void VolumeVisualizationApp::loadVolume(std::vector<std::string> vals, std::prom
 void VolumeVisualizationApp::addLodadedTextures()
 {
 	bool allready = true;
-	for (auto& f : futures)
+	for (auto& fut : futures)
 	{
+    std::vector <std::future<Volume*>>* _ft = fut;
+    for (auto& f : *_ft)
+    {
 #ifdef _MSC_VER
-		allready = allready & f._Is_ready();
+      allready = allready & f._Is_ready();
 #else
-		allready = allready & (f.wait_for(std::chrono::seconds(0)) == std::future_status::ready);
+      allready = allready & (f.wait_for(std::chrono::seconds(0)) == std::future_status::ready);
 #endif
+  }
+
 	}
 
 	if(allready)
 	{
 		for (int i =0; i < futures.size(); i++)
 		{
-			m_volumes.push_back(futures[i].get());
-			threads[i]->join();
-			delete threads[i];
-			delete promises[i];
+			std::vector <std::future<Volume*>>* _ft = futures[i];
+			int counter = 0;
+			for (auto& value : *_ft)
+			//for (int j = 0; j < _ft->size(); j++)
+			{
+				//Volume* vlm = *_ft[j].get();
+				Volume* vlm = value.get();
+				m_volumes[i].push_back(vlm);
+				threads[i][counter]->join();
+        delete threads[i][counter];
+        delete promises[i][counter];
+				counter++;
+			}
+			
+			
 		}
 		threads.clear();
 		promises.clear();
@@ -256,9 +365,15 @@ void VolumeVisualizationApp::ui_callback()
 		ImGui::SameLine();
 		if (ImGui::Button("Clear all", ImVec2(ImGui::GetWindowSize().x  * 0.5f - 1.5 * ImGui::GetStyle().ItemSpacing.x, 0.0f)))
 		{
-			for (int i = 0; i < m_volumes.size(); i++) {
-				delete m_volumes[i];
-			}
+      for (int i = 0; i < m_volumes.size(); i++) {
+        std::vector< Volume* > v = m_volumes[i];
+        for (int j = 0; j < v.size(); j++)
+        {
+          delete v[i];
+        }
+
+      }
+      m_volumes.clear();
 			m_volumes.clear();
 			m_description.clear();
 			m_labels.clear();
@@ -285,52 +400,161 @@ void VolumeVisualizationApp::ui_callback()
 		const char* items_channel[] = { "based on data" , "red", "green" , "blue", "alpha", "rgba", "rgba with alpha as max rgb" };
 		ImGui::Combo("Render Channel", &m_renderchannel, items_channel, IM_ARRAYSIZE(items_channel));
 
+		ImGui::Checkbox("Render Volume data", &m_renderVolume);
+
+    if (ImGui::SmallButton("New")) {
+			tfn_widget.push_back(TransferFunctionWidget());
+			tfn_widget_multi.push_back(TransferFunctionMultiChannelWidget());
+			int index = selectedTrFn.size();
+			selectedTrFn.push_back(std::vector<bool>(m_numVolumes));
+			for (int i = 0; i < m_numVolumes;i++)
+			{
+				selectedTrFn[index][i] = false;
+			}
+    };
+		ImGui::SameLine();
+    if (ImGui::SmallButton("Remove")) {
+
+      
+    };
+		
+
+		if (m_numVolumes > 0)
+		{
+      ImGui::BeginTable("##Transfer Function Editor", 3);
+      ImGui::TableSetupColumn("Name");
+      for (int column = 0; column < m_numVolumes; column++)
+      {
+        ImGui::TableSetupColumn(dataLabels[column].c_str());
+      }
+      ImGui::TableHeadersRow();
+      
+			for (int row = 0; row < tfn_widget.size(); row++)
+      {
+				ImGui::TableNextRow();
+        for (int col = 0; col < m_numVolumes+1; col++)
+        {
+					ImGui::TableSetColumnIndex(col);
+					if (col == 0)
+					{
+            char buf[32];
+            sprintf(buf, "TF%d", row);
+            if (ImGui::SmallButton(buf)) {
+              std::cout << buf << std::endl; 
+							m_selectedTrnFnc = row;
+            };
+
+					}
+					else 
+					{
+						char buf[32];
+						sprintf(buf, "##On%d%d", col, row);
+						bool b = selectedTrFn[row][col - 1];
+						ImGui::Checkbox(buf, &b);
+						selectedTrFn[row][col - 1] = b;
+					}
+
+        }
+			}
+			
+			ImGui::EndTable();
+		}
+		
+		
+		//const char* v_items[10] ;
+		//for (int i = 0; i < dataLabels.size();i++)
+		//{
+		//	v_items[i] = dataLabels[i].c_str();
+		//}
+
+		//static const char* current_item = NULL;
+		//ImGui::BeginCombo("##custom combo", current_item);
+		//for (int n = 0; n < dataLabels.size(); n++)
+		//{
+  //    bool is_selected = (current_item == dataLabels[n].c_str());
+  //    if (ImGui::Selectable(dataLabels[n].c_str(), is_selected))
+		//		m_selectedVolume =n;
+  //    if (is_selected)
+  //      ImGui::SetItemDefaultFocus();
+		//}
+		//ImGui::EndCombo();
+
+  /*	ImGui::Combo("data type", &m_selectedVolume,
+      [](void* vec, int idx, const char** out_text) {
+        std::vector<std::string>* vector = reinterpret_cast<std::vector<std::string>*>(vec);
+          if (idx < 0 || idx >= vector->size())return false;
+        *out_text = vector->at(idx).c_str();
+        return true;
+      }, reinterpret_cast<void*>(&dataLabels), dataLabels.size());*/
+		
+		
+		//ImGui::Combo("Volume data", &m_selectedVolume, v_items, IM_ARRAYSIZE(v_items));
+
 		ImGui::Checkbox("use transferfunction", &m_use_transferfunction);
 		if (m_use_transferfunction) {
-			if (m_volumes.size() > 0 && m_volumes[0]->get_channels() > 1 && (m_renderchannel == 0 || m_renderchannel == 5 || m_renderchannel == 6)) {
-				for (int i = 0; i < 3; i++) {
-					if (m_animated)
-					{
-						unsigned int active_volume = floor(m_frame);
-						unsigned int active_volume2 = ceil(m_frame);
-						double alpha = m_frame - active_volume;
-						if (active_volume < m_volumes.size() && active_volume2 < m_volumes.size())
-							tfn_widget_multi.setBlendedHistogram(m_volumes[active_volume]->getTransferfunction(i), m_volumes[active_volume2]->getTransferfunction(i), alpha, i);
-					}
-					else {
-						tfn_widget_multi.setHistogram(m_volumes[0]->getTransferfunction(i), i);
-					}
-				}
-				m_use_multi_transfer = true;
-				tfn_widget_multi.draw_ui();
-			}
-			else
+
+			bool is_multi_channel = false;
+			for (int i = 0; i < m_volumes.size(); i++)
 			{
-				if (m_animated)
+				if (m_volumes.size() > 0 && m_volumes[i][0]->get_channels() > 1 &&
+					(m_renderchannel == 0 || m_renderchannel == 5 || m_renderchannel == 6))
 				{
-					unsigned int active_volume = floor(m_frame);
-					unsigned int active_volume2 = ceil(m_frame);
-					double alpha = m_frame - active_volume;
-					tfn_widget.setMinMax(m_volumes[active_volume]->getMin() * alpha + m_volumes[active_volume2]->getMin() * (1.0 - alpha),
-						m_volumes[active_volume]->getMax() * alpha + m_volumes[active_volume2]->getMax() * (1.0 - alpha));
-					if (active_volume < m_volumes.size() && active_volume2 < m_volumes.size())
-						tfn_widget.setBlendedHistogram(m_volumes[active_volume]->getTransferfunction(0), m_volumes[active_volume2]->getTransferfunction(0), alpha);
+					is_multi_channel |= true;
 				}
-				else if (m_volumes.size() > 0) {
-					tfn_widget.setHistogram(m_volumes[0]->getTransferfunction(0));
-					tfn_widget.setMinMax(m_volumes[0]->getMin(), m_volumes[0]->getMax());
-				}
-				m_use_multi_transfer = false;
-				tfn_widget.draw_ui();
 			}
-		}
+						 if (is_multi_channel)
+						 {
+							 for (int i = 0; i < 3; i++) {
+								 if (m_animated)
+								 {
+									 /*	unsigned int active_volume = floor(m_frame);
+										 unsigned int active_volume2 = ceil(m_frame);
+										 double alpha = m_frame - active_volume;
+										 if (active_volume < m_volumes[m_selectedVolume].size() && active_volume2 < m_volumes[m_selectedVolume].size())
+										 {
+											 tfn_widget_multi[m_selectedVolume].setBlendedHistogram(
+												 m_volumes[m_selectedVolume][active_volume]->getTransferfunction(i),
+												 m_volumes[m_selectedVolume][active_volume2]->getTransferfunction(i), alpha, i);
+										 }*/
+
+								 }
+								 else {
+									 /*		tfn_widget_multi[m_selectedVolume].setHistogram(m_volumes[m_selectedVolume][0]->getTransferfunction(i), i);*/
+								 }
+							 }
+							 m_use_multi_transfer = true;
+							 tfn_widget_multi[m_selectedTrnFnc].draw_ui();
+						 }
+						 else
+						 {
+							 if (m_animated)
+							 {
+								 /*	unsigned int active_volume = floor(m_frame);
+									 unsigned int active_volume2 = ceil(m_frame);
+									 double alpha = m_frame - active_volume;
+									 tfn_widget[m_selectedVolume].setMinMax(m_volumes[m_selectedVolume][active_volume]->getMin() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMin() * (1.0 - alpha),
+										 m_volumes[m_selectedVolume][active_volume]->getMax() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMax() * (1.0 - alpha));
+									 if (active_volume < m_volumes[m_selectedVolume].size() && active_volume2 < m_volumes[m_selectedVolume].size())
+										 tfn_widget[m_selectedVolume].setBlendedHistogram(m_volumes[m_selectedVolume][active_volume]->getTransferfunction(0), m_volumes[m_selectedVolume][active_volume2]->getTransferfunction(0), alpha);*/
+							 }
+							 else if (m_volumes.size() > 0) {
+								 /*tfn_widget[m_selectedVolume].setHistogram(m_volumes[m_selectedVolume][0]->getTransferfunction(0));
+								 tfn_widget[m_selectedVolume].setMinMax(m_volumes[m_selectedVolume][0]->getMin(), m_volumes[m_selectedVolume][0]->getMax());*/
+							 }
+							 m_use_multi_transfer = false;
+							 tfn_widget[m_selectedTrnFnc].draw_ui();
+						 }
+			
+       }
+
+		
 
 		if (m_animated) {
 			ImGui::Text("Timestep");
 			ImGui::SameLine();
 			ImGui::SetNextItemWidth(-100 - ImGui::GetStyle().ItemSpacing.x);
 			float frame_tmp = m_frame + 1;
-			ImGui::SliderFloat("##Timestep", &frame_tmp, 1, m_volumes.size());
+			ImGui::SliderFloat("##Timestep", &frame_tmp, 1, m_volumes[m_selectedVolume].size());
 			m_frame = frame_tmp - 1;
 			ImGui::SameLine();
 
@@ -411,10 +635,10 @@ void VolumeVisualizationApp::ui_callback()
 #ifdef WITH_TEEM
 		else if (helper::ends_with_string(fileDialog.GetSelected().string(), ".nrrd")) {
 			std::vector<std::string> vals;
-			vals.push_back(fileDialog.GetSelected().string());	
+		/*	vals.push_back(fileDialog.GetSelected().string());	
 			promises.push_back(new std::promise<Volume*>);
 			futures.push_back(promises.back()->get_future());
-			threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
+			threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));*/
 		}
 #endif
 		fileDialog.ClearSelected();
@@ -427,7 +651,13 @@ void VolumeVisualizationApp::initTexture()
 {
 	addLodadedTextures();
 	for (int i = 0; i < m_volumes.size(); i++){
-		m_volumes[i]->initGL();
+
+		std::vector< Volume* > vlm = m_volumes[i];
+		for (int j = 0; j < vlm.size(); j++)
+		{
+			vlm[j]->initGL();
+		}
+		
 	}
 
 }
@@ -568,6 +798,12 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 		if (event.getName() == "KbdE_Down") {
 			m_wasd_pressed = m_wasd_pressed | E;
 		}
+
+    if (event.getName() == "KbdE_Down") {
+      m_wasd_pressed = m_wasd_pressed | E;
+    }
+
+   
 	}
 }
 
@@ -665,6 +901,12 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 	if (event.getName() == "KbdE_Up") {
 		m_wasd_pressed = m_wasd_pressed & ~E;
 	}
+
+  if (event.getName() == "KbdSpace_Up") {
+    
+			m_renderVolume = !m_renderVolume;
+    
+  }
 }
 
 
@@ -755,12 +997,28 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 
 	for (std::string filename : m_models_filenames) {
 		std::cerr << "Generate DisplayList " << filename << std::endl;
-		GLMmodel* pmodel = glmReadOBJ((char*)filename.c_str());
-		glmFacetNormals(pmodel);
-		glmVertexNormals(pmodel, 90.0);
-		glColor4f(1.0, 1.0, 1.0, 1.0);
-		m_models_displayLists.push_back(glmList(pmodel, GLM_SMOOTH));
-		glmDelete(pmodel);
+	
+
+	
+		mesh_model = GLMLoader::loadObjModel(filename);
+		
+	
+		if (m_texture)
+		{
+			mesh_model->addTexture(m_texture);
+		}
+		std::string vertexShaderFolderPath = shaderFilePath + OS_SLASH+std::string("shader.vert");
+		std::string fragmentShaderFolderPath = shaderFilePath + OS_SLASH +std::string("shader.frag");
+		simpleTextureShader.LoadShaders(vertexShaderFolderPath.c_str(), fragmentShaderFolderPath.c_str());
+   // simpleTextureShader.addUniform("m");
+    //simpleTextureShader.addUniform("v");
+    simpleTextureShader.addUniform("p");
+		simpleTextureShader.addUniform("mv");
+  /*  glmFacetNormals(pmodel);
+    glmVertexNormals(pmodel, 90.0);
+   glColor4f(1.0, 1.0, 1.0, 1.0);
+    m_models_displayLists.push_back(glmList(pmodel, GLM_SMOOTH));
+    glmDelete(pmodel);*/
 	}
 	m_models_filenames.clear();
 	
@@ -769,7 +1027,7 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 	if (m_animated && ! m_stopped)
 	{
 		m_frame+=m_speed;
-		if (m_frame > m_volumes.size() - 1) m_frame = 0.0 ;
+		if (m_frame > m_volumes[m_selectedVolume].size() - 1) m_frame = 0.0 ;
 	}
 	rendercount = 0;
 
@@ -778,19 +1036,74 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 		m_trackball.wasd_pressed(m_wasd_pressed);
 }
 
-void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &renderState) {
-    // This routine is called once per eye.  This is the place to actually
-    // draw the scene...
+
+
+
+
+void VolumeVisualizationApp::clearData()
+{
+  for (int i = 0; i < m_volumes.size(); i++) {
+    std::vector< Volume* > v = m_volumes[i];
+    for (int j = 0; j < v.size(); j++)
+    {
+      delete v[i];
+    }
+
+  }
+  m_volumes.clear();
+  m_volumes.clear();
+  m_description.clear();
+  m_labels.clear();
+
+  m_models_filenames.clear();
+  m_models_displayLists.clear();
+  m_models_position.clear();
+  m_models_volumeID.clear();
+  m_models_MV.clear();
+}
+
+int VolumeVisualizationApp::numVolumes()
+{
+	return m_numVolumes;
+}
+
+bool VolumeVisualizationApp::dataIsMultiChannel()
+{
+  bool is_multi_channel = false;
+  for (int i = 0; i < m_volumes.size(); i++)
+  {
+    if (m_volumes.size() > 0 && m_volumes[i][0]->get_channels() > 1 &&
+      (m_renderchannel == 0 || m_renderchannel == 5 || m_renderchannel == 6))
+    {
+      is_multi_channel |= true;
+    }
+  }
+
+	return is_multi_channel;
+}
+
+void VolumeVisualizationApp::getMinMax(const float frame, float& min, float& max)
+{
+  unsigned int active_volume = floor(frame);
+  unsigned int active_volume2 = ceil(frame);
+	double alpha = frame - active_volume;
+	min = m_volumes[m_selectedVolume][active_volume]->getMin() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMin() * (1.0 - alpha);
+	max = m_volumes[m_selectedVolume][active_volume]->getMax() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMax() * (1.0 - alpha);
+}
+
+void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState& renderState) {
+	// This routine is called once per eye.  This is the place to actually
+	// draw the scene...
 	if (m_is2d) {
 		m_headpose = glm::make_mat4(renderState.getViewMatrix());
 		m_headpose = glm::inverse(m_headpose);
 	}
-	
-	
+
+
 	glClearColor(0, 0, 0, 1);
 	glClearDepth(1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
+
 	if (renderState.isInitialRenderCall())
 	{
 		m_depthTextures.push_back(new DepthTexture);
@@ -801,55 +1114,76 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 	MV = glm::make_mat4(renderState.getViewMatrix());
 
 	//overwrite MV for 2D viewing
-	if(m_is2d)
+	if (m_is2d)
 		MV = m_trackball.getViewmatrix();
-	
+
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(glm::value_ptr(P));
 
 	//setup Modelview for volumes
-	for (int i = 0; i < m_volumes.size(); i++){
-		glm::mat4 tmp = MV;
-		tmp = tmp* m_object_pose;
-		tmp = glm::scale(tmp, glm::vec3(m_scale, m_scale, m_scale * m_z_scale));
-		if(!m_animated) 
-			tmp = glm::translate(tmp, glm::vec3(m_volumes[i]->get_volume_position().x, m_volumes[i]->get_volume_position().y, m_volumes[i]->get_volume_position().z));
-		m_volumes[i]->set_volume_mv(tmp);
+	for (int i = 0; i < m_volumes.size(); i++) {
+		for (int j = 0; j < m_volumes[i].size(); j++) {
+      glm::mat4 tmp = MV;
+      tmp = tmp * m_object_pose;
+      tmp = glm::scale(tmp, glm::vec3(m_scale, m_scale, m_scale * m_z_scale));
+      if (!m_animated)
+        tmp = glm::translate(tmp, glm::vec3(m_volumes[i][j]->get_volume_position().x, m_volumes[i][j]->get_volume_position().y, m_volumes[i][j]->get_volume_position().z));
+      m_volumes[i][j]->set_volume_mv(tmp);
+		}
+	
 	}
 
 	//setup Modelview for meshes
-	for (int i = 0; i < m_models_displayLists.size(); i++){
+	if (mesh_model)
+	{
+		int i = 0;
 		if (m_volumes.size() > m_models_volumeID[i]) {
-			m_models_MV[i] = m_volumes[m_models_volumeID[i]]->get_volume_mv();
-			m_models_MV[i] = glm::translate(m_models_MV[i], glm::vec3(-0.5f, -0.5f, -0.5f * m_volumes[m_models_volumeID[i]]->get_volume_scale().x / (m_volumes[m_models_volumeID[i]]->get_volume_scale().z)));
-			m_models_MV[i] = glm::scale(m_models_MV[i], glm::vec3(m_volumes[m_models_volumeID[i]]->get_volume_scale().x, m_volumes[m_models_volumeID[i]]->get_volume_scale().y, m_volumes[m_models_volumeID[i]]->get_volume_scale().x));
+			glm::mat4 volume_mv = m_volumes[0][m_models_volumeID[i]]->get_volume_mv();
+			volume_mv = glm::translate(volume_mv, glm::vec3(-0.5f, -0.5f, -0.5f * m_volumes[0][m_models_volumeID[i]]->get_volume_scale().x / (m_volumes[0][m_models_volumeID[i]]->get_volume_scale().z)));
+			volume_mv = glm::scale(volume_mv, glm::vec3(m_volumes[0][m_models_volumeID[i]]->get_volume_scale().x, m_volumes[0][m_models_volumeID[i]]->get_volume_scale().y, m_volumes[0][m_models_volumeID[i]]->get_volume_scale().x));
+			//volume_mv = glm::scale(m_models_MV[i], glm::vec3(5,5,5));
+			mesh_model->setMVMatrix(volume_mv);
+			m_models_MV[i] = volume_mv;
+			//mesh_model->setPosition(glm::vec3(-0.5f, -0.5f, 
+			//	-0.5f * m_volumes[m_models_volumeID[i]]->get_volume_scale().x / (m_volumes[m_models_volumeID[i]]->get_volume_scale().z)));
+			//mesh_model->setScale(glm::vec3(m_volumes[m_models_volumeID[i]]->get_volume_scale().x, m_volumes[m_models_volumeID[i]]->get_volume_scale().y, m_volumes[m_models_volumeID[i]]->get_volume_scale().x));
 		}
+
 	}
 
+	//for (int i = 0; i < m_models_displayLists.size(); i++) {
+	//	if (m_volumes.size() > m_models_volumeID[i]) {
+	//		m_models_MV[i] = m_volumes[m_models_volumeID[i]]->get_volume_mv();
+	//		m_models_MV[i] = glm::translate(m_models_MV[i], glm::vec3(-0.5f, -0.5f, -0.5f * m_volumes[m_models_volumeID[i]]->get_volume_scale().x / (m_volumes[m_models_volumeID[i]]->get_volume_scale().z)));
+	//		m_models_MV[i] = glm::scale(m_models_MV[i], glm::vec3(m_volumes[m_models_volumeID[i]]->get_volume_scale().x, m_volumes[m_models_volumeID[i]]->get_volume_scale().y, m_volumes[m_models_volumeID[i]]->get_volume_scale().x));
+	//		//m_models_MV[i] = glm::scale(m_models_MV[i], glm::vec3(10,10,10));
+	//	}
+	//}
+
 	//Set cuttingplane
-	if (m_clipping || m_useCustomClipPlane){
+	if (m_clipping || m_useCustomClipPlane) {
 		glm::mat4 clipPlane = glm::inverse(m_controller_pose) * glm::inverse(MV);
 
 		if (m_useCustomClipPlane) {
-			clipPlane = glm::eulerAngleYXZ(m_clip_ypr.x,m_clip_ypr.y, m_clip_ypr.z);
+			clipPlane = glm::eulerAngleYXZ(m_clip_ypr.x, m_clip_ypr.y, m_clip_ypr.z);
 			clipPlane = glm::translate(clipPlane, m_clip_pos);
 			clipPlane = clipPlane * glm::inverse(MV);
 		}
 
 		for (auto ren : m_renders)
 			ren->setClipping(true, &clipPlane);
-	} 
+	}
 	else
 	{
 		for (auto ren : m_renders)
 			ren->setClipping(false, nullptr);
 	}
-	
+
 	for (auto ren : m_renders)
-		ren->setClipMinMax (m_clip_min,m_clip_max);
+		ren->setClipMinMax(m_clip_min, m_clip_max);
 
 	//Render meshes
-	for (int i = 0; i < m_models_displayLists.size(); i++){
+	/*for (int i = 0; i < m_models_displayLists.size(); i++) {
 		if (m_volumes.size() > m_models_volumeID[i]) {
 			glMatrixMode(GL_MODELVIEW);
 			glPushMatrix();
@@ -858,6 +1192,29 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 			glCallList(m_models_displayLists[i]);
 			glPopMatrix();
 		}
+	}*/
+
+  /*unsigned int errorCode = 0;
+  while ((errorCode = glGetError()) != GL_NO_ERROR) {
+    std::cout << errorCode;
+  }*/
+
+	if (mesh_model)
+	{
+
+		/* unsigned int errorCode = 0;
+			 while ((errorCode = glGetError()) != GL_NO_ERROR) {
+        std::cout << errorCode;
+      }*/
+   
+    simpleTextureShader.start();
+		simpleTextureShader.setUniform("p", P);
+    mesh_model->render(simpleTextureShader);
+    simpleTextureShader.stop();
+    /* while ((errorCode = glGetError()) != GL_NO_ERROR) {
+       std::cout << errorCode;
+     }*/
+    
 	}
 	
 	//render labels
@@ -885,30 +1242,65 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 	
 	if (m_animated)
 	{
-		unsigned int active_volume = floor(m_frame);
-		unsigned int active_volume2 = ceil(m_frame);
 		
-		if (active_volume < m_volumes.size() && active_volume2 < m_volumes.size() && m_volumes[active_volume]->texture_initialized() && m_volumes[active_volume2]->texture_initialized()) {
-			m_renders[m_rendermethod]->set_blending(true, m_frame - active_volume, m_volumes[active_volume2]);
-			
-			m_renders[m_rendermethod]->render(m_volumes[active_volume], m_volumes[active_volume]->get_volume_mv(), P, m_volumes[active_volume]->get_volume_scale().x / m_volumes[active_volume]->get_volume_scale().z,
-				m_use_transferfunction ? (m_use_multi_transfer) ? tfn_widget_multi.get_colormap_gpu() : tfn_widget.get_colormap_gpu() : -1, m_renderchannel);
-		}
+      unsigned int active_volume = floor(m_frame);
+      unsigned int active_volume2 = ceil(m_frame);
+
+			for (int tfn = 0; tfn < tfn_widget.size(); tfn++)
+			{
+
+				for (int vol = 0; vol < m_numVolumes; vol++)
+				{
+					if (selectedTrFn[tfn][vol])
+					{
+            if (active_volume < m_volumes[vol].size() && active_volume2 < m_volumes[vol].size() && m_volumes[vol][active_volume]->texture_initialized() && m_volumes[vol][active_volume2]->texture_initialized()) {
+              m_renders[m_rendermethod]->set_blending(true, m_frame - active_volume, m_volumes[vol][active_volume2]);
+
+              if (m_renderVolume)
+              {
+                m_renders[m_rendermethod]->render(m_volumes[vol][active_volume], m_volumes[vol][active_volume]->get_volume_mv(), P, m_volumes[vol][active_volume]->get_volume_scale().x / m_volumes[vol][active_volume]->get_volume_scale().z,
+                  m_use_transferfunction ? (m_use_multi_transfer) ? tfn_widget_multi[tfn].get_colormap_gpu() : tfn_widget[tfn].get_colormap_gpu() : -1, m_renderchannel);
+              }
+            }
+					}
+				}
+			}
+
+     
+		
 	}
 	else {
 		//check order
-		std::vector<std::pair< float, int> > order;
-		for (int i = 0; i < m_volumes.size(); i++) {
-			glm::vec4 center = m_volumes[i]->get_volume_mv() * glm::vec4(0, 0, 0, 1);
-			float l = glm::length(center);
-			order.push_back(std::make_pair(l, i));
-		}
-		std::sort(order.begin(), order.end());
+		for (int tfn = 0; tfn < tfn_widget.size(); tfn++)
+		{
 
-		for (int i = order.size() - 1; i >= 0; i--) {
-			if (m_volumes[order[i].second]->texture_initialized())
-				m_renders[m_rendermethod]->render(m_volumes[order[i].second], m_volumes[order[i].second]->get_volume_mv(), P, m_volumes[order[i].second]->get_volume_scale().x / m_volumes[order[i].second]->get_volume_scale().z,
-					m_use_transferfunction ? (m_use_multi_transfer) ? tfn_widget_multi.get_colormap_gpu() : tfn_widget.get_colormap_gpu() : -1, m_renderchannel);
+			for (int vol = 0; vol < m_numVolumes; vol++)
+			{
+				if (selectedTrFn[tfn][vol])
+				{
+          std::vector<std::pair< float, int> > order;
+          for (int i = 0; i < m_volumes.size(); i++) {
+            glm::vec4 center = m_volumes[vol][i]->get_volume_mv() * glm::vec4(0, 0, 0, 1);
+            float l = glm::length(center);
+            order.push_back(std::make_pair(l, i));
+          }
+          std::sort(order.begin(), order.end());
+
+          for (int i = order.size() - 1; i >= 0; i--) {
+            if (m_volumes[vol][order[i].second]->texture_initialized())
+            {
+              if (m_renderVolume)
+              {
+                m_renders[m_rendermethod]->render(m_volumes[vol][order[i].second], m_volumes[vol][order[i].second]->get_volume_mv(), P, m_volumes[vol][order[i].second]->get_volume_scale().x / m_volumes[vol][order[i].second]->get_volume_scale().z,
+                  m_use_transferfunction ? (m_use_multi_transfer) ? tfn_widget_multi[tfn].get_colormap_gpu() : tfn_widget[tfn].get_colormap_gpu() : -1, m_renderchannel);
+              }
+
+            }
+				}
+			}
+		}
+	
+				
 		}
 	}
 
@@ -918,16 +1310,16 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 
 	//draw Transferfunction
 	if (m_is2d && m_use_transferfunction) {
-		tfn_widget.drawLegend();
+		tfn_widget[m_selectedTrnFnc].drawLegend();
 	}
 
 	//drawTime
 	if (m_is2d && m_animated) {
 		unsigned int active_volume = floor(m_frame);
 		unsigned int active_volume2 = ceil(m_frame);
-		if (active_volume < m_volumes.size() && active_volume2 < m_volumes.size() && m_volumes[active_volume]->texture_initialized() && m_volumes[active_volume2]->texture_initialized()){
+		if (active_volume < m_volumes[0].size() && active_volume2 < m_volumes[0].size() && m_volumes[0][active_volume]->texture_initialized() && m_volumes[0][active_volume2]->texture_initialized()){
 			float alpha = m_frame - active_volume;
-			time_t time = m_volumes[active_volume]->getTime() * (1 - alpha) + m_volumes[active_volume2]->getTime() * alpha;
+			time_t time = m_volumes[0][active_volume]->getTime() * (1 - alpha) + m_volumes[0][active_volume2]->getTime() * alpha;
 			FontHandler::getInstance()->drawClock(time);
 		}
 	}
@@ -942,7 +1334,7 @@ void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &render
 #endif
 		std::cerr << "Add Frame" << std::endl;
 		m_movieAction->addFrame();
-		if (m_frame >  m_volumes.size() - 1 - m_speed) {
+		if (m_frame >  m_volumes[m_selectedVolume].size() - 1 - m_speed) {
 			std::cerr << "Save Movie" << std::endl;
 #ifdef _MSC_VER
 			m_movieAction->save(m_moviename);
