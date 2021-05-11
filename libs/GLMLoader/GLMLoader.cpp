@@ -147,7 +147,9 @@ Model* GLMLoader::loadObjModel(std::string& filename)
         glm::vec2 text_coord{
          attrib.texcoords[2 * index.texcoord_index + 0],
          attrib.texcoords[2 * index.texcoord_index + 1]};
-				/*
+				
+        // Load normals per vertex
+        /* 
         glm::vec3 normal{
         attrib.texcoords[3 * index.normal_index + 0],
         attrib.texcoords[3 * index.normal_index + 1],
@@ -164,6 +166,8 @@ Model* GLMLoader::loadObjModel(std::string& filename)
 				uniqueTextCoords[text_coord] = static_cast<int>(textcoords.size());
 				textcoords.push_back(text_coord);
       }
+      
+      // Load normals per vertex
 			/*
       if (uniqueNormals.count(normal) == 0)
       {
