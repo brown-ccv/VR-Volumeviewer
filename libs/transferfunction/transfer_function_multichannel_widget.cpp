@@ -215,11 +215,14 @@ void TransferFunctionMultiChannelWidget::draw_ui()
 			draw_list->AddCircleFilled(pt_pos, point_radius, color);
 		}
 
-		for (int k = 0; k < current_histogram[i].size(); k++) {
+
+  //Code to Draw histogram in the UI
+	/*	
+	for (int k = 0; k < current_histogram[i].size(); k++) {
 			vec2f lp = vec2f(((float)k) / current_histogram[i].size(), 0.0f);
 			vec2f hp = vec2f(((float)k + 1.0f) / current_histogram[i].size(), current_histogram[i][k]);
 			draw_list->AddRectFilled(lp * view_scale + view_offset, hp * view_scale + view_offset, 0x77777777);
-		}
+		}*/
 
 		draw_list->AddPolyline(polyline_pts.data(), polyline_pts.size(), color, false, 2.f);
 		draw_list->PopClipRect();

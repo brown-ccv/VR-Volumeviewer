@@ -1,4 +1,6 @@
-This is the function to export the texture using google earth engine. To use it sign in to an account for google earth engine (https://earthengine.google.com/) and use the google earth engine code interface(https://code.earthengine.google.com/). Simply run the code and start the task to save the texture to google drive.
+This is the function to export the texture using google earth engine. 
+To use it sign in to an account for google earth engine (https://earthengine.google.com/) and use the google earth engine 
+code interface(https://code.earthengine.google.com/). Simply run the code and start the task to save the texture to google drive.
 
 
 

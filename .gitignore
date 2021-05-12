@@ -5,3 +5,5 @@ share/scripts/OSOM/*
 .DS_Store
 Executable/
 share/datasets/
+external/
+CMakeFiles/

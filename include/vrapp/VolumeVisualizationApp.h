@@ -15,6 +15,8 @@
 #include <future>
 #include "../interaction/ArcBall.h"
 
+
+
 using namespace MinVR;
 
 #include <vector>
@@ -36,8 +38,10 @@ using namespace MinVR;
 
 #include "../render/VolumeSliceRenderer.h"
 #include "../interaction/CreateMovieAction.h"
+#include "ShaderProgram.h"
 
-
+class Model;
+class Texture;
 class VolumeVisualizationApp : public VRApp {
 public:
     
@@ -69,6 +73,15 @@ public:
     virtual void onRenderGraphicsScene(const VRGraphicsState& state);
     
     virtual void onRenderGraphicsContext(const VRGraphicsState& state);
+
+		/*MVC calls*/
+
+		void clearData();
+		int numVolumes();
+
+		bool dataIsMultiChannel();
+
+		void getMinMax(const float frame, float & min, float & max);
 
 private:
 	void addLodadedTextures();
@@ -105,7 +118,7 @@ private:
 
 	GLfloat m_light_pos[4];
 	
-	std::vector< Volume * > m_volumes;
+	std::vector < std::vector< Volume * >> m_volumes;
 	
 	float m_multiplier;
 	float m_threshold;
@@ -120,13 +133,13 @@ private:
 
 	VRMenuHandler* m_menu_handler;
 
-	TransferFunctionMultiChannelWidget tfn_widget_multi;
-	TransferFunctionWidget tfn_widget;
+	std::vector<TransferFunctionMultiChannelWidget> tfn_widget_multi;
+	std::vector<TransferFunctionWidget> tfn_widget;
 	ImGui::FileBrowser fileDialog;
 	
-	std::vector <std::promise<Volume*> * > promises;
-	std::vector <std::future<Volume*>> futures;
-	std::vector <std::thread *> threads;
+	std::vector< std::vector<std::promise<Volume*> *>> promises;
+	std::vector< std::vector <std::future<Volume*>>*> futures;
+	std::vector< std::vector <std::thread *>> threads;
 
 	std::chrono::steady_clock::time_point m_lastTime;
 	bool m_dynamic_slices;
@@ -156,6 +169,24 @@ private:
 	std::vector<std::string> m_description;
 	int m_descriptionHeight;
 	std::string m_descriptionFilename;
+
+
+	Model* mesh_model;
+	ShaderProgram simpleTextureShader;
+	std::string shaderFilePath;
+	std::string textureFilePath;
+	Texture* m_texture;
+
+	bool m_renderVolume;
+
+	std::vector<std::vector<bool>> selectedTrFn;
+	int m_selectedTrnFnc;
+
+	size_t m_numVolumes;
+	int m_selectedVolume;
+	std::vector<std::string> dataLabels;
+
+	
 };
 
 
