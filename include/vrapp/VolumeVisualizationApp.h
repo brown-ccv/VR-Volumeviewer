@@ -40,9 +40,14 @@ using namespace MinVR;
 #include "../interaction/CreateMovieAction.h"
 #include "ShaderProgram.h"
 
+#include "VRVolumeApp.h"
+
 class Model;
 class Texture;
-class VolumeVisualizationApp : public VRApp {
+class UIView;
+class VRVolumeApp;
+
+class VolumeVisualizationApp : public VRApp{
 public:
     
     /** The constructor passes argc, argv, and a MinVR config file on to VRApp.
@@ -82,6 +87,8 @@ public:
 		bool dataIsMultiChannel();
 
 		void getMinMax(const float frame, float & min, float & max);
+
+		void loadTextFile(std::string& filename);
 
 private:
 	void addLodadedTextures();
@@ -186,6 +193,9 @@ private:
 	int m_selectedVolume;
 	std::vector<std::string> dataLabels;
 
+	UIView* m_uiView;
+
+	VRVolumeApp* m_vrVolumeApp;
 	
 };
 

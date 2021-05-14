@@ -345,306 +345,309 @@ void VolumeVisualizationApp::addLodadedTextures()
 
 void VolumeVisualizationApp::ui_callback()
 {
-	if(m_is2d){
-		if (m_lookingGlass) {
-			ImGui::SetNextWindowSize(ImVec2(1200, 1400), ImGuiCond_Once);
-		}
-		else {
-			ImGui::SetNextWindowSize(ImVec2(500, 700), ImGuiCond_Once);
-		}
-		ImGui::SetNextWindowPos(ImVec2(40, 40), ImGuiCond_Once);
-	}
-	
-	ImGui::Begin("Volumeviewer");
-	ImGui::BeginTabBar("##tabs");
-
-	if (ImGui::BeginTabItem("General")) {
-		// open file dialog when user clicks this button
-		if (ImGui::Button("load file", ImVec2(ImGui::GetWindowSize().x * 0.5f - 1.5* ImGui::GetStyle().ItemSpacing.x, 0.0f)))
-			fileDialog.Open();
-		ImGui::SameLine();
-		if (ImGui::Button("Clear all", ImVec2(ImGui::GetWindowSize().x  * 0.5f - 1.5 * ImGui::GetStyle().ItemSpacing.x, 0.0f)))
-		{
-      for (int i = 0; i < m_volumes.size(); i++) {
-        std::vector< Volume* > v = m_volumes[i];
-        for (int j = 0; j < v.size(); j++)
-        {
-          delete v[i];
-        }
-
-      }
-      m_volumes.clear();
-			m_volumes.clear();
-			m_description.clear();
-			m_labels.clear();
-
-			m_models_filenames.clear();
-			m_models_displayLists.clear();
-			m_models_position.clear();
-			m_models_volumeID.clear();
-			m_models_MV.clear();
-		}
-
-		ImGui::SliderFloat("alpha multiplier", &m_multiplier, 0.0f, 1.0f, "%.3f");
-		ImGui::SliderFloat("threshold", &m_threshold, 0.0f, 1.0f, "%.3f");
-		ImGui::SliderFloat("scale", &m_scale, 0.001f, 5.0f, "%.3f");
-		ImGui::SliderFloat("z - scale", &m_z_scale, 0.001f, 5.0f, "%.3f");
-		ImGui::SliderInt("Slices", &m_slices, 10, 1024, "%d");
-		ImGui::Checkbox("automatic slice adjustment", &m_dynamic_slices);
-
-		ImGui::SameLine(ImGui::GetWindowSize().x * 0.5f, 0);
-		ImGui::Text("FPS = %f", m_fps);
-		const char* items[] = { "sliced" , "raycast" };
-		ImGui::Combo("RenderMethod", &m_rendermethod, items, IM_ARRAYSIZE(items));
-
-		const char* items_channel[] = { "based on data" , "red", "green" , "blue", "alpha", "rgba", "rgba with alpha as max rgb" };
-		ImGui::Combo("Render Channel", &m_renderchannel, items_channel, IM_ARRAYSIZE(items_channel));
-
-		ImGui::Checkbox("Render Volume data", &m_renderVolume);
-
-    if (ImGui::SmallButton("New")) {
-			tfn_widget.push_back(TransferFunctionWidget());
-			tfn_widget_multi.push_back(TransferFunctionMultiChannelWidget());
-			int index = selectedTrFn.size();
-			selectedTrFn.push_back(std::vector<bool>(m_numVolumes));
-			for (int i = 0; i < m_numVolumes;i++)
-			{
-				selectedTrFn[index][i] = false;
-			}
-    };
-		ImGui::SameLine();
-    if (ImGui::SmallButton("Remove")) {
-
-      
-    };
-		
-
-		if (m_numVolumes > 0)
-		{
-      ImGui::BeginTable("##Transfer Function Editor", 3);
-      ImGui::TableSetupColumn("Name");
-      for (int column = 0; column < m_numVolumes; column++)
-      {
-        ImGui::TableSetupColumn(dataLabels[column].c_str());
-      }
-      ImGui::TableHeadersRow();
-      
-			for (int row = 0; row < tfn_widget.size(); row++)
-      {
-				ImGui::TableNextRow();
-        for (int col = 0; col < m_numVolumes+1; col++)
-        {
-					ImGui::TableSetColumnIndex(col);
-					if (col == 0)
-					{
-            char buf[32];
-            sprintf(buf, "TF%d", row);
-            if (ImGui::SmallButton(buf)) {
-              std::cout << buf << std::endl; 
-							m_selectedTrnFnc = row;
-            };
-
-					}
-					else 
-					{
-						char buf[32];
-						sprintf(buf, "##On%d%d", col, row);
-						bool b = selectedTrFn[row][col - 1];
-						ImGui::Checkbox(buf, &b);
-						selectedTrFn[row][col - 1] = b;
-					}
-
-        }
-			}
-			
-			ImGui::EndTable();
-		}
-		
-		
-		//const char* v_items[10] ;
-		//for (int i = 0; i < dataLabels.size();i++)
-		//{
-		//	v_items[i] = dataLabels[i].c_str();
-		//}
-
-		//static const char* current_item = NULL;
-		//ImGui::BeginCombo("##custom combo", current_item);
-		//for (int n = 0; n < dataLabels.size(); n++)
-		//{
-  //    bool is_selected = (current_item == dataLabels[n].c_str());
-  //    if (ImGui::Selectable(dataLabels[n].c_str(), is_selected))
-		//		m_selectedVolume =n;
-  //    if (is_selected)
-  //      ImGui::SetItemDefaultFocus();
-		//}
-		//ImGui::EndCombo();
-
-  /*	ImGui::Combo("data type", &m_selectedVolume,
-      [](void* vec, int idx, const char** out_text) {
-        std::vector<std::string>* vector = reinterpret_cast<std::vector<std::string>*>(vec);
-          if (idx < 0 || idx >= vector->size())return false;
-        *out_text = vector->at(idx).c_str();
-        return true;
-      }, reinterpret_cast<void*>(&dataLabels), dataLabels.size());*/
-		
-		
-		//ImGui::Combo("Volume data", &m_selectedVolume, v_items, IM_ARRAYSIZE(v_items));
-
-		ImGui::Checkbox("use transferfunction", &m_use_transferfunction);
-		if (m_use_transferfunction) {
-
-			bool is_multi_channel = false;
-			for (int i = 0; i < m_volumes.size(); i++)
-			{
-				if (m_volumes.size() > 0 && m_volumes[i][0]->get_channels() > 1 &&
-					(m_renderchannel == 0 || m_renderchannel == 5 || m_renderchannel == 6))
-				{
-					is_multi_channel |= true;
-				}
-			}
-						 if (is_multi_channel)
-						 {
-							 for (int i = 0; i < 3; i++) {
-								 if (m_animated)
-								 {
-									 /*	unsigned int active_volume = floor(m_frame);
-										 unsigned int active_volume2 = ceil(m_frame);
-										 double alpha = m_frame - active_volume;
-										 if (active_volume < m_volumes[m_selectedVolume].size() && active_volume2 < m_volumes[m_selectedVolume].size())
-										 {
-											 tfn_widget_multi[m_selectedVolume].setBlendedHistogram(
-												 m_volumes[m_selectedVolume][active_volume]->getTransferfunction(i),
-												 m_volumes[m_selectedVolume][active_volume2]->getTransferfunction(i), alpha, i);
-										 }*/
-
-								 }
-								 else {
-									 /*		tfn_widget_multi[m_selectedVolume].setHistogram(m_volumes[m_selectedVolume][0]->getTransferfunction(i), i);*/
-								 }
-							 }
-							 m_use_multi_transfer = true;
-							 tfn_widget_multi[m_selectedTrnFnc].draw_ui();
-						 }
-						 else
-						 {
-							 if (m_animated)
-							 {
-								 /*	unsigned int active_volume = floor(m_frame);
-									 unsigned int active_volume2 = ceil(m_frame);
-									 double alpha = m_frame - active_volume;
-									 tfn_widget[m_selectedVolume].setMinMax(m_volumes[m_selectedVolume][active_volume]->getMin() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMin() * (1.0 - alpha),
-										 m_volumes[m_selectedVolume][active_volume]->getMax() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMax() * (1.0 - alpha));
-									 if (active_volume < m_volumes[m_selectedVolume].size() && active_volume2 < m_volumes[m_selectedVolume].size())
-										 tfn_widget[m_selectedVolume].setBlendedHistogram(m_volumes[m_selectedVolume][active_volume]->getTransferfunction(0), m_volumes[m_selectedVolume][active_volume2]->getTransferfunction(0), alpha);*/
-							 }
-							 else if (m_volumes.size() > 0) {
-								 /*tfn_widget[m_selectedVolume].setHistogram(m_volumes[m_selectedVolume][0]->getTransferfunction(0));
-								 tfn_widget[m_selectedVolume].setMinMax(m_volumes[m_selectedVolume][0]->getMin(), m_volumes[m_selectedVolume][0]->getMax());*/
-							 }
-							 m_use_multi_transfer = false;
-							 tfn_widget[m_selectedTrnFnc].draw_ui();
-						 }
-			
-       }
-
-		
-
-		if (m_animated) {
-			ImGui::Text("Timestep");
-			ImGui::SameLine();
-			ImGui::SetNextItemWidth(-100 - ImGui::GetStyle().ItemSpacing.x);
-			float frame_tmp = m_frame + 1;
-			ImGui::SliderFloat("##Timestep", &frame_tmp, 1, m_volumes[m_selectedVolume].size());
-			m_frame = frame_tmp - 1;
-			ImGui::SameLine();
-
-			std::string text = m_stopped ? "Play" : "Stop";
-			if (ImGui::Button(text.c_str(), ImVec2(100, 0))) {
-				m_stopped = !m_stopped;
-			}
 
 
-			if (ImGui::Button("Write Movie"))
-			{
-#ifndef _MSC_VER
-				fs::create_directory("movie");
-#endif
-				if (m_movieAction)
-					delete m_movieAction;
 
-				m_movieAction = new CreateMovieAction();
-				m_frame = 0;
-				m_show_menu = false;
-			}
-		}
-
-		ImGui::Checkbox("Camera centric rotations", &m_useCameraCenterRotations);
-		m_trackball.setCameraCenterRotation(m_useCameraCenterRotations);
-		ImGui::EndTabItem();	
-	}
-	
-	if (ImGui::BeginTabItem("Clipping")) {
-
-		ImGui::Text("Axis aligned clip");
-		glm::vec2 bound = { m_clip_min.x * 100 ,m_clip_max.x * 100 };
-		ImGui::DragFloatRange2("X", &bound.x, &bound.y, 0.1f, 0.0f, 100.0f, "Min: %.1f %%", "Max: %.1f %%");
-		m_clip_min.x = bound.x / 100; 
-		m_clip_max.x = bound.y / 100;
-
-		bound = { m_clip_min.y * 100 ,m_clip_max.y * 100 };
-		ImGui::DragFloatRange2("Y", &bound.x, &bound.y, 0.1f, 0.0f, 100.0f, "Min: %.1f %%", "Max: %.1f %%");
-		m_clip_min.y = bound.x / 100;
-		m_clip_max.y = bound.y / 100;
-
-		bound = { m_clip_min.z * 100 ,m_clip_max.z * 100 };
-		ImGui::DragFloatRange2("Z", &bound.x, &bound.y, 0.1f, 0.0f, 100.0f, "Min: %.1f %%", "Max: %.1f %%");
-		m_clip_min.z = bound.x / 100;
-		m_clip_max.z = bound.y / 100;
-
-		if (ImGui::Button("Reset")) {
-			m_clip_min = glm::vec3(0.0f);
-			m_clip_max = glm::vec3(1.0f);
-		}
-
-		ImGui::Checkbox("Custom Clipping plane", &m_useCustomClipPlane);
-		if (m_useCustomClipPlane) {
-			ImGui::SliderAngle("Pitch", &m_clip_ypr.y, -90, 90);
-			ImGui::SliderAngle("Roll", &m_clip_ypr.z, -180, 180);
-
-			ImGui::SliderFloat("Position X", &m_clip_pos.x, -0.5, 0.5);
-			ImGui::SliderFloat("Position y", &m_clip_pos.y, -0.5, 0.5);
-			ImGui::SliderFloat("Position z", &m_clip_pos.z, -0.5, 0.5);
-			if (ImGui::Button("Reset##Reset2")) {
-				m_clip_ypr = glm::vec3(0.0f);
-				m_clip_pos = glm::vec3(0.0f);
-			}
-		}
-
-		ImGui::EndTabItem();
-	}
-	ImGui::EndTabBar();
-	//file loading
-	fileDialog.Display();
-
-	if (fileDialog.HasSelected())
-	{
-		if (helper::ends_with_string(fileDialog.GetSelected().string(), ".txt"))
-		{
-			loadTxtFile(fileDialog.GetSelected().string());
-		}
-#ifdef WITH_TEEM
-		else if (helper::ends_with_string(fileDialog.GetSelected().string(), ".nrrd")) {
-			std::vector<std::string> vals;
-		/*	vals.push_back(fileDialog.GetSelected().string());	
-			promises.push_back(new std::promise<Volume*>);
-			futures.push_back(promises.back()->get_future());
-			threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));*/
-		}
-#endif
-		fileDialog.ClearSelected();
-	}
-	
-	ImGui::End();
+//	if(m_is2d){
+//		if (m_lookingGlass) {
+//			ImGui::SetNextWindowSize(ImVec2(1200, 1400), ImGuiCond_Once);
+//		}
+//		else {
+//			ImGui::SetNextWindowSize(ImVec2(500, 700), ImGuiCond_Once);
+//		}
+//		ImGui::SetNextWindowPos(ImVec2(40, 40), ImGuiCond_Once);
+//	}
+//	
+//	ImGui::Begin("Volumeviewer");
+//	ImGui::BeginTabBar("##tabs");
+//
+//	if (ImGui::BeginTabItem("General")) {
+//		// open file dialog when user clicks this button
+//		if (ImGui::Button("load file", ImVec2(ImGui::GetWindowSize().x * 0.5f - 1.5* ImGui::GetStyle().ItemSpacing.x, 0.0f)))
+//			fileDialog.Open();
+//		ImGui::SameLine();
+//		if (ImGui::Button("Clear all", ImVec2(ImGui::GetWindowSize().x  * 0.5f - 1.5 * ImGui::GetStyle().ItemSpacing.x, 0.0f)))
+//		{
+//      for (int i = 0; i < m_volumes.size(); i++) {
+//        std::vector< Volume* > v = m_volumes[i];
+//        for (int j = 0; j < v.size(); j++)
+//        {
+//          delete v[i];
+//        }
+//
+//      }
+//      m_volumes.clear();
+//			m_volumes.clear();
+//			m_description.clear();
+//			m_labels.clear();
+//
+//			m_models_filenames.clear();
+//			m_models_displayLists.clear();
+//			m_models_position.clear();
+//			m_models_volumeID.clear();
+//			m_models_MV.clear();
+//		}
+//
+//		ImGui::SliderFloat("alpha multiplier", &m_multiplier, 0.0f, 1.0f, "%.3f");
+//		ImGui::SliderFloat("threshold", &m_threshold, 0.0f, 1.0f, "%.3f");
+//		ImGui::SliderFloat("scale", &m_scale, 0.001f, 5.0f, "%.3f");
+//		ImGui::SliderFloat("z - scale", &m_z_scale, 0.001f, 5.0f, "%.3f");
+//		ImGui::SliderInt("Slices", &m_slices, 10, 1024, "%d");
+//		ImGui::Checkbox("automatic slice adjustment", &m_dynamic_slices);
+//
+//		ImGui::SameLine(ImGui::GetWindowSize().x * 0.5f, 0);
+//		ImGui::Text("FPS = %f", m_fps);
+//		const char* items[] = { "sliced" , "raycast" };
+//		ImGui::Combo("RenderMethod", &m_rendermethod, items, IM_ARRAYSIZE(items));
+//
+//		const char* items_channel[] = { "based on data" , "red", "green" , "blue", "alpha", "rgba", "rgba with alpha as max rgb" };
+//		ImGui::Combo("Render Channel", &m_renderchannel, items_channel, IM_ARRAYSIZE(items_channel));
+//
+//		ImGui::Checkbox("Render Volume data", &m_renderVolume);
+//
+//    if (ImGui::SmallButton("New")) {
+//			tfn_widget.push_back(TransferFunctionWidget());
+//			tfn_widget_multi.push_back(TransferFunctionMultiChannelWidget());
+//			int index = selectedTrFn.size();
+//			selectedTrFn.push_back(std::vector<bool>(m_numVolumes));
+//			for (int i = 0; i < m_numVolumes;i++)
+//			{
+//				selectedTrFn[index][i] = false;
+//			}
+//    };
+//		ImGui::SameLine();
+//    if (ImGui::SmallButton("Remove")) {
+//
+//      
+//    };
+//		
+//
+//		if (m_numVolumes > 0)
+//		{
+//      ImGui::BeginTable("##Transfer Function Editor", 3);
+//      ImGui::TableSetupColumn("Name");
+//      for (int column = 0; column < m_numVolumes; column++)
+//      {
+//        ImGui::TableSetupColumn(dataLabels[column].c_str());
+//      }
+//      ImGui::TableHeadersRow();
+//      
+//			for (int row = 0; row < tfn_widget.size(); row++)
+//      {
+//				ImGui::TableNextRow();
+//        for (int col = 0; col < m_numVolumes+1; col++)
+//        {
+//					ImGui::TableSetColumnIndex(col);
+//					if (col == 0)
+//					{
+//            char buf[32];
+//            sprintf(buf, "TF%d", row);
+//            if (ImGui::SmallButton(buf)) {
+//              std::cout << buf << std::endl; 
+//							m_selectedTrnFnc = row;
+//            };
+//
+//					}
+//					else 
+//					{
+//						char buf[32];
+//						sprintf(buf, "##On%d%d", col, row);
+//						bool b = selectedTrFn[row][col - 1];
+//						ImGui::Checkbox(buf, &b);
+//						selectedTrFn[row][col - 1] = b;
+//					}
+//
+//        }
+//			}
+//			
+//			ImGui::EndTable();
+//		}
+//		
+//		
+//		//const char* v_items[10] ;
+//		//for (int i = 0; i < dataLabels.size();i++)
+//		//{
+//		//	v_items[i] = dataLabels[i].c_str();
+//		//}
+//
+//		//static const char* current_item = NULL;
+//		//ImGui::BeginCombo("##custom combo", current_item);
+//		//for (int n = 0; n < dataLabels.size(); n++)
+//		//{
+//  //    bool is_selected = (current_item == dataLabels[n].c_str());
+//  //    if (ImGui::Selectable(dataLabels[n].c_str(), is_selected))
+//		//		m_selectedVolume =n;
+//  //    if (is_selected)
+//  //      ImGui::SetItemDefaultFocus();
+//		//}
+//		//ImGui::EndCombo();
+//
+//  /*	ImGui::Combo("data type", &m_selectedVolume,
+//      [](void* vec, int idx, const char** out_text) {
+//        std::vector<std::string>* vector = reinterpret_cast<std::vector<std::string>*>(vec);
+//          if (idx < 0 || idx >= vector->size())return false;
+//        *out_text = vector->at(idx).c_str();
+//        return true;
+//      }, reinterpret_cast<void*>(&dataLabels), dataLabels.size());*/
+//		
+//		
+//		//ImGui::Combo("Volume data", &m_selectedVolume, v_items, IM_ARRAYSIZE(v_items));
+//
+//		ImGui::Checkbox("use transferfunction", &m_use_transferfunction);
+//		if (m_use_transferfunction) {
+//
+//			bool is_multi_channel = false;
+//			for (int i = 0; i < m_volumes.size(); i++)
+//			{
+//				if (m_volumes.size() > 0 && m_volumes[i][0]->get_channels() > 1 &&
+//					(m_renderchannel == 0 || m_renderchannel == 5 || m_renderchannel == 6))
+//				{
+//					is_multi_channel |= true;
+//				}
+//			}
+//						 if (is_multi_channel)
+//						 {
+//							 for (int i = 0; i < 3; i++) {
+//								 if (m_animated)
+//								 {
+//									 /*	unsigned int active_volume = floor(m_frame);
+//										 unsigned int active_volume2 = ceil(m_frame);
+//										 double alpha = m_frame - active_volume;
+//										 if (active_volume < m_volumes[m_selectedVolume].size() && active_volume2 < m_volumes[m_selectedVolume].size())
+//										 {
+//											 tfn_widget_multi[m_selectedVolume].setBlendedHistogram(
+//												 m_volumes[m_selectedVolume][active_volume]->getTransferfunction(i),
+//												 m_volumes[m_selectedVolume][active_volume2]->getTransferfunction(i), alpha, i);
+//										 }*/
+//
+//								 }
+//								 else {
+//									 /*		tfn_widget_multi[m_selectedVolume].setHistogram(m_volumes[m_selectedVolume][0]->getTransferfunction(i), i);*/
+//								 }
+//							 }
+//							 m_use_multi_transfer = true;
+//							 tfn_widget_multi[m_selectedTrnFnc].draw_ui();
+//						 }
+//						 else
+//						 {
+//							 if (m_animated)
+//							 {
+//								 /*	unsigned int active_volume = floor(m_frame);
+//									 unsigned int active_volume2 = ceil(m_frame);
+//									 double alpha = m_frame - active_volume;
+//									 tfn_widget[m_selectedVolume].setMinMax(m_volumes[m_selectedVolume][active_volume]->getMin() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMin() * (1.0 - alpha),
+//										 m_volumes[m_selectedVolume][active_volume]->getMax() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMax() * (1.0 - alpha));
+//									 if (active_volume < m_volumes[m_selectedVolume].size() && active_volume2 < m_volumes[m_selectedVolume].size())
+//										 tfn_widget[m_selectedVolume].setBlendedHistogram(m_volumes[m_selectedVolume][active_volume]->getTransferfunction(0), m_volumes[m_selectedVolume][active_volume2]->getTransferfunction(0), alpha);*/
+//							 }
+//							 else if (m_volumes.size() > 0) {
+//								 /*tfn_widget[m_selectedVolume].setHistogram(m_volumes[m_selectedVolume][0]->getTransferfunction(0));
+//								 tfn_widget[m_selectedVolume].setMinMax(m_volumes[m_selectedVolume][0]->getMin(), m_volumes[m_selectedVolume][0]->getMax());*/
+//							 }
+//							 m_use_multi_transfer = false;
+//							 tfn_widget[m_selectedTrnFnc].draw_ui();
+//						 }
+//			
+//       }
+//
+//		
+//
+//		if (m_animated) {
+//			ImGui::Text("Timestep");
+//			ImGui::SameLine();
+//			ImGui::SetNextItemWidth(-100 - ImGui::GetStyle().ItemSpacing.x);
+//			float frame_tmp = m_frame + 1;
+//			ImGui::SliderFloat("##Timestep", &frame_tmp, 1, m_volumes[m_selectedVolume].size());
+//			m_frame = frame_tmp - 1;
+//			ImGui::SameLine();
+//
+//			std::string text = m_stopped ? "Play" : "Stop";
+//			if (ImGui::Button(text.c_str(), ImVec2(100, 0))) {
+//				m_stopped = !m_stopped;
+//			}
+//
+//
+//			if (ImGui::Button("Write Movie"))
+//			{
+//#ifndef _MSC_VER
+//				fs::create_directory("movie");
+//#endif
+//				if (m_movieAction)
+//					delete m_movieAction;
+//
+//				m_movieAction = new CreateMovieAction();
+//				m_frame = 0;
+//				m_show_menu = false;
+//			}
+//		}
+//
+//		ImGui::Checkbox("Camera centric rotations", &m_useCameraCenterRotations);
+//		m_trackball.setCameraCenterRotation(m_useCameraCenterRotations);
+//		ImGui::EndTabItem();	
+//	}
+//	
+//	if (ImGui::BeginTabItem("Clipping")) {
+//
+//		ImGui::Text("Axis aligned clip");
+//		glm::vec2 bound = { m_clip_min.x * 100 ,m_clip_max.x * 100 };
+//		ImGui::DragFloatRange2("X", &bound.x, &bound.y, 0.1f, 0.0f, 100.0f, "Min: %.1f %%", "Max: %.1f %%");
+//		m_clip_min.x = bound.x / 100; 
+//		m_clip_max.x = bound.y / 100;
+//
+//		bound = { m_clip_min.y * 100 ,m_clip_max.y * 100 };
+//		ImGui::DragFloatRange2("Y", &bound.x, &bound.y, 0.1f, 0.0f, 100.0f, "Min: %.1f %%", "Max: %.1f %%");
+//		m_clip_min.y = bound.x / 100;
+//		m_clip_max.y = bound.y / 100;
+//
+//		bound = { m_clip_min.z * 100 ,m_clip_max.z * 100 };
+//		ImGui::DragFloatRange2("Z", &bound.x, &bound.y, 0.1f, 0.0f, 100.0f, "Min: %.1f %%", "Max: %.1f %%");
+//		m_clip_min.z = bound.x / 100;
+//		m_clip_max.z = bound.y / 100;
+//
+//		if (ImGui::Button("Reset")) {
+//			m_clip_min = glm::vec3(0.0f);
+//			m_clip_max = glm::vec3(1.0f);
+//		}
+//
+//		ImGui::Checkbox("Custom Clipping plane", &m_useCustomClipPlane);
+//		if (m_useCustomClipPlane) {
+//			ImGui::SliderAngle("Pitch", &m_clip_ypr.y, -90, 90);
+//			ImGui::SliderAngle("Roll", &m_clip_ypr.z, -180, 180);
+//
+//			ImGui::SliderFloat("Position X", &m_clip_pos.x, -0.5, 0.5);
+//			ImGui::SliderFloat("Position y", &m_clip_pos.y, -0.5, 0.5);
+//			ImGui::SliderFloat("Position z", &m_clip_pos.z, -0.5, 0.5);
+//			if (ImGui::Button("Reset##Reset2")) {
+//				m_clip_ypr = glm::vec3(0.0f);
+//				m_clip_pos = glm::vec3(0.0f);
+//			}
+//		}
+//
+//		ImGui::EndTabItem();
+//	}
+//	ImGui::EndTabBar();
+//	//file loading
+//	fileDialog.Display();
+//
+//	if (fileDialog.HasSelected())
+//	{
+//		if (helper::ends_with_string(fileDialog.GetSelected().string(), ".txt"))
+//		{
+//			loadTxtFile(fileDialog.GetSelected().string());
+//		}
+//#ifdef WITH_TEEM
+//		else if (helper::ends_with_string(fileDialog.GetSelected().string(), ".nrrd")) {
+//			std::vector<std::string> vals;
+//		/*	vals.push_back(fileDialog.GetSelected().string());	
+//			promises.push_back(new std::promise<Volume*>);
+//			futures.push_back(promises.back()->get_future());
+//			threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));*/
+//		}
+//#endif
+//		fileDialog.ClearSelected();
+//	}
+//	
+//	ImGui::End();
 }
 
 void VolumeVisualizationApp::initTexture()
@@ -996,10 +999,7 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 	glLightfv(GL_LIGHT0, GL_POSITION, m_light_pos);
 
 	for (std::string filename : m_models_filenames) {
-		std::cerr << "Generate DisplayList " << filename << std::endl;
-	
-
-	
+		
 		mesh_model = GLMLoader::loadObjModel(filename);
 		
 	
@@ -1051,7 +1051,6 @@ void VolumeVisualizationApp::clearData()
 
   }
   m_volumes.clear();
-  m_volumes.clear();
   m_description.clear();
   m_labels.clear();
 
@@ -1089,6 +1088,142 @@ void VolumeVisualizationApp::getMinMax(const float frame, float& min, float& max
 	double alpha = frame - active_volume;
 	min = m_volumes[m_selectedVolume][active_volume]->getMin() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMin() * (1.0 - alpha);
 	max = m_volumes[m_selectedVolume][active_volume]->getMax() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMax() * (1.0 - alpha);
+}
+
+void VolumeVisualizationApp::loadTextFile(std::string& filename)
+{
+	std::ifstream inFile;
+	inFile.open(filename);
+
+	std::string line;
+
+	fs::path p_filename(filename);
+
+	while (getline(inFile, line)) {
+		if (line[0] != '#') {
+			std::vector<std::string> vals; // Create vector to hold our words
+			std::stringstream ss(line);
+			std::string buf;
+
+			while (ss >> buf) {
+				vals.push_back(buf);
+			}
+			if (vals.size() > 0) {
+				std::string tag = vals[0];
+				if (tag == "animated")
+				{
+					m_animated = true;
+				}
+				if (tag == "threshold")
+				{
+					m_threshold = stof(vals[1]);
+				}
+				if (tag == "label")
+				{
+					std::cerr << "add Label " << vals[1] << std::endl;
+					std::cerr << "at position " << vals[2] << " , " << vals[3] << " , " << vals[4] << std::endl;
+					std::cerr << "text at position " << vals[2] << " , " << vals[3] << " , " << vals[5] << std::endl;
+					std::cerr << "text Size " << vals[6] << std::endl;
+					std::cerr << "for Volume " << vals[7] << std::endl;
+					m_labels.add(vals[1], stof(vals[2]), stof(vals[3]), stof(vals[4]), stof(vals[5]), stof(vals[6]), stoi(vals[7]) - 1);
+				}
+				if (tag == "desc")
+				{
+					std::cerr << "Load Description " << vals[1] << std::endl;
+					std::cerr << "with size " << vals[2] << std::endl;
+					m_descriptionHeight = stoi(vals[2]);
+					m_descriptionFilename = p_filename.parent_path().string() + OS_SLASH + vals[1];
+					m_description = LoadDescriptionAction(m_descriptionFilename).run();
+					std::cerr << m_description[0] << std::endl;
+				}
+				if (tag == "mesh")
+				{
+					//	std::cerr << "Load Mesh " << vals[1] << std::endl;
+					//	std::cerr << "for Volume " << vals[2] << std::endl;
+					vals[1] = p_filename.parent_path().string() + OS_SLASH + vals[1];
+					std::cerr << "Load Mesh " << vals[1] << std::endl;
+					m_models_volumeID.push_back(stoi(vals[2]) - 1);
+					m_models_filenames.push_back(vals[1]);
+					m_models_MV.push_back(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
+					shaderFilePath = p_filename.parent_path().string() + OS_SLASH + "shaders";
+
+				}
+				if (tag == "texture")
+				{
+
+					//std::cerr << "for Volume " << vals[2] << std::endl;
+					textureFilePath = p_filename.parent_path().string() + OS_SLASH + vals[1];
+					std::cerr << "Load texture " << textureFilePath << std::endl;
+					m_texture = new Texture(GL_TEXTURE_2D, textureFilePath);
+
+				}
+				if (tag == "numVolumes")
+				{
+					m_numVolumes = std::stoi(vals[1]);
+					dataLabels.resize(m_numVolumes);
+					for (int i = 0; i < m_numVolumes; i++)
+					{
+						dataLabels[i] = vals[i + 2];
+					}
+					m_volumes.resize(m_numVolumes);
+					promises.resize(m_numVolumes);
+					futures.resize(m_numVolumes);
+					threads.resize(m_numVolumes);
+					tfn_widget_multi.resize(1);
+					tfn_widget.resize(1);
+					selectedTrFn.resize(1);
+					selectedTrFn[0].resize(m_numVolumes);
+					for (int i = 0; i < m_numVolumes; i++)
+					{
+						selectedTrFn[0][i] = false;
+					}
+				}
+				else if (tag.rfind("volume") == 0)
+				{
+					char str[3];
+					int i;
+
+					std::string strVolumeIndex = tag.substr(6);
+					size_t volumeIndex = std::stoi(strVolumeIndex);
+
+
+					vals[1] = p_filename.parent_path().string() + OS_SLASH + vals[1];
+
+
+
+					std::vector<std::promise<Volume*>*>& v = promises[volumeIndex - 1];
+					std::promise<Volume*>* pm = new std::promise<Volume*>();
+
+					v.push_back(pm);
+
+					//promises[volumeIndex-1]=v;
+
+					std::vector<std::future<Volume*>>* fut;
+					if (!futures[volumeIndex - 1])
+					{
+						futures[volumeIndex - 1] = new std::vector<std::future<Volume*>>;
+
+					}
+					fut = futures[volumeIndex - 1];
+
+					fut->push_back(pm->get_future());
+					futures[volumeIndex - 1] = fut;
+
+					std::vector <std::thread*>& ths = threads[volumeIndex - 1];
+					std::vector<std::promise<Volume*>*> v2 = promises[volumeIndex - 1];
+					ths.emplace_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, v2.back()));
+
+					//threads[volumeIndex - 1] = ths;
+
+
+					/*promises[volumeIndex -1].push_back(new std::promise<Volume*>);
+					futures[volumeIndex - 1]->push_back(promises[i].back()->get_future());
+					threads[volumeIndex - 1].push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises[i].back()));*/
+				}
+			}
+		}
+	}
+	inFile.close();
 }
 
 void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState& renderState) {

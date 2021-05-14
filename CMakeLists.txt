@@ -42,6 +42,7 @@ option(WITH_TEEM "Adds support of nrrd files through teem" OFF)
 set(source_files
   src/main.cpp
   src/vrapp/VolumeVisualizationApp.cpp
+  src/vrapp/VRVolumeApp.cpp
   src/loader/LoadDataAction.cpp
   src/render/Shader.cpp
   src/render/Volume.cpp
@@ -49,7 +50,8 @@ set(source_files
   src/render/VolumeSliceShader.cpp
   src/render/VolumeRaycastRenderer.cpp
   src/render/VolumeRaycastShader.cpp
-  
+  src/UI/UIController.cpp
+  src/UI/UIView.cpp
   libs/glm.cpp
   src/render/FrameBufferObject.cpp
   src/render/DepthTexture.cpp
@@ -65,6 +67,7 @@ set(source_files
 
 set(header_files
   include/vrapp/VolumeVisualizationApp.h
+  include/vrapp/VRVolumeApp.h
   include/loader/LoadDataAction.h
   include/render/Shader.h
   include/render/Volume.h
@@ -72,7 +75,8 @@ set(header_files
   include/render/VolumeSliceShader.h
   include/render/VolumeRaycastRenderer.h
   include/render/VolumeRaycastShader.h
-  
+  include/UI/UIController.h
+  include/UI/UIView.h
   libs/glm.h
   include/render/FrameBufferObject.h
   include/render/DepthTexture.h
