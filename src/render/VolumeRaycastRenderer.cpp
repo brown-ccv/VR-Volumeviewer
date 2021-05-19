@@ -31,7 +31,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "../../include/render/VolumeRaycastRenderer.h"
+#include "render/VolumeRaycastRenderer.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 ////for floating point inaccuracy

@@ -30,7 +30,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "../../include/render/FrameBufferObject.h"
+#include "render/FrameBufferObject.h"
 #include <GL/glew.h>
 #include <iostream>
 

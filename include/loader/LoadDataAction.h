@@ -30,7 +30,7 @@
 #define LOADDATAACTION_H
 #include <string>
 #include <vector>
-#include "../render/Volume.h"
+#include "render/Volume.h"
 #include <opencv2/core/mat.hpp>
 
 #ifdef _MSC_VER

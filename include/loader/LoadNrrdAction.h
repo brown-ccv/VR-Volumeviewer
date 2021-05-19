@@ -30,7 +30,7 @@
 #define LOADNRRDACTION_H
 
 #include <string>
-#include "../render/Volume.h"
+#include "render/Volume.h"
 
 class LoadNrrdAction
 {

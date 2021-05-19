@@ -3,17 +3,17 @@
 
 #include "GL/glew.h"
 #include "VRMenuHandler.h"
-#include "../../libs/transferfunction/transfer_function_multichannel_widget.h"
-#include "../../libs/transferfunction/transfer_function_widget.h"
+#include "transferfunction/transfer_function_multichannel_widget.h"
+#include "transferfunction/transfer_function_widget.h"
 #include "imfilebrowser.h"
 #include <api/MinVR.h>
-#include "../render/FrameBufferObject.h"
-#include "../render/Volume.h"
-#include "../interaction/Labels.h"
-#include "../render/VolumeRaycastRenderer.h"
-#include "../render/DepthTexture.h"
+#include "render/FrameBufferObject.h"
+#include "render/Volume.h"
+#include "interaction/Labels.h"
+#include "render/VolumeRaycastRenderer.h"
+#include "render/DepthTexture.h"
 #include <future>
-#include "../interaction/ArcBall.h"
+#include "interaction/ArcBall.h"
 
 
 
@@ -89,6 +89,8 @@ public:
 		void getMinMax(const float frame, float & min, float & max);
 
 		void loadTextFile(std::string& filename);
+
+		
 
 private:
 	void addLodadedTextures();

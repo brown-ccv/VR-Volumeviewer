@@ -30,7 +30,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "../../include/render/VolumeSliceShader.h"
+#include "render/VolumeSliceShader.h"
 #include <GL/glew.h>
 
 #include <glm/gtc/type_ptr.hpp>

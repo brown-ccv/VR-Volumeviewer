@@ -30,7 +30,7 @@
 #define LOADDESCRIPTIONACTION_H
 
 #include <string>
-#include "../render/Volume.h"
+#include "render/Volume.h"
 
 class LoadDescriptionAction
 {

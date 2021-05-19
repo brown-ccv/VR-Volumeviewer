@@ -31,7 +31,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "../../include/render/VolumeSliceRenderer.h"
+#include "render/VolumeSliceRenderer.h"
 #include <ostream>
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>

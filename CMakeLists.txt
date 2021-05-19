@@ -50,7 +50,6 @@ set(source_files
   src/render/VolumeSliceShader.cpp
   src/render/VolumeRaycastRenderer.cpp
   src/render/VolumeRaycastShader.cpp
-  src/UI/UIController.cpp
   src/UI/UIView.cpp
   libs/glm.cpp
   src/render/FrameBufferObject.cpp
@@ -75,7 +74,6 @@ set(header_files
   include/render/VolumeSliceShader.h
   include/render/VolumeRaycastRenderer.h
   include/render/VolumeRaycastShader.h
-  include/UI/UIController.h
   include/UI/UIView.h
   libs/glm.h
   include/render/FrameBufferObject.h
@@ -115,6 +113,8 @@ include_directories(
   ${GLEW_INCLUDE_DIRS}
   ${FTGL_INCLUDE_DIR}
   ${FREETYPE_INCLUDE_DIRS}
+  include/
+  libs/
 )
 
 
