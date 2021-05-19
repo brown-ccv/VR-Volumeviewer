@@ -9,7 +9,8 @@
 
 UIView::UIView(VRVolumeApp& controllerApp):m_controller_app(controllerApp), m_multiplier{ 1.0f }, m_threshold{ 0.0f },
 m_z_scale{ 0.16f }, m_scale{ 1.0f }, m_slices(256), m_dynamic_slices{ false }, m_renderVolume(true), m_selectedTrnFnc(0),
-m_animated(false), m_frame{ 0.0f }, m_menu_handler(nullptr), m_initialized(false)
+m_animated(false), m_frame{ 0.0f }, m_menu_handler(nullptr), m_initialized(false), m_use_transferfunction( false ), m_use_multi_transfer( false ),
+m_clip_max( 1.0 ), m_clip_min( 0.0 ), m_clip_ypr( 0.0 ), m_clip_pos( 0.0 ), m_useCustomClipPlane( false )
 {
 
 }
@@ -23,162 +24,168 @@ void UIView::drawUICB()
 
   ImGui::Begin("Volumeviewer");
   ImGui::BeginTabBar("##tabs");
-  if (ImGui::BeginTabItem("General")) 
+  if (ImGui::BeginTabItem("General"))
   {
-    if (ImGui::Button("load file", ImVec2(ImGui::GetWindowSize().x * 0.5f - 1.5 * ImGui::GetStyle().ItemSpacing.x, 0.0f)))
-      fileDialog.Open();
-    ImGui::SameLine();
-    if (ImGui::Button("Clear all", ImVec2(ImGui::GetWindowSize().x * 0.5f - 1.5 * ImGui::GetStyle().ItemSpacing.x, 0.0f)))
+     if (ImGui::Button("load file", ImVec2(ImGui::GetWindowSize().x * 0.5f - 1.5 * ImGui::GetStyle().ItemSpacing.x, 0.0f)))
+         fileDialog.Open();
+     ImGui::SameLine();
+     if (ImGui::Button("Clear all", ImVec2(ImGui::GetWindowSize().x * 0.5f - 1.5 * ImGui::GetStyle().ItemSpacing.x, 0.0f)))
+       {
+         m_controller_app.clearData();
+     }
+     
+     ImGui::SliderFloat("alpha multiplier", &m_multiplier, 0.0f, 1.0f, "%.3f");
+     ImGui::SliderFloat("threshold", &m_threshold, 0.0f, 1.0f, "%.3f");
+     ImGui::SliderFloat("scale", &m_scale, 0.001f, 5.0f, "%.3f");
+     ImGui::SliderFloat("z - scale", &m_z_scale, 0.001f, 5.0f, "%.3f");
+     ImGui::SliderInt("Slices", &m_slices, 10, 1024, "%d");
+     ImGui::Checkbox("automatic slice adjustment", &m_dynamic_slices);
+
+     ImGui::SameLine(ImGui::GetWindowSize().x * 0.5f, 0);
+     ImGui::Text("FPS = %f", m_controller_app.getFps());
+     const char* items[] = { "sliced" , "raycast" };
+     ImGui::Combo("RenderMethod", &m_rendermethod, items, IM_ARRAYSIZE(items));
+
+     const char* items_channel[] = { "based on data" , "red", "green" , "blue", "alpha", "rgba", "rgba with alpha as max rgb" };
+     ImGui::Combo("Render Channel", &m_renderchannel, items_channel, IM_ARRAYSIZE(items_channel));
+
+     ImGui::Checkbox("Render Volume data", &m_renderVolume);
+
+     int numVolumes = m_controller_app.getNumVolumes();
+
+    
+
+    if (numVolumes > 0)
     {
-      m_controller_app.clearData();
-    }
-  }
-  ImGui::SliderFloat("alpha multiplier", &m_multiplier, 0.0f, 1.0f, "%.3f");
-  ImGui::SliderFloat("threshold", &m_threshold, 0.0f, 1.0f, "%.3f");
-  ImGui::SliderFloat("scale", &m_scale, 0.001f, 5.0f, "%.3f");
-  ImGui::SliderFloat("z - scale", &m_z_scale, 0.001f, 5.0f, "%.3f");
-  ImGui::SliderInt("Slices", &m_slices, 10, 1024, "%d");
-  ImGui::Checkbox("automatic slice adjustment", &m_dynamic_slices);
-
-  ImGui::SameLine(ImGui::GetWindowSize().x * 0.5f, 0);
-  ImGui::Text("FPS = %f", m_controller_app.getFps());
-  const char* items[] = { "sliced" , "raycast" };
-  ImGui::Combo("RenderMethod", &m_rendermethod, items, IM_ARRAYSIZE(items));
-
-  const char* items_channel[] = { "based on data" , "red", "green" , "blue", "alpha", "rgba", "rgba with alpha as max rgb" };
-  ImGui::Combo("Render Channel", &m_renderchannel, items_channel, IM_ARRAYSIZE(items_channel));
-
-  ImGui::Checkbox("Render Volume data", &m_renderVolume);
-
-  int numVolumes = m_controller_app.getNumVolumes();
-
-  if (ImGui::SmallButton("New")) {
-    tfn_widget.push_back(TransferFunctionWidget());
-    tfn_widget_multi.push_back(TransferFunctionMultiChannelWidget());
-    int index = m_selectedTrFn.size();
-    m_selectedTrFn.push_back(std::vector<bool>(numVolumes));
-    for (int i = 0; i < numVolumes; i++)
-    {
-      m_selectedTrFn[index][i] = false;
-    }
-  };
-  ImGui::SameLine();
-  if (ImGui::SmallButton("Remove")) {
-
-
-  };
-
-  if (numVolumes > 0)
-  {
-    ImGui::BeginTable("##Transfer Function Editor", 3);
-    ImGui::TableSetupColumn("Name");
-    for (int column = 0; column < numVolumes; column++)
-    {
-      ImGui::TableSetupColumn(dataLabels[column].c_str());
-    }
-    ImGui::TableHeadersRow();
-
-    for (int row = 0; row < tfn_widget.size(); row++)
-    {
-      ImGui::TableNextRow();
-      for (int col = 0; col < numVolumes + 1; col++)
-      {
-        ImGui::TableSetColumnIndex(col);
-        if (col == 0)
+      if (ImGui::SmallButton("New")) {
+        tfn_widget.push_back(TransferFunctionWidget());
+        tfn_widget_multi.push_back(TransferFunctionMultiChannelWidget());
+        int index = m_selectedTrFn.size();
+        m_selectedTrFn.push_back(std::vector<bool>(numVolumes));
+        for (int i = 0; i < numVolumes; i++)
         {
-          char buf[32];
-          sprintf(buf, "TF%d", row);
-          if (ImGui::SmallButton(buf)) {
-            std::cout << buf << std::endl;
-            m_selectedTrnFnc = row;
-          };
+          m_selectedTrFn[index][i] = false;
+        }
+      };
+      ImGui::SameLine();
+      if (ImGui::SmallButton("Remove")) {
 
+
+      };
+
+      ImGui::BeginTable("##Transfer Function Editor", 3);
+      ImGui::TableSetupColumn("Name");
+      for (int column = 0; column < numVolumes; column++)
+      {
+        ImGui::TableSetupColumn(dataLabels[column].c_str());
+      }
+      ImGui::TableHeadersRow();
+
+      for (int row = 0; row < tfn_widget.size(); row++)
+      {
+        ImGui::TableNextRow();
+        for (int col = 0; col < numVolumes + 1; col++)
+        {
+          ImGui::TableSetColumnIndex(col);
+          if (col == 0)
+          {
+            char buf[32];
+            sprintf(buf, "TF%d", row);
+            if (ImGui::SmallButton(buf)) {
+              std::cout << buf << std::endl;
+              m_selectedTrnFnc = row;
+            };
+
+          }
+          else
+          {
+            char buf[32];
+            sprintf(buf, "##On%d%d", col, row);
+            bool b = m_selectedTrFn[row][col - 1];
+            ImGui::Checkbox(buf, &b);
+            m_selectedTrFn[row][col - 1] = b;
+          }
+
+        }
+      }
+
+      ImGui::EndTable();
+
+      ImGui::Checkbox("use transferfunction", &m_use_transferfunction);
+      if (m_use_transferfunction) {
+        bool is_multi_channel = m_controller_app.getNumVolumes();
+        if (is_multi_channel)
+        {
+          for (int i = 0; i < 3; i++) {
+            if (m_animated)
+            {
+              /*	unsigned int active_volume = floor(m_frame);
+                unsigned int active_volume2 = ceil(m_frame);
+                double alpha = m_frame - active_volume;
+                if (active_volume < m_volumes[m_selectedVolume].size() && active_volume2 < m_volumes[m_selectedVolume].size())
+                {
+                  tfn_widget_multi[m_selectedVolume].setBlendedHistogram(
+                    m_volumes[m_selectedVolume][active_volume]->getTransferfunction(i),
+                    m_volumes[m_selectedVolume][active_volume2]->getTransferfunction(i), alpha, i);
+                }*/
+
+            }
+            else {
+              /*		tfn_widget_multi[m_selectedVolume].setHistogram(m_volumes[m_selectedVolume][0]->getTransferfunction(i), i);*/
+            }
+          }
+          m_use_multi_transfer = true;
+          tfn_widget_multi[m_selectedTrnFnc].draw_ui();
         }
         else
         {
-          char buf[32];
-          sprintf(buf, "##On%d%d", col, row);
-          bool b = m_selectedTrFn[row][col - 1];
-          ImGui::Checkbox(buf, &b);
-          m_selectedTrFn[row][col - 1] = b;
-        }
+          if (m_animated)
+          {
+            /*	unsigned int active_volume = floor(m_frame);
+              unsigned int active_volume2 = ceil(m_frame);
+              double alpha = m_frame - active_volume;
+              tfn_widget[m_selectedVolume].setMinMax(m_volumes[m_selectedVolume][active_volume]->getMin() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMin() * (1.0 - alpha),
+                m_volumes[m_selectedVolume][active_volume]->getMax() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMax() * (1.0 - alpha));
+              if (active_volume < m_volumes[m_selectedVolume].size() && active_volume2 < m_volumes[m_selectedVolume].size())
+                tfn_widget[m_selectedVolume].setBlendedHistogram(m_volumes[m_selectedVolume][active_volume]->getTransferfunction(0), m_volumes[m_selectedVolume][active_volume2]->getTransferfunction(0), alpha);*/
 
-      }
-    }
-
-    ImGui::EndTable();
-  }
-
-  ImGui::Checkbox("use transferfunction", &m_use_transferfunction);
-  if (m_use_transferfunction) {
-    bool is_multi_channel = m_controller_app.getNumVolumes();
-    if (is_multi_channel)
-    {
-      for (int i = 0; i < 3; i++) {
-        if (m_animated)
-        {
-          /*	unsigned int active_volume = floor(m_frame);
-            unsigned int active_volume2 = ceil(m_frame);
-            double alpha = m_frame - active_volume;
-            if (active_volume < m_volumes[m_selectedVolume].size() && active_volume2 < m_volumes[m_selectedVolume].size())
-            {
-              tfn_widget_multi[m_selectedVolume].setBlendedHistogram(
-                m_volumes[m_selectedVolume][active_volume]->getTransferfunction(i),
-                m_volumes[m_selectedVolume][active_volume2]->getTransferfunction(i), alpha, i);
-            }*/
-
-        }
-        else {
-          /*		tfn_widget_multi[m_selectedVolume].setHistogram(m_volumes[m_selectedVolume][0]->getTransferfunction(i), i);*/
+          }
+          else if (numVolumes > 0) {
+            /*tfn_widget[m_selectedVolume].setHistogram(m_volumes[m_selectedVolume][0]->getTransferfunction(0));
+            tfn_widget[m_selectedVolume].setMinMax(m_volumes[m_selectedVolume][0]->getMin(), m_volumes[m_selectedVolume][0]->getMax());*/
+          }
+          m_use_multi_transfer = false;
+          tfn_widget[m_selectedTrnFnc].draw_ui();
         }
       }
-      m_use_multi_transfer = true;
-      tfn_widget_multi[m_selectedTrnFnc].draw_ui();
+
     }
-    else
-    {
-      if (m_animated)
+
+
+    if (m_animated) {
+      ImGui::Text("Timestep");
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(-100 - ImGui::GetStyle().ItemSpacing.x);
+      float frame_tmp = m_frame + 1;
+      //ImGui::SliderFloat("##Timestep", &frame_tmp, 1, m_volumes[m_selectedVolume].size());
+      m_frame = frame_tmp - 1;
+      ImGui::SameLine();
+
+      std::string text = m_stopped ? "Play" : "Stop";
+      if (ImGui::Button(text.c_str(), ImVec2(100, 0))) {
+        m_stopped = !m_stopped;
+      }
+
+
+      if (ImGui::Button("Write Movie"))
       {
-        /*	unsigned int active_volume = floor(m_frame);
-          unsigned int active_volume2 = ceil(m_frame);
-          double alpha = m_frame - active_volume;
-          tfn_widget[m_selectedVolume].setMinMax(m_volumes[m_selectedVolume][active_volume]->getMin() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMin() * (1.0 - alpha),
-            m_volumes[m_selectedVolume][active_volume]->getMax() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMax() * (1.0 - alpha));
-          if (active_volume < m_volumes[m_selectedVolume].size() && active_volume2 < m_volumes[m_selectedVolume].size())
-            tfn_widget[m_selectedVolume].setBlendedHistogram(m_volumes[m_selectedVolume][active_volume]->getTransferfunction(0), m_volumes[m_selectedVolume][active_volume2]->getTransferfunction(0), alpha);*/
-
+        m_controller_app.runMovie();
       }
-      else if (numVolumes > 0) {
-        /*tfn_widget[m_selectedVolume].setHistogram(m_volumes[m_selectedVolume][0]->getTransferfunction(0));
-        tfn_widget[m_selectedVolume].setMinMax(m_volumes[m_selectedVolume][0]->getMin(), m_volumes[m_selectedVolume][0]->getMax());*/
-      }
-      m_use_multi_transfer = false;
-      tfn_widget[m_selectedTrnFnc].draw_ui();
     }
+    ImGui::EndTabItem();
   }
 
-  if (m_animated) {
-    ImGui::Text("Timestep");
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(-100 - ImGui::GetStyle().ItemSpacing.x);
-    float frame_tmp = m_frame + 1;
-    //ImGui::SliderFloat("##Timestep", &frame_tmp, 1, m_volumes[m_selectedVolume].size());
-    m_frame = frame_tmp - 1;
-    ImGui::SameLine();
-
-    std::string text = m_stopped ? "Play" : "Stop";
-    if (ImGui::Button(text.c_str(), ImVec2(100, 0))) {
-      m_stopped = !m_stopped;
-    }
-
-
-    if (ImGui::Button("Write Movie"))
-    {
-      m_controller_app.runMovie();
-    }
-  }
-
-  if (ImGui::BeginTabItem("Clipping")) 
+  if (ImGui::BeginTabItem("Clipping"))
   {
     ImGui::Text("Axis aligned clip");
     glm::vec2 bound = { m_clip_min.x * 100 ,m_clip_max.x * 100 };
@@ -200,7 +207,7 @@ void UIView::drawUICB()
       m_clip_min = glm::vec3(0.0f);
       m_clip_max = glm::vec3(1.0f);
     }
-
+    
     ImGui::Checkbox("Custom Clipping plane", &m_useCustomClipPlane);
     if (m_useCustomClipPlane) {
       ImGui::SliderAngle("Pitch", &m_clip_ypr.y, -90, 90);
@@ -213,30 +220,35 @@ void UIView::drawUICB()
         m_clip_ypr = glm::vec3(0.0f);
         m_clip_pos = glm::vec3(0.0f);
       }
-      ImGui::EndTabItem();
+      
     }
-    ImGui::EndTabBar();
-
-    fileDialog.Display();
-
-    if (fileDialog.HasSelected())
-    {
-      if (helper::ends_with_string(fileDialog.GetSelected().string(), ".txt"))
-      {
-        m_controller_app.loadTxtFile(fileDialog.GetSelected().string());
-      }
-#ifdef WITH_TEEM
-      else if (helper::ends_with_string(fileDialog.GetSelected().string(), ".nrrd")) {
-        std::vector<std::string> vals;
-        /*	vals.push_back(fileDialog.GetSelected().string());
-          promises.push_back(new std::promise<Volume*>);
-          futures.push_back(promises.back()->get_future());
-          threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));*/
-      }
-#endif
-      fileDialog.ClearSelected();
-    }
+    ImGui::EndTabItem();
   }
+  ImGui::EndTabBar();
+     
+     //file loading
+  fileDialog.Display();
+
+  if (fileDialog.HasSelected())
+  {
+    if (helper::ends_with_string(fileDialog.GetSelected().string(), ".txt"))
+    {
+      m_controller_app.loadTxtFile(fileDialog.GetSelected().string());
+    }
+#ifdef WITH_TEEM
+    else if (helper::ends_with_string(fileDialog.GetSelected().string(), ".nrrd")) {
+      std::vector<std::string> vals;
+      /*	vals.push_back(fileDialog.GetSelected().string());
+        promises.push_back(new std::promise<Volume*>);
+        futures.push_back(promises.back()->get_future());
+        threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));*/
+    }
+#endif
+    fileDialog.ClearSelected();
+  }
+    
+   
+  
   ImGui::End();
 }
 
@@ -369,7 +381,7 @@ int UIView::getRenderChannel()
 
 void UIView::setButtonClick(int button, int state)
 {
-  if (m_menu_handler)
+  if (m_menu_handler && m_menu_handler->windowIsActive())
   {
     m_menu_handler->setButtonClick(button, state);
   }

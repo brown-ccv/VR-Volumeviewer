@@ -93,6 +93,8 @@ public:
 
   void runMovie();
 
+  void setRendercount(unsigned int);
+
   glm::vec4& getNoColor();
   glm::vec4& getAmbient();
   glm::vec4& getDiffuse();
@@ -196,7 +198,7 @@ protected:
   bool m_use_multi_transfer;
   bool m_show_menu;
 
-  unsigned int rendercount;
+  
 
   /*Input Events*/
   bool m_grab;

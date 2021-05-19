@@ -32,7 +32,7 @@
 
 VRVolumeApp::VRVolumeApp():m_mesh_model(nullptr), m_clip_max{ 1.0f }, m_clip_min{ 0.0f }, m_clip_ypr{ 0.0f }, m_clip_pos{ 0.0 }, m_wasd_pressed(0),
 m_lookingGlass( false ), m_isInitailized(false), m_speed(0.01f), m_movieAction( nullptr ), m_moviename( "movie.mp4" ), m_noColor(0.0f),
-m_ambient(0.2f, 0.2f, 0.2f, 1.0f), m_diffuse(0.5f, 0.5f, 0.5f, 1.0f)
+m_ambient(0.2f, 0.2f, 0.2f, 1.0f), m_diffuse(0.5f, 0.5f, 0.5f, 1.0f), m_ui_view(nullptr), m_animated(false)
 {
   m_renders.push_back(new VolumeSliceRenderer());
   m_renders.push_back(new VolumeRaycastRenderer());
@@ -54,6 +54,7 @@ void VRVolumeApp::initialize()
       m_ui_view->initUI(m_is2d, m_lookingGlass);
     }
     m_isInitailized = true;
+    m_rendercount = 0;
   }
 
 }
@@ -144,7 +145,10 @@ void VRVolumeApp::updateAnimation()
 {
   if (m_ui_view)
   {
-    m_ui_view->updateAnimation(m_speed, m_volumes[m_selectedVolume].size() - 1);
+    if (m_volumes.size())
+    {
+      m_ui_view->updateAnimation(m_speed, m_volumes[m_selectedVolume].size() - 1);
+    }
   }
 }
 
@@ -159,6 +163,11 @@ void VRVolumeApp::runMovie()
   m_movieAction = new CreateMovieAction();
   m_frame = 0;
   m_show_menu = false;
+}
+
+void VRVolumeApp::setRendercount(unsigned int rendercount)
+{
+  m_rendercount = rendercount;
 }
 
 glm::vec4& VRVolumeApp::getNoColor()
@@ -488,8 +497,8 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
   }
   
 
-  m_depthTextures[rendercount]->copyDepthbuffer();
-  (static_cast <VolumeRaycastRenderer*> (m_renders[1]))->setDepthTexture(m_depthTextures[rendercount]);
+  m_depthTextures[m_rendercount]->copyDepthbuffer();
+  (static_cast <VolumeRaycastRenderer*> (m_renders[1]))->setDepthTexture(m_depthTextures[m_rendercount]);
 
   renderVolume(renderState);
 
@@ -511,7 +520,7 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
 
   glFlush();
 
-  rendercount++;
+  m_rendercount++;
 
 
 
@@ -671,8 +680,8 @@ void VRVolumeApp::renderUI(const MinVR::VRGraphicsState& renderState)
   }
 
 
-  m_depthTextures[rendercount]->copyDepthbuffer();
-  (static_cast <VolumeRaycastRenderer*> (m_renders[1]))->setDepthTexture(m_depthTextures[rendercount]);
+  m_depthTextures[m_rendercount]->copyDepthbuffer();
+  (static_cast <VolumeRaycastRenderer*> (m_renders[1]))->setDepthTexture(m_depthTextures[m_rendercount]);
 }
 
 

@@ -692,8 +692,12 @@ void VolumeVisualizationApp::onCursorMove(const VRCursorEvent& event)
 	{
 		/*m_trackball.mouse_move(event.getPos()[0], event.getPos()[1]);
 		m_menu_handler->setCursorPos(event.getPos()[0], event.getPos()[1]);*/
-		glm::vec2 pos2d(event.getPos()[0], event.getPos()[1]);
-		m_vrVolumeApp->mousePosEvent(pos2d);
+		if (m_vrVolumeApp)
+		{
+      glm::vec2 pos2d(event.getPos()[0], event.getPos()[1]);
+      m_vrVolumeApp->mousePosEvent(pos2d);
+		}
+		
 		
 	}
 }
@@ -740,7 +744,7 @@ void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event) {
 
 
 void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
-	if (m_menu_handler != NULL && m_menu_handler->windowIsActive()) {
+	if (true) {
 		if (event.getName() == "MouseBtnLeft_Down")
 		{
 			//m_menu_handler->setButtonClick(0, 1);
@@ -1204,7 +1208,7 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 						{
 							m_vrVolumeApp->initialize();
               m_vrVolumeApp->intializeUI();
-							m_vrVolumeApp->loadShaders();
+							//m_vrVolumeApp->loadShaders();
 						}
 
 						
@@ -1240,6 +1244,8 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 		m_vrVolumeApp->update3DUI();
 		m_vrVolumeApp->updateTrackBallState();
 		m_vrVolumeApp->updateAnimation();
+		m_vrVolumeApp->setRendercount(0);
+
   }
   
 
