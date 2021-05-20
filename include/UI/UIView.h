@@ -48,6 +48,10 @@ public:
 
   void updateAnimation(float speed, int numFrames );
 
+  void addDataLabel(std::string& dataLabel);
+
+  void clearDataLabels();
+
 private:
 
 
@@ -72,7 +76,7 @@ private:
   std::vector<TransferFunctionWidget> tfn_widget;
   std::vector<std::vector<bool>> m_selectedTrFn;
 
-  std::vector<std::string> dataLabels;
+  std::vector<std::string> m_dataLabels;
   int m_selectedTrnFnc;
 
   bool m_animated;

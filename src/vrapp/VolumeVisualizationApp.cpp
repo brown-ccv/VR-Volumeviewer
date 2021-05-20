@@ -1208,7 +1208,7 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 						{
 							m_vrVolumeApp->initialize();
               m_vrVolumeApp->intializeUI();
-							//m_vrVolumeApp->loadShaders();
+							m_vrVolumeApp->loadShaders();
 						}
 
 						

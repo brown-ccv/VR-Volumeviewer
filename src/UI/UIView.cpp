@@ -77,7 +77,7 @@ void UIView::drawUICB()
       ImGui::TableSetupColumn("Name");
       for (int column = 0; column < numVolumes; column++)
       {
-        ImGui::TableSetupColumn(dataLabels[column].c_str());
+        ImGui::TableSetupColumn(m_dataLabels[column].c_str());
       }
       ImGui::TableHeadersRow();
 
@@ -443,4 +443,14 @@ void UIView::updateAnimation(float speed, int numFrames)
     m_frame += speed;
     if (m_frame > numFrames ) m_frame = 0.0f;
   }
+}
+
+void UIView::addDataLabel(std::string& dataLabel)
+{
+  m_dataLabels.push_back(dataLabel);
+}
+
+void UIView::clearDataLabels()
+{
+  m_dataLabels.clear();
 }

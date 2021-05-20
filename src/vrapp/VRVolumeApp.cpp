@@ -32,7 +32,7 @@
 
 VRVolumeApp::VRVolumeApp():m_mesh_model(nullptr), m_clip_max{ 1.0f }, m_clip_min{ 0.0f }, m_clip_ypr{ 0.0f }, m_clip_pos{ 0.0 }, m_wasd_pressed(0),
 m_lookingGlass( false ), m_isInitailized(false), m_speed(0.01f), m_movieAction( nullptr ), m_moviename( "movie.mp4" ), m_noColor(0.0f),
-m_ambient(0.2f, 0.2f, 0.2f, 1.0f), m_diffuse(0.5f, 0.5f, 0.5f, 1.0f), m_ui_view(nullptr), m_animated(false)
+m_ambient(0.2f, 0.2f, 0.2f, 1.0f), m_diffuse(0.5f, 0.5f, 0.5f, 1.0f), m_ui_view(nullptr), m_animated(false), m_numVolumes(0), m_selectedVolume(0)
 {
   m_renders.push_back(new VolumeSliceRenderer());
   m_renders.push_back(new VolumeRaycastRenderer());
@@ -104,6 +104,7 @@ void VRVolumeApp::loadMeshModel()
 
 void VRVolumeApp::loadShaders()
 {
+  m_shader_file_path = "shaders";
   std::string vertexShaderFolderPath = m_shader_file_path + OS_SLASH + std::string("shader.vert");
   std::string fragmentShaderFolderPath = m_shader_file_path + OS_SLASH + std::string("shader.frag");
   m_simple_texture_shader.LoadShaders(vertexShaderFolderPath.c_str(), fragmentShaderFolderPath.c_str());
@@ -260,10 +261,10 @@ void VRVolumeApp::loadTxtFile(std::string& filename)
 				if (tag == "numVolumes")
 				{
 					m_numVolumes = std::stoi(vals[1]);
-					m_data_labels.resize(m_numVolumes);
+					//m_data_labels.resize(m_numVolumes);
 					for (int i = 0; i < m_numVolumes; i++)
 					{
-						m_data_labels[i] = vals[i + 2];
+						m_ui_view->addDataLabel(vals[i + 2]);
 					}
 					m_volumes.resize(m_numVolumes);
 					m_promises.resize(m_numVolumes);

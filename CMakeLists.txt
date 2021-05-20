@@ -179,3 +179,4 @@ foreach(_source IN ITEMS ${_source_list})
     source_group("${_group_path}" FILES "${_source}")
 endforeach()
 
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/shaders DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
