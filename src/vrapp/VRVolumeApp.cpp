@@ -46,7 +46,6 @@ void VRVolumeApp::initialize()
   if (!m_isInitailized)
   {
     m_object_pose = glm::mat4(1.0f);
-    m_z_scale = 0.16;
     initializeGL();
     if (!m_ui_view)
     {
@@ -423,7 +422,7 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
     for (int j = 0; j < m_volumes[i].size(); j++) {
       glm::mat4 tmp = m_model_view;
       tmp = tmp * m_object_pose;
-      tmp = glm::scale(tmp, glm::vec3(m_scale, m_scale, m_scale * m_z_scale));
+      tmp = glm::scale(tmp, glm::vec3(m_ui_view->getScale(), m_ui_view->getScale(), m_ui_view->getScale() * m_ui_view->getZScale()));
       if (!m_animated)
         tmp = glm::translate(tmp, glm::vec3(m_volumes[i][j]->get_volume_position().x, m_volumes[i][j]->get_volume_position().y, m_volumes[i][j]->get_volume_position().z));
       m_volumes[i][j]->set_volume_mv(tmp);
@@ -548,7 +547,7 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
 void VRVolumeApp::renderLabels(const MinVR::VRGraphicsState& renderState)
 {
   //render labels
-  m_labels.draw(m_models_MV, m_headpose, m_z_scale);
+  m_labels.draw(m_models_MV, m_headpose, m_ui_view->getZScale());
 
   if (m_is2d && !m_description.empty())
     FontHandler::getInstance()->renderMultiLineTextBox2D(m_description, 50, 950, 200, m_descriptionHeight);

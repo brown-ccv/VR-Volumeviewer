@@ -52,6 +52,10 @@ public:
 
   void clearDataLabels();
 
+  float getZScale();
+
+  float getScale();
+
 private:
 
 

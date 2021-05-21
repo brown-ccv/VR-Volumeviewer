@@ -177,8 +177,7 @@ protected:
   bool m_lookingGlass;
 
   glm::mat4 m_object_pose;
-  float m_scale;
-  float m_z_scale;
+  
 
   Model* mesh_model;
 

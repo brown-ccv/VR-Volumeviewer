@@ -454,3 +454,13 @@ void UIView::clearDataLabels()
 {
   m_dataLabels.clear();
 }
+
+float UIView::getZScale()
+{
+  return m_z_scale;
+}
+
+float UIView::getScale()
+{
+  return m_scale;
+}
