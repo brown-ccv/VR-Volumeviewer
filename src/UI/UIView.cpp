@@ -113,7 +113,7 @@ void UIView::drawUICB()
 
       ImGui::Checkbox("use transferfunction", &m_use_transferfunction);
       if (m_use_transferfunction) {
-        bool is_multi_channel = m_controller_app.getNumVolumes();
+        bool is_multi_channel = m_controller_app.dataIsMultiChannel();
         if (is_multi_channel)
         {
           for (int i = 0; i < 3; i++) {
