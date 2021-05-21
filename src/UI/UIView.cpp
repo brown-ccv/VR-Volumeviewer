@@ -9,8 +9,8 @@
 
 UIView::UIView(VRVolumeApp& controllerApp):m_controller_app(controllerApp), m_multiplier{ 1.0f }, m_threshold{ 0.0f },
 m_z_scale{ 0.16f }, m_scale{ 1.0f }, m_slices(256), m_dynamic_slices{ false }, m_renderVolume(true), m_selectedTrnFnc(0),
-m_animated(false), m_frame{ 0.0f }, m_menu_handler(nullptr), m_initialized(false), m_use_transferfunction( false ), m_use_multi_transfer( false ),
-m_clip_max( 1.0 ), m_clip_min( 0.0 ), m_clip_ypr( 0.0 ), m_clip_pos( 0.0 ), m_useCustomClipPlane( false )
+m_animated(false), m_ui_frame_controller{ 0.0f }, m_menu_handler(nullptr), m_initialized(false), m_use_transferfunction( false ), m_use_multi_transfer( false ),
+m_clip_max( 1.0 ), m_clip_min( 0.0 ), m_clip_ypr( 0.0 ), m_clip_pos( 0.0 ), m_useCustomClipPlane( false ), m_rendermethod( 1 ), m_renderchannel( 0 )
 {
 
 }
@@ -104,6 +104,10 @@ void UIView::drawUICB()
             bool b = m_selectedTrFn[row][col - 1];
             ImGui::Checkbox(buf, &b);
             m_selectedTrFn[row][col - 1] = b;
+            if (b)
+            {
+              std::cout << "ddd" << std::endl;
+            }
           }
 
         }
@@ -166,9 +170,11 @@ void UIView::drawUICB()
       ImGui::Text("Timestep");
       ImGui::SameLine();
       ImGui::SetNextItemWidth(-100 - ImGui::GetStyle().ItemSpacing.x);
-      float frame_tmp = m_frame + 1;
+      float frame_tmp = m_controller_app.getCurrentFrame() + 1;
+      //controls animated multi datasets
       //ImGui::SliderFloat("##Timestep", &frame_tmp, 1, m_volumes[m_selectedVolume].size());
-      m_frame = frame_tmp - 1;
+      m_ui_frame_controller = frame_tmp - 1;
+      m_controller_app.setFrame(m_ui_frame_controller);
       ImGui::SameLine();
 
       std::string text = m_stopped ? "Play" : "Stop";
@@ -440,8 +446,14 @@ void UIView::updateAnimation(float speed, int numFrames)
 {
   if (m_animated && !m_stopped)
   {
-    m_frame += speed;
-    if (m_frame > numFrames ) m_frame = 0.0f;
+    m_ui_frame_controller += speed;
+    if (m_ui_frame_controller > numFrames)
+    {
+     
+      m_ui_frame_controller = 0.0f;
+      
+    }
+    m_controller_app.setFrame(m_ui_frame_controller);
   }
 }
 
@@ -463,4 +475,9 @@ float UIView::getZScale()
 float UIView::getScale()
 {
   return m_scale;
+}
+
+bool UIView::isUseMultiTransfer()
+{
+  return m_use_multi_transfer;
 }

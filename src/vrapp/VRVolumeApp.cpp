@@ -32,7 +32,8 @@
 
 VRVolumeApp::VRVolumeApp():m_mesh_model(nullptr), m_clip_max{ 1.0f }, m_clip_min{ 0.0f }, m_clip_ypr{ 0.0f }, m_clip_pos{ 0.0 }, m_wasd_pressed(0),
 m_lookingGlass( false ), m_isInitailized(false), m_speed(0.01f), m_movieAction( nullptr ), m_moviename( "movie.mp4" ), m_noColor(0.0f),
-m_ambient(0.2f, 0.2f, 0.2f, 1.0f), m_diffuse(0.5f, 0.5f, 0.5f, 1.0f), m_ui_view(nullptr), m_animated(false), m_numVolumes(0), m_selectedVolume(0)
+m_ambient(0.2f, 0.2f, 0.2f, 1.0f), m_diffuse(0.5f, 0.5f, 0.5f, 1.0f), m_ui_view(nullptr), m_animated(false), m_numVolumes(0), m_selectedVolume(0),
+m_frame( 0.0f )
 {
   m_renders.push_back(new VolumeSliceRenderer());
   m_renders.push_back(new VolumeRaycastRenderer());
@@ -168,6 +169,16 @@ void VRVolumeApp::runMovie()
 void VRVolumeApp::setRendercount(unsigned int rendercount)
 {
   m_rendercount = rendercount;
+}
+
+float VRVolumeApp::getCurrentFrame()
+{
+  return m_frame;
+}
+
+void VRVolumeApp::setFrame(float frame)
+{
+  m_frame = frame;
 }
 
 glm::vec4& VRVolumeApp::getNoColor()
@@ -644,22 +655,36 @@ void VRVolumeApp::animatedRender(int tfn, int vol)
   unsigned int active_volume2 = ceil(m_frame);
   int renderMethod = m_ui_view->getRenderMethod();
   bool useTranferFunction = m_ui_view->isUseTransferFunctionEnabled();
+  bool useMultitransferFunction = m_ui_view->isUseMultiTransfer();
 
   if (m_ui_view->isTransferFunctionEnabled(tfn, vol))
   {
     if (active_volume < m_volumes[vol].size() && active_volume2 < m_volumes[vol].size() && m_volumes[vol][active_volume]->texture_initialized() && m_volumes[vol][active_volume2]->texture_initialized())
     {
     
-      m_renders[renderMethod]->set_blending(true, m_frame - active_volume, m_volumes[vol][active_volume2]);
+     // m_renders[renderMethod]->set_blending(true, m_frame - active_volume, m_volumes[vol][active_volume2]);
 
       if (m_ui_view->isRenderVolumeEnabled())
       {
         
         GLint colorMap = m_ui_view->getTransferFunctionColormap(tfn);
         GLint colorMapMult = m_ui_view->getMTransferFunctionColormap(tfn);
+        GLint lut = -1;
+        if (useTranferFunction)
+        {
+          if (useMultitransferFunction)
+          {
+            lut = colorMapMult;
+          }
+          else
+          {
+            lut = colorMap;
+          }
+        }
 
+        std::cout << "render" << std::endl ;
         m_renders[renderMethod]->render(m_volumes[vol][active_volume], m_volumes[vol][active_volume]->get_volume_mv(), m_projection_mtrx, m_volumes[vol][active_volume]->get_volume_scale().x / m_volumes[vol][active_volume]->get_volume_scale().z,
-          useTranferFunction ? (m_use_multi_transfer) ? colorMapMult : colorMap : -1, m_ui_view->getRenderChannel());
+          lut, m_ui_view->getRenderChannel());
       }
     }
   }

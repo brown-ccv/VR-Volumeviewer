@@ -95,6 +95,10 @@ public:
 
   void setRendercount(unsigned int);
 
+  float getCurrentFrame();
+
+  void setFrame(float frame);
+
   glm::vec4& getNoColor();
   glm::vec4& getAmbient();
   glm::vec4& getDiffuse();

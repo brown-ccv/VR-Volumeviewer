@@ -56,6 +56,8 @@ public:
 
   float getScale();
 
+  bool isUseMultiTransfer();
+
 private:
 
 
@@ -84,7 +86,7 @@ private:
   int m_selectedTrnFnc;
 
   bool m_animated;
-  float m_frame;
+  float m_ui_frame_controller;
   float m_stopped;
 
   glm::vec3 m_clip_min;
