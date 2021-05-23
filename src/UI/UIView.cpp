@@ -7,9 +7,9 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-UIView::UIView(VRVolumeApp& controllerApp):m_controller_app(controllerApp), m_multiplier{ 1.0f }, m_threshold{ 0.0f },
+UIView::UIView(VRVolumeApp& controllerApp):m_controller_app(controllerApp), m_multiplier( 1.0f ), m_threshold{ 0.0f },
 m_z_scale{ 0.16f }, m_scale{ 1.0f }, m_slices(256), m_dynamic_slices{ false }, m_renderVolume(true), m_selectedTrnFnc(0),
-m_animated(false), m_ui_frame_controller{ 0.0f }, m_menu_handler(nullptr), m_initialized(false), m_use_transferfunction( false ), m_use_multi_transfer( false ),
+m_animated(false), m_ui_frame_controller{ 0.0f }, m_menu_handler(nullptr), m_initialized(false), m_use_transferfunction( false ),
 m_clip_max( 1.0 ), m_clip_min( 0.0 ), m_clip_ypr( 0.0 ), m_clip_pos( 0.0 ), m_useCustomClipPlane( false ), m_rendermethod( 1 ), m_renderchannel( 0 )
 {
 
@@ -138,7 +138,7 @@ void UIView::drawUICB()
               /*		tfn_widget_multi[m_selectedVolume].setHistogram(m_volumes[m_selectedVolume][0]->getTransferfunction(i), i);*/
             }
           }
-          m_use_multi_transfer = true;
+          m_controller_app.setMultiTransfer( true);
           tfn_widget_multi[m_selectedTrnFnc].draw_ui();
         }
         else
@@ -158,7 +158,7 @@ void UIView::drawUICB()
             /*tfn_widget[m_selectedVolume].setHistogram(m_volumes[m_selectedVolume][0]->getTransferfunction(0));
             tfn_widget[m_selectedVolume].setMinMax(m_volumes[m_selectedVolume][0]->getMin(), m_volumes[m_selectedVolume][0]->getMax());*/
           }
-          m_use_multi_transfer = false;
+          m_controller_app.setMultiTransfer(false);
           tfn_widget[m_selectedTrnFnc].draw_ui();
         }
       }
@@ -477,7 +477,23 @@ float UIView::getScale()
   return m_scale;
 }
 
-bool UIView::isUseMultiTransfer()
+float UIView::getSlices()
 {
-  return m_use_multi_transfer;
+  return m_slices;
 }
+
+float UIView::getThreshold()
+{
+  return m_threshold;
+}
+
+float UIView::getMultiplier()
+{
+  return m_multiplier;
+}
+
+bool UIView::isUIWindowActive()
+{
+  return m_menu_handler != NULL && m_menu_handler->windowIsActive();
+}
+

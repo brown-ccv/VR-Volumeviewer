@@ -103,6 +103,11 @@ public:
   glm::vec4& getAmbient();
   glm::vec4& getDiffuse();
 
+  void setMultiTransfer(bool);
+  bool isMultiTransfer();
+
+  bool isUIEvent();
+
 protected:
 
   glm::vec4 m_noColor;// (0.0f, 0.0f, 0.0f, 0.0f);

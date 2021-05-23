@@ -56,7 +56,13 @@ public:
 
   float getScale();
 
-  bool isUseMultiTransfer();
+  float getSlices();
+
+  float getThreshold();
+
+  float getMultiplier();
+
+  bool isUIWindowActive();
 
 private:
 
@@ -70,7 +76,7 @@ private:
   int m_rendermethod;
   int m_renderchannel;
   bool m_use_transferfunction;
-  bool m_use_multi_transfer;
+//  bool m_use_multi_transfer;
   float m_z_scale;
   float m_scale;
   int m_slices;

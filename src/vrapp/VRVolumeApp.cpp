@@ -33,7 +33,7 @@
 VRVolumeApp::VRVolumeApp():m_mesh_model(nullptr), m_clip_max{ 1.0f }, m_clip_min{ 0.0f }, m_clip_ypr{ 0.0f }, m_clip_pos{ 0.0 }, m_wasd_pressed(0),
 m_lookingGlass( false ), m_isInitailized(false), m_speed(0.01f), m_movieAction( nullptr ), m_moviename( "movie.mp4" ), m_noColor(0.0f),
 m_ambient(0.2f, 0.2f, 0.2f, 1.0f), m_diffuse(0.5f, 0.5f, 0.5f, 1.0f), m_ui_view(nullptr), m_animated(false), m_numVolumes(0), m_selectedVolume(0),
-m_multiplier( 1.0f ), m_threshold( 0.0f ),m_frame( 0.0f )
+m_multiplier( 1.0f ), m_threshold( 0.0f ),m_frame( 0.0f ), m_use_multi_transfer( false )
 {
   m_renders.push_back(new VolumeSliceRenderer());
   m_renders.push_back(new VolumeRaycastRenderer());
@@ -194,6 +194,25 @@ glm::vec4& VRVolumeApp::getAmbient()
 glm::vec4& VRVolumeApp::getDiffuse()
 {
   return m_diffuse;
+}
+
+void VRVolumeApp::setMultiTransfer(bool multiTransfer)
+{
+  m_use_multi_transfer = multiTransfer;
+}
+
+bool VRVolumeApp::isMultiTransfer()
+{
+  return m_use_multi_transfer;
+}
+
+bool VRVolumeApp::isUIEvent()
+{
+  if (m_ui_view->isUIWindowActive())
+  {
+    return true;
+  }
+  return false;
 }
 
 void VRVolumeApp::intializeUI()
@@ -597,9 +616,9 @@ void VRVolumeApp::renderVolume(const MinVR::VRGraphicsState& renderState)
 {
   //render volumes
   for (auto ren : m_renders) {
-    ren->set_multiplier(m_multiplier);
-    ren->set_threshold(m_threshold);
-    ren->set_numSlices(m_slices);
+    ren->set_multiplier(m_ui_view->getMultiplier());
+    ren->set_threshold(m_ui_view->getThreshold());
+    ren->set_numSlices(m_ui_view->getSlices());
     ren->useMultichannelColormap(m_use_multi_transfer);
   }
 
@@ -655,7 +674,7 @@ void VRVolumeApp::animatedRender(int tfn, int vol)
   unsigned int active_volume2 = ceil(m_frame);
   int renderMethod = m_ui_view->getRenderMethod();
   bool useTranferFunction = m_ui_view->isUseTransferFunctionEnabled();
-  bool useMultitransferFunction = m_ui_view->isUseMultiTransfer();
+  //bool useMultitransferFunction = m_ui_view->isUseMultiTransfer();
 
   if (m_ui_view->isTransferFunctionEnabled(tfn, vol))
   {
@@ -672,7 +691,7 @@ void VRVolumeApp::animatedRender(int tfn, int vol)
         GLint lut = -1;
         if (useTranferFunction)
         {
-          if (useMultitransferFunction)
+          if (m_use_multi_transfer)
           {
             lut = colorMapMult;
           }
@@ -734,6 +753,7 @@ void VRVolumeApp::update3DUI()
   }
 
 }
+
 
 
 

@@ -31,12 +31,11 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "render/VolumeRaycastRenderer.h"
+#include "../../include/render/VolumeRaycastRenderer.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 ////for floating point inaccuracy
 //const float EPSILON = 0.0001f;
-GLenum err;
 
 VolumeRaycastRenderer::VolumeRaycastRenderer() //: num_slices{ MAX_SLICES }
 {
@@ -160,11 +159,7 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4 &MV, glm::mat
 	//shader.set_stepSize(1.0f / volume->get_width(), 1.0f / volume->get_height(), 1.0f / volume->get_depth());
 	
 	shader.render(MVP, clipPlane, camPos);
-  while ((err = glGetError()) != GL_NO_ERROR)
-  {
-    // Process/log the error.
-		std::cout << "err" << std::endl;
-  }
+
 	////disable blending
 	glBindVertexArray(0);
 

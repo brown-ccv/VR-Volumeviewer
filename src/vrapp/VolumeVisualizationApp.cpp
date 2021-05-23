@@ -744,14 +744,14 @@ void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event) {
 
 
 void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
-	if (true) {
+	if (m_vrVolumeApp->isUIEvent()) {
 		if (event.getName() == "MouseBtnLeft_Down")
 		{
 			//m_menu_handler->setButtonClick(0, 1);
 			if (m_vrVolumeApp)
 			{
 				m_vrVolumeApp->buttonEventsUIHandle(0, 1);
-				m_vrVolumeApp->buttonEventTrackBallHandle(0, 1);
+				//m_vrVolumeApp->buttonEventTrackBallHandle(0, 1);
 			}
 		}
 		else if (event.getName() == "MouseBtnRight_Down")
@@ -760,7 +760,7 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 			if (m_vrVolumeApp)
 			{
 				m_vrVolumeApp->buttonEventsUIHandle(1, 1);
-				m_vrVolumeApp->buttonEventTrackBallHandle(1, 1);
+				//m_vrVolumeApp->buttonEventTrackBallHandle(1, 1);
 			}
 			
 		}
@@ -769,7 +769,7 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 			if (m_vrVolumeApp)
 			{
 				m_vrVolumeApp->buttonEventsUIHandle(2, 0);
-				m_vrVolumeApp->buttonEventTrackBallHandle(2, 1);
+				//m_vrVolumeApp->buttonEventTrackBallHandle(2, 1);
 			}
 			
 		}
