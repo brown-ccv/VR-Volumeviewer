@@ -64,6 +64,8 @@ public:
 
   bool isUIWindowActive();
 
+  bool isUseCustomClipPlane();
+
 private:
 
 

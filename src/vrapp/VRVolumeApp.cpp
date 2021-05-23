@@ -33,7 +33,7 @@
 VRVolumeApp::VRVolumeApp():m_mesh_model(nullptr), m_clip_max{ 1.0f }, m_clip_min{ 0.0f }, m_clip_ypr{ 0.0f }, m_clip_pos{ 0.0 }, m_wasd_pressed(0),
 m_lookingGlass( false ), m_isInitailized(false), m_speed(0.01f), m_movieAction( nullptr ), m_moviename( "movie.mp4" ), m_noColor(0.0f),
 m_ambient(0.2f, 0.2f, 0.2f, 1.0f), m_diffuse(0.5f, 0.5f, 0.5f, 1.0f), m_ui_view(nullptr), m_animated(false), m_numVolumes(0), m_selectedVolume(0),
-m_multiplier( 1.0f ), m_threshold( 0.0f ),m_frame( 0.0f ), m_use_multi_transfer( false )
+m_multiplier( 1.0f ), m_threshold( 0.0f ),m_frame( 0.0f ), m_use_multi_transfer( false ), m_clipping(false)
 {
   m_renders.push_back(new VolumeSliceRenderer());
   m_renders.push_back(new VolumeRaycastRenderer());
@@ -488,7 +488,7 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
   //	}
   //}
 
-  if (m_clipping || m_use_custom_clip_plane) {
+  if (m_clipping || m_ui_view->isUseCustomClipPlane()) {
     glm::mat4 clipPlane = glm::inverse(m_controller_pose) * glm::inverse(m_model_view);
 
     if (m_use_custom_clip_plane) {

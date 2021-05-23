@@ -497,3 +497,8 @@ bool UIView::isUIWindowActive()
   return m_menu_handler != NULL && m_menu_handler->windowIsActive();
 }
 
+bool UIView::isUseCustomClipPlane()
+{
+  return m_useCustomClipPlane;
+}
+
