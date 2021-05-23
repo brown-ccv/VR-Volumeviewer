@@ -49,8 +49,6 @@ public:
   void set_convert(bool);
   void set_num_volumes(int);
 
-  virtual void load_txt_file(std::string& filename);
-
   void mouse_pos_event(glm::vec2& mPos);
   void update_ui_events(float value);
   void update_track_ball_event(float value);

@@ -518,10 +518,11 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
   }
 
   //render labels
- 
+  render_labels(renderState);
+
   if (m_ui_view && !m_is2d)
   {
-    render_labels(renderState);
+    
     glm::mat4 viewMatrix = glm::make_mat4(renderState.getViewMatrix());
     m_ui_view->render_3D(viewMatrix);
   }
@@ -881,11 +882,6 @@ void VRVolumeApp::set_convert(bool covert)
 void VRVolumeApp::set_num_volumes(int nVolumes)
 {
   m_numVolumes = nVolumes;
-}
-
-void VRVolumeApp::load_txt_file(std::string& filename)
-{
-
 }
 
 void VRVolumeApp::mouse_pos_event(glm::vec2& mPos)
