@@ -47,11 +47,11 @@ void VRVolumeApp::initialize()
   if (!m_isInitailized)
   {
     m_object_pose = glm::mat4(1.0f);
-    initializeGL();
+    initialize_GL();
     if (!m_ui_view)
     {
       m_ui_view = new  UIView(*this);
-      m_ui_view->initUI(m_is2d, m_lookingGlass);
+      m_ui_view->init_ui(m_is2d, m_lookingGlass);
     }
     m_isInitailized = true;
     m_rendercount = 0;
@@ -59,7 +59,7 @@ void VRVolumeApp::initialize()
 
 }
 
-void VRVolumeApp::initializeGL()
+void VRVolumeApp::initialize_GL()
 {
   for (auto ren : m_renders)
     ren->initGL();
@@ -81,7 +81,7 @@ void VRVolumeApp::initializeGL()
 
 
 
-void VRVolumeApp::loadMeshModel()
+void VRVolumeApp::load_mesh_model()
 {
 	for (std::string filename : m_models_filenames) {
 
@@ -102,7 +102,7 @@ void VRVolumeApp::loadMeshModel()
 	m_models_filenames.clear();
 }
 
-void VRVolumeApp::loadShaders()
+void VRVolumeApp::load_shaders()
 {
   m_shader_file_path = "shaders";
   std::string vertexShaderFolderPath = m_shader_file_path + OS_SLASH + std::string("shader.vert");
@@ -114,9 +114,9 @@ void VRVolumeApp::loadShaders()
   m_simple_texture_shader.addUniform("mv");
 }
 
-void VRVolumeApp::initializeTextures()
+void VRVolumeApp::initialize_textures()
 {
-  addLodadedTextures();
+  add_lodaded_textures();
   for (int i = 0; i < m_volumes.size(); i++) {
 
     std::vector< Volume* > vlm = m_volumes[i];
@@ -128,12 +128,12 @@ void VRVolumeApp::initializeTextures()
   }
 }
 
-bool VRVolumeApp::pendingModelsToLoad()
+bool VRVolumeApp::pending_models_to_load()
 {
   return m_models_filenames.size() > 0;
 }
 
-void VRVolumeApp::updateTrackBallState()
+void VRVolumeApp::update_trackBall_state()
 {
   if (m_wasd_pressed)
   {
@@ -142,18 +142,18 @@ void VRVolumeApp::updateTrackBallState()
    
 }
 
-void VRVolumeApp::updateAnimation()
+void VRVolumeApp::update_animation()
 {
   if (m_ui_view)
   {
     if (m_volumes.size())
     {
-      m_ui_view->updateAnimation(m_speed, m_volumes[m_selectedVolume].size() - 1);
+      m_ui_view->update_animation(m_speed, m_volumes[m_selectedVolume].size() - 1);
     }
   }
 }
 
-void VRVolumeApp::runMovie()
+void VRVolumeApp::run_movie()
 {
 #ifndef _MSC_VER
   fs::create_directory("movie");
@@ -166,61 +166,61 @@ void VRVolumeApp::runMovie()
   m_show_menu = false;
 }
 
-void VRVolumeApp::setRendercount(unsigned int rendercount)
+void VRVolumeApp::set_render_count(unsigned int rendercount)
 {
   m_rendercount = rendercount;
 }
 
-float VRVolumeApp::getCurrentFrame()
+float VRVolumeApp::get_current_frame()
 {
   return m_frame;
 }
 
-void VRVolumeApp::setFrame(float frame)
+void VRVolumeApp::set_frame(float frame)
 {
   m_frame = frame;
 }
 
-glm::vec4& VRVolumeApp::getNoColor()
+glm::vec4& VRVolumeApp::get_no_color()
 {
   return m_noColor;
 }
 
-glm::vec4& VRVolumeApp::getAmbient()
+glm::vec4& VRVolumeApp::get_ambient()
 {
   return m_ambient;
 }
 
-glm::vec4& VRVolumeApp::getDiffuse()
+glm::vec4& VRVolumeApp::get_diffuse()
 {
   return m_diffuse;
 }
 
-void VRVolumeApp::setMultiTransfer(bool multiTransfer)
+void VRVolumeApp::set_multi_transfer(bool multiTransfer)
 {
   m_use_multi_transfer = multiTransfer;
 }
 
-bool VRVolumeApp::isMultiTransfer()
+bool VRVolumeApp::is_multi_transfer()
 {
   return m_use_multi_transfer;
 }
 
-bool VRVolumeApp::isUIEvent()
+bool VRVolumeApp::is_ui_event()
 {
-  if (m_ui_view->isUIWindowActive())
+  if (m_ui_view->is_ui_window_active())
   {
     return true;
   }
   return false;
 }
 
-void VRVolumeApp::intializeUI()
+void VRVolumeApp::intialize_ui()
 {
-  m_ui_view->initUI( m_is2d, m_lookingGlass);
+  m_ui_view->init_ui( m_is2d, m_lookingGlass);
 }
 
-void VRVolumeApp::loadTxtFile(std::string& filename)
+void VRVolumeApp::load_txt_file(std::string& filename)
 {
 	std::ifstream inFile;
 	inFile.open(filename);
@@ -293,13 +293,13 @@ void VRVolumeApp::loadTxtFile(std::string& filename)
 					//m_data_labels.resize(m_numVolumes);
 					for (int i = 0; i < m_numVolumes; i++)
 					{
-						m_ui_view->addDataLabel(vals[i + 2]);
+						m_ui_view->add_data_label(vals[i + 2]);
 					}
 					m_volumes.resize(m_numVolumes);
 					m_promises.resize(m_numVolumes);
 					m_futures.resize(m_numVolumes);
 					m_threads.resize(m_numVolumes);
-          m_ui_view->updateUI(m_numVolumes);
+          m_ui_view->update_ui(m_numVolumes);
 
 					/*tfn_widget_multi.resize(1);
 					tfn_widget.resize(1);
@@ -342,7 +342,7 @@ void VRVolumeApp::loadTxtFile(std::string& filename)
 
 					std::vector <std::thread*>& ths = m_threads[volumeIndex - 1];
 					std::vector<std::promise<Volume*>*> v2 = m_promises[volumeIndex - 1];
-					ths.emplace_back(new std::thread(&VRVolumeApp::loadVolume, this, vals, v2.back()));
+					ths.emplace_back(new std::thread(&VRVolumeApp::load_volume, this, vals, v2.back()));
 
 					//threads[volumeIndex - 1] = ths;
 
@@ -357,7 +357,7 @@ void VRVolumeApp::loadTxtFile(std::string& filename)
 	inFile.close();
 }
 
-void VRVolumeApp::loadVolume(std::vector<std::string> vals, std::promise<Volume*>* promise)
+void VRVolumeApp::load_volume(std::vector<std::string> vals, std::promise<Volume*>* promise)
 {
   if (vals.size() == 1 && helper::ends_with_string(vals[0], ".nrrd"))
   {
@@ -396,7 +396,7 @@ void VRVolumeApp::loadVolume(std::vector<std::string> vals, std::promise<Volume*
 }
 
 
-void VRVolumeApp::loadNrrdFile(std::string& filename)
+void VRVolumeApp::load_nrrd_file(std::string& filename)
 {
   std::vector<std::string> vals;
   vals.push_back(filename);
@@ -412,11 +412,11 @@ void VRVolumeApp::loadNrrdFile(std::string& filename)
 
   std::vector <std::thread*> ths;
   std::vector<std::promise<Volume*>*> v2 = m_promises.back();
-  ths.emplace_back(new std::thread(&VRVolumeApp::loadVolume, this, vals, v2.back()));
+  ths.emplace_back(new std::thread(&VRVolumeApp::load_volume, this, vals, v2.back()));
   m_threads.push_back(ths);
   m_numVolumes = 1;
-  setNumVolumes(m_numVolumes);
-  m_ui_view->updateUI(m_numVolumes);
+  set_num_volumes(m_numVolumes);
+  m_ui_view->update_ui(m_numVolumes);
   
   }
 
@@ -452,7 +452,7 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
     for (int j = 0; j < m_volumes[i].size(); j++) {
       glm::mat4 tmp = m_model_view;
       tmp = tmp * m_object_pose;
-      tmp = glm::scale(tmp, glm::vec3(m_ui_view->getScale(), m_ui_view->getScale(), m_ui_view->getScale() * m_ui_view->getZScale()));
+      tmp = glm::scale(tmp, glm::vec3(m_ui_view->get_scale(), m_ui_view->get_scale(), m_ui_view->get_scale() * m_ui_view->get_z_scale()));
       if (!m_animated)
         tmp = glm::translate(tmp, glm::vec3(m_volumes[i][j]->get_volume_position().x, m_volumes[i][j]->get_volume_position().y, m_volumes[i][j]->get_volume_position().z));
       m_volumes[i][j]->set_volume_mv(tmp);
@@ -488,7 +488,7 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
   //	}
   //}
 
-  if (m_clipping || m_ui_view->isUseCustomClipPlane()) {
+  if (m_clipping || m_ui_view->is_use_custom_clip_plane()) {
     glm::mat4 clipPlane = glm::inverse(m_controller_pose) * glm::inverse(m_model_view);
 
     if (m_use_custom_clip_plane) {
@@ -521,20 +521,20 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
  
   if (m_ui_view && !m_is2d)
   {
-    renderLabels(renderState);
+    render_labels(renderState);
     glm::mat4 viewMatrix = glm::make_mat4(renderState.getViewMatrix());
-    m_ui_view->render3D(viewMatrix);
+    m_ui_view->render_3D(viewMatrix);
   }
   
 
   m_depthTextures[m_rendercount]->copyDepthbuffer();
   (static_cast <VolumeRaycastRenderer*> (m_renders[1]))->setDepthTexture(m_depthTextures[m_rendercount]);
 
-  renderVolume(renderState);
+  render_volume(renderState);
 
   if (m_ui_view && m_is2d)
   {
-    m_ui_view->render2D();
+    m_ui_view->render_2D();
   }
 
   //drawTime
@@ -574,16 +574,16 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
 
 }
 
-void VRVolumeApp::renderLabels(const MinVR::VRGraphicsState& renderState)
+void VRVolumeApp::render_labels(const MinVR::VRGraphicsState& renderState)
 {
   //render labels
-  m_labels.draw(m_models_MV, m_headpose, m_ui_view->getZScale());
+  m_labels.draw(m_models_MV, m_headpose, m_ui_view->get_z_scale());
 
   if (m_is2d && !m_description.empty())
     FontHandler::getInstance()->renderMultiLineTextBox2D(m_description, 50, 950, 200, m_descriptionHeight);
 }
 
-void VRVolumeApp::renderMesh(const MinVR::VRGraphicsState& renderState)
+void VRVolumeApp::render_mesh(const MinVR::VRGraphicsState& renderState)
 {
   /*Original render Mesh using Fixed pipeline -  DO NOT REMOVE YET*/
   //Render meshes
@@ -612,24 +612,24 @@ void VRVolumeApp::renderMesh(const MinVR::VRGraphicsState& renderState)
   }
 }
 
-void VRVolumeApp::renderVolume(const MinVR::VRGraphicsState& renderState)
+void VRVolumeApp::render_volume(const MinVR::VRGraphicsState& renderState)
 {
   //render volumes
   for (auto ren : m_renders) {
-    ren->set_multiplier(m_ui_view->getMultiplier());
-    ren->set_threshold(m_ui_view->getThreshold());
-    ren->set_numSlices(m_ui_view->getSlices());
+    ren->set_multiplier(m_ui_view->get_multiplier());
+    ren->set_threshold(m_ui_view->get_threshold());
+    ren->set_numSlices(m_ui_view->get_slices());
     ren->useMultichannelColormap(m_use_multi_transfer);
   }
 
   
 
-    for (int tfn = 0; tfn < m_ui_view->getNumTransferFunctions(); tfn++)
+    for (int tfn = 0; tfn < m_ui_view->get_num_transfer_functions(); tfn++)
     {
 
       for (int vol = 0; vol < m_numVolumes; vol++)
       {
-        m_animated ? animatedRender(tfn, vol) : normalRenderVolume(tfn, vol);
+        m_animated ? animated_render(tfn, vol) : normal_render_volume(tfn, vol);
      
       }
     }
@@ -637,9 +637,9 @@ void VRVolumeApp::renderVolume(const MinVR::VRGraphicsState& renderState)
   
 }
 
-void VRVolumeApp::normalRenderVolume(int tfn, int vol)
+void VRVolumeApp::normal_render_volume(int tfn, int vol)
 {
-  if (m_ui_view->isTransferFunctionEnabled(tfn, vol))
+  if (m_ui_view->is_transfer_function_enabled(tfn, vol))
   {
     std::vector<std::pair< float, int> > order;
     for (int i = 0; i < m_volumes.size(); i++) {
@@ -648,19 +648,19 @@ void VRVolumeApp::normalRenderVolume(int tfn, int vol)
       order.push_back(std::make_pair(l, i));
     }
     std::sort(order.begin(), order.end());
-    int renderMethod = m_ui_view->getRenderMethod();
-    bool useTranferFunction = m_ui_view->isUseTransferFunctionEnabled();
+    int renderMethod = m_ui_view->get_render_method();
+    bool useTranferFunction = m_ui_view->is_use_transfer_function_enabled();
 
     for (int i = order.size() - 1; i >= 0; i--) {
       if (m_volumes[vol][order[i].second]->texture_initialized())
       {
-        if (m_ui_view->isRenderVolumeEnabled())
+        if (m_ui_view->is_render_volume_enabled())
         {
 
-          GLint colorMap = m_ui_view->getTransferFunctionColormap(tfn);
-          GLint colorMapMult = m_ui_view->getMTransferFunctionColormap(tfn);
+          GLint colorMap = m_ui_view->get_transfer_function_colormap(tfn);
+          GLint colorMapMult = m_ui_view->get_multitransfer_function_colormap(tfn);
           m_renders[renderMethod]->render(m_volumes[vol][order[i].second], m_volumes[vol][order[i].second]->get_volume_mv(), m_projection_mtrx, m_volumes[vol][order[i].second]->get_volume_scale().x / m_volumes[vol][order[i].second]->get_volume_scale().z,
-            useTranferFunction ? (m_use_multi_transfer) ? colorMapMult : colorMap : -1, m_ui_view->getRenderChannel());
+            useTranferFunction ? (m_use_multi_transfer) ? colorMapMult : colorMap : -1, m_ui_view->get_render_channel());
         }
 
       }
@@ -668,26 +668,26 @@ void VRVolumeApp::normalRenderVolume(int tfn, int vol)
   }
 }
 
-void VRVolumeApp::animatedRender(int tfn, int vol)
+void VRVolumeApp::animated_render(int tfn, int vol)
 {
   unsigned int active_volume = floor(m_frame);
   unsigned int active_volume2 = ceil(m_frame);
-  int renderMethod = m_ui_view->getRenderMethod();
-  bool useTranferFunction = m_ui_view->isUseTransferFunctionEnabled();
+  int renderMethod = m_ui_view->get_render_method();
+  bool useTranferFunction = m_ui_view->is_use_transfer_function_enabled();
   //bool useMultitransferFunction = m_ui_view->isUseMultiTransfer();
 
-  if (m_ui_view->isTransferFunctionEnabled(tfn, vol))
+  if (m_ui_view->is_transfer_function_enabled(tfn, vol))
   {
     if (active_volume < m_volumes[vol].size() && active_volume2 < m_volumes[vol].size() && m_volumes[vol][active_volume]->texture_initialized() && m_volumes[vol][active_volume2]->texture_initialized())
     {
     
       m_renders[renderMethod]->set_blending(true, m_frame - active_volume, m_volumes[vol][active_volume2]);
 
-      if (m_ui_view->isRenderVolumeEnabled())
+      if (m_ui_view->is_render_volume_enabled())
       {
         
-        GLint colorMap = m_ui_view->getTransferFunctionColormap(tfn);
-        GLint colorMapMult = m_ui_view->getMTransferFunctionColormap(tfn);
+        GLint colorMap = m_ui_view->get_transfer_function_colormap(tfn);
+        GLint colorMapMult = m_ui_view->get_multitransfer_function_colormap(tfn);
         GLint lut = -1;
         if (useTranferFunction)
         {
@@ -703,24 +703,24 @@ void VRVolumeApp::animatedRender(int tfn, int vol)
 
         std::cout << "render" << std::endl ;
         m_renders[renderMethod]->render(m_volumes[vol][active_volume], m_volumes[vol][active_volume]->get_volume_mv(), m_projection_mtrx, m_volumes[vol][active_volume]->get_volume_scale().x / m_volumes[vol][active_volume]->get_volume_scale().z,
-          lut, m_ui_view->getRenderChannel());
+          lut, m_ui_view->get_render_channel());
       }
     }
   }
 
 }
 
-void VRVolumeApp::renderUI(const MinVR::VRGraphicsState& renderState)
+void VRVolumeApp::render_ui(const MinVR::VRGraphicsState& renderState)
 {
   //render menu	
   glm::mat4 mvMatrix = glm::make_mat4(renderState.getViewMatrix());
   if (!m_is2d)
   {
-    m_ui_view->render3D(mvMatrix);
+    m_ui_view->render_3D(mvMatrix);
   }
   else
   {
-    m_ui_view->render2D();
+    m_ui_view->render_2D();
   }
 
 
@@ -729,7 +729,7 @@ void VRVolumeApp::renderUI(const MinVR::VRGraphicsState& renderState)
 }
 
 
-void VRVolumeApp::updateFrameState()
+void VRVolumeApp::update_frame_state()
 {
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
@@ -742,13 +742,13 @@ void VRVolumeApp::updateFrameState()
 	m_rendercount = 0;
 }
 
-void VRVolumeApp::update3DUI()
+void VRVolumeApp::update_3D_ui()
 {
   if (m_show_menu && m_ui_view)
   {
     if (!m_is2d)
     {
-      m_ui_view->update3DUIFrame();
+      m_ui_view->update_3D_ui_frame();
     }
   }
 
@@ -757,18 +757,18 @@ void VRVolumeApp::update3DUI()
 
 
 
-void VRVolumeApp::update2DUI()
+void VRVolumeApp::update_2D_ui()
 {
   if (m_show_menu && m_ui_view)
   {
     if (m_is2d)
     {
-      m_ui_view->render2D();
+      m_ui_view->render_2D();
     }
   }
 }
 
-void VRVolumeApp::addLodadedTextures()
+void VRVolumeApp::add_lodaded_textures()
 {
   bool allready = true;
   for (auto& fut : m_futures)
@@ -811,7 +811,7 @@ void VRVolumeApp::addLodadedTextures()
   }
 }
 
-void VRVolumeApp::clearData()
+void VRVolumeApp::clear_data()
 {
   for (int i = 0; i < m_volumes.size(); i++) {
     std::vector< Volume* > v = m_volumes[i];
@@ -833,10 +833,10 @@ void VRVolumeApp::clearData()
 }
 
 
-bool VRVolumeApp::dataIsMultiChannel()
+bool VRVolumeApp::data_is_multi_channel()
 {
   bool is_multi_channel = false;
-  int renderchannel = m_ui_view->getRenderChannel();
+  int renderchannel = m_ui_view->get_render_channel();
   for (int i = 0; i < m_volumes.size(); i++)
   {
     if (m_volumes.size() > 0 && m_volumes[i][0]->get_channels() > 1 &&
@@ -849,7 +849,7 @@ bool VRVolumeApp::dataIsMultiChannel()
   return is_multi_channel;
 }
 
-void VRVolumeApp::getMinMax(const float frame, float& min, float& max)
+void VRVolumeApp::get_min_max(const float frame, float& min, float& max)
 {
   unsigned int active_volume = floor(frame);
   unsigned int active_volume2 = ceil(frame);
@@ -858,117 +858,117 @@ void VRVolumeApp::getMinMax(const float frame, float& min, float& max)
   max = m_volumes[m_selectedVolume][active_volume]->getMax() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMax() * (1.0 - alpha);
 }
 
-int VRVolumeApp::getNumVolumes()
+int VRVolumeApp::get_num_volumes()
 {
   return m_numVolumes;
 }
 
-void VRVolumeApp::setIs2D(bool is2d)
+void VRVolumeApp::set_is_2D(bool is2d)
 {
   m_is2d = is2d;
 }
 
-void VRVolumeApp::setLookingGlass(bool islookingGlass)
+void VRVolumeApp::set_looking_glass(bool islookingGlass)
 {
   m_lookingGlass = islookingGlass;
 }
 
-void VRVolumeApp::setConvert(bool covert)
+void VRVolumeApp::set_convert(bool covert)
 {
    m_convert = covert;
 }
 
-void VRVolumeApp::setNumVolumes(int nVolumes)
+void VRVolumeApp::set_num_volumes(int nVolumes)
 {
   m_numVolumes = nVolumes;
 }
 
-void VRVolumeApp::loadTextFile(std::string& filename)
+void VRVolumeApp::load_txt_file(std::string& filename)
 {
 
 }
 
-void VRVolumeApp::mousePosEvent(glm::vec2& mPos)
+void VRVolumeApp::mouse_pos_event(glm::vec2& mPos)
 {
   m_trackball.mouse_move(mPos.x, mPos.y);
   if (m_ui_view)
   {
-    m_ui_view->setCursorPos(mPos);
+    m_ui_view->set_cursor_pos(mPos);
   }
   
   
 }
 
-void VRVolumeApp::updateUIEvents(float value)
+void VRVolumeApp::update_ui_events(float value)
 {
   if (m_show_menu && m_ui_view)
   {
-    m_ui_view->setAnalogValue(value);
+    m_ui_view->set_analog_value(value);
   }
 
 }
 
-void VRVolumeApp::updateTrackBallEvent(float value)
+void VRVolumeApp::update_track_ball_event(float value)
 {
   m_trackball.mouse_scroll(value);
 }
 
-void VRVolumeApp::buttonEventsUIHandle(int button, int state)
+void VRVolumeApp::button_events_ui_handle(int button, int state)
 {
   if (m_ui_view)
   {
-    m_ui_view->setButtonClick(button, state);
+    m_ui_view->set_button_click(button, state);
   }
   
 }
 
-void VRVolumeApp::buttonEventTrackBallHandle(int button, int state)
+void VRVolumeApp::button_event_trackBall_handle(int button, int state)
 {
   m_trackball.mouse_pressed(button, state);
 }
 
-void VRVolumeApp::enableGrab(bool grab)
+void VRVolumeApp::enable_grab(bool grab)
 {
   m_grab = grab;
 }
 
-void VRVolumeApp::enableClipping(bool clipping)
+void VRVolumeApp::enable_clipping(bool clipping)
 {
   m_clipping = clipping;
 }
 
-void VRVolumeApp::enableUIMenu()
+void VRVolumeApp::enable_ui_menu()
 {
   m_show_menu = !m_show_menu;
 }
 
-void VRVolumeApp::setAWSDKeyBoardEvent(int key)
+void VRVolumeApp::set_AWSD_keyBoard_event(int key)
 {
   m_wasd_pressed = m_wasd_pressed | key;
 }
 
-void VRVolumeApp::unsetAWSDKeyBoardEvent(int key)
+void VRVolumeApp::unset_AWSD_keyBoard_event(int key)
 {
   m_wasd_pressed = m_wasd_pressed & ~key;
 }
 
-void VRVolumeApp::enableRenderVolume()
+void VRVolumeApp::enable_render_volume()
 {
   if (m_ui_view)
   {
-    m_ui_view->setEnableRenderVolume();
+    m_ui_view->set_enable_render_volume();
   }
 }
 
-void VRVolumeApp::updateUIPoseController(glm::mat4& newPose)
+void VRVolumeApp::update_UI_pose_controller(glm::mat4& newPose)
 {
   if (m_ui_view)
   {
-    m_ui_view->setControllerPose(newPose);
+    m_ui_view->set_controller_pose(newPose);
   }
 }
 
-void VRVolumeApp::updateHeadPose(glm::mat4& newPose)
+void VRVolumeApp::update_head_pose(glm::mat4& newPose)
 {
   if (m_is2d)
   {
@@ -977,25 +977,25 @@ void VRVolumeApp::updateHeadPose(glm::mat4& newPose)
   
 }
 
-void VRVolumeApp::updateFps(float fps)
+void VRVolumeApp::update_fps(float fps)
 {
   m_fps = fps;
 }
 
-float VRVolumeApp::getFps()
+float VRVolumeApp::get_fps()
 {
   return m_fps;
 }
 
-void VRVolumeApp::updateDynamicSlices()
+void VRVolumeApp::update_dynamic_slices()
 {
-  if (m_ui_view && m_ui_view->isDynamicSlices()) 
+  if (m_ui_view && m_ui_view->is_dynamic_slices()) 
   {
-    m_ui_view->updateSlices(m_fps);
+    m_ui_view->update_slices(m_fps);
   }
 }
 
-void VRVolumeApp::doGrab(glm::mat4& newPose)
+void VRVolumeApp::do_grab(glm::mat4& newPose)
 {
   if (m_grab) {
     // Update the paintingToRoom transform based upon the new transform

@@ -26,87 +26,87 @@ public:
 
   void initialize();
 
-  void loadTxtFile(std::string& filename);
+  void load_txt_file(std::string& filename);
 
-  void loadVolume(std::vector<std::string> vals, std::promise<Volume*>* promise);
+  void load_volume(std::vector<std::string> vals, std::promise<Volume*>* promise);
 
-  void loadNrrdFile(std::string& filename);
+  void load_nrrd_file(std::string& filename);
 
-  void updateFrameState();
+  void update_frame_state();
 
-  void update3DUI();
-  void update2DUI();
+  void update_3D_ui();
+  void update_2D_ui();
 
-  virtual void clearData() ;
-  virtual int getNumVolumes() ;
-  virtual bool dataIsMultiChannel() ;
-  virtual void getMinMax(const float frame,float & min, float& max) ;
+  virtual void clear_data() ;
+  virtual int get_num_volumes() ;
+  virtual bool data_is_multi_channel() ;
+  virtual void get_min_max(const float frame,float & min, float& max) ;
 
   
 
-  void setIs2D(bool);
-  void setLookingGlass(bool);
-  void setConvert(bool);
-  void setNumVolumes(int);
+  void set_is_2D(bool);
+  void set_looking_glass(bool);
+  void set_convert(bool);
+  void set_num_volumes(int);
 
-  virtual void loadTextFile(std::string& filename);
+  virtual void load_txt_file(std::string& filename);
 
-  void mousePosEvent(glm::vec2& mPos);
-  void updateUIEvents(float value);
-  void updateTrackBallEvent(float value);
-  void buttonEventsUIHandle(int button, int state);
-  void buttonEventTrackBallHandle(int button, int state);
+  void mouse_pos_event(glm::vec2& mPos);
+  void update_ui_events(float value);
+  void update_track_ball_event(float value);
+  void button_events_ui_handle(int button, int state);
+  void button_event_trackBall_handle(int button, int state);
   
-  void enableGrab(bool );
-  void enableClipping(bool);
+  void enable_grab(bool );
+  void enable_clipping(bool);
   
-  void enableUIMenu( );
+  void enable_ui_menu( );
 
-  void setAWSDKeyBoardEvent(int key);
-  void unsetAWSDKeyBoardEvent(int key);
+  void set_AWSD_keyBoard_event(int key);
+  void unset_AWSD_keyBoard_event(int key);
 
-  void enableRenderVolume();
+  void enable_render_volume();
 
-  void updateUIPoseController(glm::mat4& newPose);
-  void updateHeadPose(glm::mat4& newPose);
+  void update_UI_pose_controller(glm::mat4& newPose);
+  void update_head_pose(glm::mat4& newPose);
   
-  void updateFps(float fps);
-  float getFps();
+  void update_fps(float fps);
+  float get_fps();
 
-  void updateDynamicSlices();
+  void update_dynamic_slices();
 
-  void doGrab(glm::mat4& pose);
+  void do_grab(glm::mat4& pose);
   
-  void intializeUI();
+  void intialize_ui();
 
-  void loadMeshModel();
+  void load_mesh_model();
 
-  void loadShaders();
+  void load_shaders();
 
-  void initializeTextures();
+  void initialize_textures();
 
-  bool pendingModelsToLoad();
+  bool pending_models_to_load();
 
-  void updateTrackBallState();
+  void update_trackBall_state();
 
-  void updateAnimation();
+  void update_animation();
 
-  void runMovie();
+  void run_movie();
 
-  void setRendercount(unsigned int);
+  void set_render_count(unsigned int);
 
-  float getCurrentFrame();
+  float get_current_frame();
 
-  void setFrame(float frame);
+  void set_frame(float frame);
 
-  glm::vec4& getNoColor();
-  glm::vec4& getAmbient();
-  glm::vec4& getDiffuse();
+  glm::vec4& get_no_color();
+  glm::vec4& get_ambient();
+  glm::vec4& get_diffuse();
 
-  void setMultiTransfer(bool);
-  bool isMultiTransfer();
+  void set_multi_transfer(bool);
+  bool is_multi_transfer();
 
-  bool isUIEvent();
+  bool is_ui_event();
 
 protected:
 
@@ -115,19 +115,19 @@ protected:
   glm::vec4 m_diffuse; //= { 0.5f, 0.5f, 0.5f, 1.0f };
 
 
-  void addLodadedTextures();
+  void add_lodaded_textures();
 
-  virtual void initializeGL();
+  virtual void initialize_GL();
  
  
 
-  virtual void renderLabels(const MinVR::VRGraphicsState& renderState);
-  virtual void renderMesh(const MinVR::VRGraphicsState& renderState);
-  virtual void renderVolume(const MinVR::VRGraphicsState& renderState);
-  virtual void renderUI(const MinVR::VRGraphicsState& renderState);
+  virtual void render_labels(const MinVR::VRGraphicsState& renderState);
+  virtual void render_mesh(const MinVR::VRGraphicsState& renderState);
+  virtual void render_volume(const MinVR::VRGraphicsState& renderState);
+  virtual void render_ui(const MinVR::VRGraphicsState& renderState);
 
-  virtual void animatedRender(int,int);
-  virtual void normalRenderVolume(int, int);
+  virtual void animated_render(int,int);
+  virtual void normal_render_volume(int, int);
 
   std::vector < std::vector< Volume* >> m_volumes;
   std::vector<std::string> m_description;

@@ -11,60 +11,60 @@ class UIView
 {
 public:
   UIView(VRVolumeApp& controllerApp);
-  void drawUICB();
-  void initUI( bool is2D, bool lookingGlass);
-  void updateUI(int numVolumes );
-  void render2D();
-  void render3D(glm::mat4& space_matrix);
-  void update3DUIFrame();
+  void draw_ui_callback();
+  void init_ui( bool is2D, bool lookingGlass);
+  void update_ui(int numVolumes );
+  void render_2D();
+  void render_3D(glm::mat4& space_matrix);
+  void update_3D_ui_frame();
 
-  void setCursorPos(glm::vec2&);
-  void setAnalogValue(float);
+  void set_cursor_pos(glm::vec2&);
+  void set_analog_value(float);
 
-  int getNumTransferFunctions();
-  bool isTransferFunctionEnabled(int, int);
-  int getRenderMethod();
-  bool isRenderVolumeEnabled();
-  bool isUseTransferFunctionEnabled();
+  int get_num_transfer_functions();
+  bool is_transfer_function_enabled(int, int);
+  int get_render_method();
+  bool is_render_volume_enabled();
+  bool is_use_transfer_function_enabled();
 
-  GLint getTransferFunctionColormap(int trnsF);
-  GLint getMTransferFunctionColormap(int trnsF);
+  GLint get_transfer_function_colormap(int trnsF);
+  GLint get_multitransfer_function_colormap(int trnsF);
 
-  int getRenderChannel();
-  void setButtonClick(int, int);
+  int get_render_channel();
+  void set_button_click(int, int);
 
-  void setEnableRenderVolume();
+  void set_enable_render_volume();
 
-  void setControllerPose(glm::mat4& pose);
+  void set_controller_pose(glm::mat4& pose);
 
-  void setDynamicSlices(bool);
-  bool isDynamicSlices();
+  void set_dynamic_slices(bool);
+  bool is_dynamic_slices();
 
-  void updateSlices(float fps);
+  void update_slices(float fps);
 
-  bool isAnimated();
+  bool is_animated();
 
-  bool isStopped();
+  bool is_stopped();
 
-  void updateAnimation(float speed, int numFrames );
+  void update_animation(float speed, int numFrames );
 
-  void addDataLabel(std::string& dataLabel);
+  void add_data_label(std::string& dataLabel);
 
-  void clearDataLabels();
+  void clear_data_labels();
 
-  float getZScale();
+  float get_z_scale();
 
-  float getScale();
+  float get_scale();
 
-  float getSlices();
+  float get_slices();
 
-  float getThreshold();
+  float get_threshold();
 
-  float getMultiplier();
+  float get_multiplier();
 
-  bool isUIWindowActive();
+  bool is_ui_window_active();
 
-  bool isUseCustomClipPlane();
+  bool is_use_custom_clip_plane();
 
 private:
 
@@ -78,7 +78,7 @@ private:
   int m_rendermethod;
   int m_renderchannel;
   bool m_use_transferfunction;
-//  bool m_use_multi_transfer;
+
   float m_z_scale;
   float m_scale;
   int m_slices;

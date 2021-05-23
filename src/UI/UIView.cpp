@@ -15,7 +15,7 @@ m_clip_max( 1.0 ), m_clip_min( 0.0 ), m_clip_ypr( 0.0 ), m_clip_pos( 0.0 ), m_us
 
 }
 
-void UIView::drawUICB()
+void UIView::draw_ui_callback()
 {
   if (!m_initialized)
   {
@@ -31,7 +31,7 @@ void UIView::drawUICB()
      ImGui::SameLine();
      if (ImGui::Button("Clear all", ImVec2(ImGui::GetWindowSize().x * 0.5f - 1.5 * ImGui::GetStyle().ItemSpacing.x, 0.0f)))
        {
-         m_controller_app.clearData();
+         m_controller_app.clear_data();
      }
      
      ImGui::SliderFloat("alpha multiplier", &m_multiplier, 0.0f, 1.0f, "%.3f");
@@ -42,7 +42,7 @@ void UIView::drawUICB()
      ImGui::Checkbox("automatic slice adjustment", &m_dynamic_slices);
 
      ImGui::SameLine(ImGui::GetWindowSize().x * 0.5f, 0);
-     ImGui::Text("FPS = %f", m_controller_app.getFps());
+     ImGui::Text("FPS = %f", m_controller_app.get_fps());
      const char* items[] = { "sliced" , "raycast" };
      ImGui::Combo("RenderMethod", &m_rendermethod, items, IM_ARRAYSIZE(items));
 
@@ -51,7 +51,7 @@ void UIView::drawUICB()
 
      ImGui::Checkbox("Render Volume data", &m_renderVolume);
 
-     int numVolumes = m_controller_app.getNumVolumes();
+     int numVolumes = m_controller_app.get_num_volumes();
 
     
 
@@ -117,13 +117,16 @@ void UIView::drawUICB()
 
       ImGui::Checkbox("use transferfunction", &m_use_transferfunction);
       if (m_use_transferfunction) {
-        bool is_multi_channel = m_controller_app.dataIsMultiChannel();
+        bool is_multi_channel = m_controller_app.data_is_multi_channel();
         if (is_multi_channel)
         {
           for (int i = 0; i < 3; i++) {
             if (m_animated)
             {
-              /*	unsigned int active_volume = floor(m_frame);
+              /*	
+                frame by frame animation
+
+                unsigned int active_volume = floor(m_frame);
                 unsigned int active_volume2 = ceil(m_frame);
                 double alpha = m_frame - active_volume;
                 if (active_volume < m_volumes[m_selectedVolume].size() && active_volume2 < m_volumes[m_selectedVolume].size())
@@ -138,14 +141,17 @@ void UIView::drawUICB()
               /*		tfn_widget_multi[m_selectedVolume].setHistogram(m_volumes[m_selectedVolume][0]->getTransferfunction(i), i);*/
             }
           }
-          m_controller_app.setMultiTransfer( true);
+          m_controller_app.set_multi_transfer( true);
           tfn_widget_multi[m_selectedTrnFnc].draw_ui();
         }
         else
         {
           if (m_animated)
           {
-            /*	unsigned int active_volume = floor(m_frame);
+            /*	
+             frame by frame animation
+
+            unsigned int active_volume = floor(m_frame);
               unsigned int active_volume2 = ceil(m_frame);
               double alpha = m_frame - active_volume;
               tfn_widget[m_selectedVolume].setMinMax(m_volumes[m_selectedVolume][active_volume]->getMin() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMin() * (1.0 - alpha),
@@ -158,7 +164,7 @@ void UIView::drawUICB()
             /*tfn_widget[m_selectedVolume].setHistogram(m_volumes[m_selectedVolume][0]->getTransferfunction(0));
             tfn_widget[m_selectedVolume].setMinMax(m_volumes[m_selectedVolume][0]->getMin(), m_volumes[m_selectedVolume][0]->getMax());*/
           }
-          m_controller_app.setMultiTransfer(false);
+          m_controller_app.set_multi_transfer(false);
           tfn_widget[m_selectedTrnFnc].draw_ui();
         }
       }
@@ -170,11 +176,11 @@ void UIView::drawUICB()
       ImGui::Text("Timestep");
       ImGui::SameLine();
       ImGui::SetNextItemWidth(-100 - ImGui::GetStyle().ItemSpacing.x);
-      float frame_tmp = m_controller_app.getCurrentFrame() + 1;
+      float frame_tmp = m_controller_app.get_current_frame() + 1;
       //controls animated multi datasets
       //ImGui::SliderFloat("##Timestep", &frame_tmp, 1, m_volumes[m_selectedVolume].size());
       m_ui_frame_controller = frame_tmp - 1;
-      m_controller_app.setFrame(m_ui_frame_controller);
+      m_controller_app.set_frame(m_ui_frame_controller);
       ImGui::SameLine();
 
       std::string text = m_stopped ? "Play" : "Stop";
@@ -185,7 +191,7 @@ void UIView::drawUICB()
 
       if (ImGui::Button("Write Movie"))
       {
-        m_controller_app.runMovie();
+        m_controller_app.run_movie();
       }
     }
     ImGui::EndTabItem();
@@ -239,7 +245,7 @@ void UIView::drawUICB()
   {
     if (helper::ends_with_string(fileDialog.GetSelected().string(), ".txt"))
     {
-      m_controller_app.loadTxtFile(fileDialog.GetSelected().string());
+      m_controller_app.load_txt_file(fileDialog.GetSelected().string());
     }
 #ifdef WITH_TEEM
     else if (helper::ends_with_string(fileDialog.GetSelected().string(), ".nrrd")) {
@@ -258,7 +264,7 @@ void UIView::drawUICB()
   ImGui::End();
 }
 
-void UIView::initUI(bool is2D, bool lookingGlass)
+void UIView::init_ui(bool is2D, bool lookingGlass)
 {
 
   if (!m_initialized)
@@ -278,7 +284,7 @@ void UIView::initUI(bool is2D, bool lookingGlass)
       fontsize = 3.0;
     }
     m_menu_handler = new VRMenuHandler(is2D);
-    VRMenu* menu = m_menu_handler->addNewMenu(std::bind(&UIView::drawUICB, this), 1024, 1024, 1, 1, fontsize);
+    VRMenu* menu = m_menu_handler->addNewMenu(std::bind(&UIView::draw_ui_callback, this), 1024, 1024, 1, 1, fontsize);
     menu->setMenuPose(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 2, -1, 1));
     m_initialized = true;
   }
@@ -286,7 +292,7 @@ void UIView::initUI(bool is2D, bool lookingGlass)
   
 }
 
-void UIView::updateUI(int numVolumes)
+void UIView::update_ui(int numVolumes)
 {
   tfn_widget_multi.resize(1);
   tfn_widget.resize(1);
@@ -298,7 +304,7 @@ void UIView::updateUI(int numVolumes)
   }
 }
 
-void UIView::render2D()
+void UIView::render_2D()
 {
   if (m_show_menu ) 
   {
@@ -310,7 +316,7 @@ void UIView::render2D()
   
 }
 
-void UIView::render3D(glm::mat4& space_matrix)
+void UIView::render_3D(glm::mat4& space_matrix)
 {
   //render menu	
   
@@ -324,12 +330,12 @@ void UIView::render3D(glm::mat4& space_matrix)
 }
 
 
-void UIView::update3DUIFrame()
+void UIView::update_3D_ui_frame()
 {
   m_menu_handler->renderToTexture();
 }
 
-void UIView::setCursorPos(glm::vec2& mPos)
+void UIView::set_cursor_pos(glm::vec2& mPos)
 {
   if (m_menu_handler)
   {
@@ -337,7 +343,7 @@ void UIView::setCursorPos(glm::vec2& mPos)
   }
 }
 
-void UIView::setAnalogValue(float value)
+void UIView::set_analog_value(float value)
 {
   if (m_menu_handler != NULL && m_menu_handler->windowIsActive())
   {
@@ -345,47 +351,47 @@ void UIView::setAnalogValue(float value)
   }
 }
 
-int UIView::getNumTransferFunctions()
+int UIView::get_num_transfer_functions()
 {
   return tfn_widget.size();
 }
 
-bool UIView::isTransferFunctionEnabled(int tfn, int vol)
+bool UIView::is_transfer_function_enabled(int tfn, int vol)
 {
   return m_selectedTrFn[tfn][vol];
 }
 
-int UIView::getRenderMethod()
+int UIView::get_render_method()
 {
   return m_rendermethod;
 }
 
-bool UIView::isRenderVolumeEnabled()
+bool UIView::is_render_volume_enabled()
 {
   return m_renderVolume;
 }
 
-bool UIView::isUseTransferFunctionEnabled()
+bool UIView::is_use_transfer_function_enabled()
 {
   return m_use_transferfunction;
 }
 
-GLint UIView::getTransferFunctionColormap(int tfn)
+GLint UIView::get_transfer_function_colormap(int tfn)
 {
   return tfn_widget[tfn].get_colormap_gpu();
 }
 
-GLint UIView::getMTransferFunctionColormap(int tfn)
+GLint UIView::get_multitransfer_function_colormap(int tfn)
 {
   return tfn_widget_multi[tfn].get_colormap_gpu();
 }
 
-int UIView::getRenderChannel()
+int UIView::get_render_channel()
 {
   return m_renderchannel;
 }
 
-void UIView::setButtonClick(int button, int state)
+void UIView::set_button_click(int button, int state)
 {
   if (m_menu_handler && m_menu_handler->windowIsActive())
   {
@@ -394,12 +400,12 @@ void UIView::setButtonClick(int button, int state)
   
 }
 
-void UIView::setEnableRenderVolume()
+void UIView::set_enable_render_volume()
 {
   m_renderVolume = !m_renderVolume;
 }
 
-void UIView::setControllerPose(glm::mat4& pose)
+void UIView::set_controller_pose(glm::mat4& pose)
 {
   if (m_menu_handler)
   {
@@ -408,17 +414,17 @@ void UIView::setControllerPose(glm::mat4& pose)
   
 }
 
-void UIView::setDynamicSlices(bool dynamicSlices)
+void UIView::set_dynamic_slices(bool dynamicSlices)
 {
   m_dynamic_slices = dynamicSlices;
 }
 
-bool UIView::isDynamicSlices()
+bool UIView::is_dynamic_slices()
 {
   return m_dynamic_slices;
 }
 
-void UIView::updateSlices(float fps)
+void UIView::update_slices(float fps)
 {
   if (fps < 25)
   {
@@ -432,17 +438,17 @@ void UIView::updateSlices(float fps)
   }
 }
 
-bool UIView::isAnimated()
+bool UIView::is_animated()
 {
   return m_animated;
 }
 
-bool UIView::isStopped()
+bool UIView::is_stopped()
 {
   return m_stopped;
 }
 
-void UIView::updateAnimation(float speed, int numFrames)
+void UIView::update_animation(float speed, int numFrames)
 {
   if (m_animated && !m_stopped)
   {
@@ -453,51 +459,51 @@ void UIView::updateAnimation(float speed, int numFrames)
       m_ui_frame_controller = 0.0f;
       
     }
-    m_controller_app.setFrame(m_ui_frame_controller);
+    m_controller_app.set_frame(m_ui_frame_controller);
   }
 }
 
-void UIView::addDataLabel(std::string& dataLabel)
+void UIView::add_data_label(std::string& dataLabel)
 {
   m_dataLabels.push_back(dataLabel);
 }
 
-void UIView::clearDataLabels()
+void UIView::clear_data_labels()
 {
   m_dataLabels.clear();
 }
 
-float UIView::getZScale()
+float UIView::get_z_scale()
 {
   return m_z_scale;
 }
 
-float UIView::getScale()
+float UIView::get_scale()
 {
   return m_scale;
 }
 
-float UIView::getSlices()
+float UIView::get_slices()
 {
   return m_slices;
 }
 
-float UIView::getThreshold()
+float UIView::get_threshold()
 {
   return m_threshold;
 }
 
-float UIView::getMultiplier()
+float UIView::get_multiplier()
 {
   return m_multiplier;
 }
 
-bool UIView::isUIWindowActive()
+bool UIView::is_ui_window_active()
 {
   return m_menu_handler != NULL && m_menu_handler->windowIsActive();
 }
 
-bool UIView::isUseCustomClipPlane()
+bool UIView::is_use_custom_clip_plane()
 {
   return m_useCustomClipPlane;
 }

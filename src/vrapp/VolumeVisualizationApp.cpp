@@ -52,22 +52,22 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 			if (std::string(argv_int[i]) == std::string("use2DUI"))
 			{
 				m_is2d = true;
-				m_vrVolumeApp->setIs2D(true);
+				m_vrVolumeApp->set_is_2D(true);
 			}
 			if (std::string(argv_int[i]) == std::string("useHolo"))
 			{
 				m_lookingGlass = true;
 				m_speed = 0.5;
-				m_vrVolumeApp->setLookingGlass(true);
+				m_vrVolumeApp->set_looking_glass(true);
 
 			}
 			else if (std::string(argv_int[i]) == std::string("convert")) {
 				convert = true;
-				m_vrVolumeApp->setConvert(true);
+				m_vrVolumeApp->set_convert(true);
 			}
 			else if(helper::ends_with_string(std::string(argv_int[i]),".txt"))
 			{
-				m_vrVolumeApp->loadTxtFile(std::string(argv_int[i]));
+				m_vrVolumeApp->load_txt_file(std::string(argv_int[i]));
 				//m_vrVolumeApp->initialize();
 			}
 			else if(helper::ends_with_string(std::string(argv_int[i]), ".nrrd")){
@@ -88,7 +88,7 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 				std::vector<std::promise<Volume*>*> v2= promises.back();
 				ths.emplace_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, v2.back()));
 				threads.push_back(ths);*/
-				m_vrVolumeApp->loadNrrdFile(std::string(argv_int[i]));
+				m_vrVolumeApp->load_nrrd_file(std::string(argv_int[i]));
 				//m_vrVolumeApp->initialize();
 			}
 		}
@@ -695,7 +695,7 @@ void VolumeVisualizationApp::onCursorMove(const VRCursorEvent& event)
 		if (m_vrVolumeApp)
 		{
       glm::vec2 pos2d(event.getPos()[0], event.getPos()[1]);
-      m_vrVolumeApp->mousePosEvent(pos2d);
+      m_vrVolumeApp->mouse_pos_event(pos2d);
 		}
 		
 		
@@ -712,17 +712,17 @@ void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event) {
 		if (event.getName() == "HTC_Controller_Right_TrackPad0_Y" || event.getName() == "HTC_Controller_1_TrackPad0_Y"
 			|| (event.getName() == "Wand_Joystick_Y_Update" && !(event.getValue() > -0.1 && event.getValue() < 0.1)))
 			//m_menu_handler->setAnalogValue(event.getValue());
-			m_vrVolumeApp->updateUIEvents(event.getValue());
+			m_vrVolumeApp->update_ui_events(event.getValue());
 		if (event.getName() == "MouseWheel_Spin") {
 			std::cerr << event.getValue() << std::endl;
 			//m_menu_handler->setAnalogValue(event.getValue() * 10);
-			m_vrVolumeApp->updateUIEvents(event.getValue() * 10);
+			m_vrVolumeApp->update_ui_events(event.getValue() * 10);
 		}
 	}
 	else {
 		if (event.getName() == "MouseWheel_Spin") {
 			//m_trackball.mouse_scroll(event.getValue() * 0.01);
-			m_vrVolumeApp->updateTrackBallEvent(event.getValue() * 0.01);
+			m_vrVolumeApp->update_track_ball_event(event.getValue() * 0.01);
 		}
 		
 	}
@@ -732,8 +732,8 @@ void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event) {
 			m_menu_handler->renderToTexture();
 		else
 			m_menu_handler->drawMenu();*/
-		m_vrVolumeApp->update3DUI();
-		m_vrVolumeApp->update2DUI();
+		m_vrVolumeApp->update_3D_ui();
+		m_vrVolumeApp->update_2D_ui();
 
 		if (last_received + 1 != event.getValue()) {
 			std::cerr << "Problem with package , received " << event.getValue() << " expected "  << last_received + 1 << std::endl;
@@ -744,13 +744,13 @@ void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event) {
 
 
 void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
-	if (m_vrVolumeApp->isUIEvent()) {
+	if (m_vrVolumeApp->is_ui_event()) {
 		if (event.getName() == "MouseBtnLeft_Down")
 		{
 			//m_menu_handler->setButtonClick(0, 1);
 			if (m_vrVolumeApp)
 			{
-				m_vrVolumeApp->buttonEventsUIHandle(0, 1);
+				m_vrVolumeApp->button_events_ui_handle(0, 1);
 				//m_vrVolumeApp->buttonEventTrackBallHandle(0, 1);
 			}
 		}
@@ -759,7 +759,7 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 			//m_menu_handler->setButtonClick(1, 1);
 			if (m_vrVolumeApp)
 			{
-				m_vrVolumeApp->buttonEventsUIHandle(1, 1);
+				m_vrVolumeApp->button_events_ui_handle(1, 1);
 				//m_vrVolumeApp->buttonEventTrackBallHandle(1, 1);
 			}
 			
@@ -768,7 +768,7 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 			//m_menu_handler->setButtonClick(2, 0);
 			if (m_vrVolumeApp)
 			{
-				m_vrVolumeApp->buttonEventsUIHandle(2, 0);
+				m_vrVolumeApp->button_events_ui_handle(2, 0);
 				//m_vrVolumeApp->buttonEventTrackBallHandle(2, 1);
 			}
 			
@@ -781,7 +781,7 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 			//m_trackball.mouse_pressed(0, true);
 			if (m_vrVolumeApp)
 			{
-				m_vrVolumeApp->buttonEventTrackBallHandle(0, 1);
+				m_vrVolumeApp->button_event_trackBall_handle(0, 1);
 			}
 			
 		}
@@ -790,14 +790,14 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 		//	m_trackball.mouse_pressed(1, true);
       if (m_vrVolumeApp)
       {
-        m_vrVolumeApp->buttonEventTrackBallHandle(1, 1);
+        m_vrVolumeApp->button_event_trackBall_handle(1, 1);
       }
 		}
 		else if (event.getName() == "MouseBtnMiddle_Down") {
 			//m_trackball.mouse_pressed(2, true);
 			if (m_vrVolumeApp)
 			{
-				m_vrVolumeApp->buttonEventTrackBallHandle(2, 1);
+				m_vrVolumeApp->button_event_trackBall_handle(2, 1);
 			}
 			
 		}
@@ -810,7 +810,7 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 			//m_menu_handler->setButtonClick(0, 1);
 			if (m_vrVolumeApp)
 			{
-				m_vrVolumeApp->buttonEventsUIHandle(0, 1);
+				m_vrVolumeApp->button_events_ui_handle(0, 1);
 			}
 			
 		}
@@ -820,7 +820,7 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 			//m_menu_handler->setButtonClick(2, 1);
 			if (m_vrVolumeApp)
 			{
-				m_vrVolumeApp->buttonEventsUIHandle(2, 1);
+				m_vrVolumeApp->button_events_ui_handle(2, 1);
 			}
 			
 		}
@@ -831,7 +831,7 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 			//m_menu_handler->setButtonClick(1, 1);
 			if (m_vrVolumeApp)
 			{
-				m_vrVolumeApp->buttonEventsUIHandle(1, 1);
+				m_vrVolumeApp->button_events_ui_handle(1, 1);
 			}
 			
 		}
@@ -850,7 +850,7 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 			//std::cerr << "Grab ON" << std::endl;
 			if (m_vrVolumeApp)
 			{
-				m_vrVolumeApp->enableGrab(true);
+				m_vrVolumeApp->enable_grab(true);
 			}
 			
 		}
@@ -860,7 +860,7 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 			//m_clipping = true;
 			if (m_vrVolumeApp) 
 			{
-				m_vrVolumeApp->enableClipping(true);
+				m_vrVolumeApp->enable_clipping(true);
 			}
 			
 			//std::cerr << "Clipping ON" << std::endl;
@@ -870,7 +870,7 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 			//m_show_menu = !m_show_menu;
 			if (m_vrVolumeApp)
 			{
-				m_vrVolumeApp->enableUIMenu();
+				m_vrVolumeApp->enable_ui_menu();
 			}
 			
 		}
@@ -880,7 +880,7 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 			//m_wasd_pressed = m_wasd_pressed | W;
 			if (m_vrVolumeApp)
 			{
-				m_vrVolumeApp->setAWSDKeyBoardEvent(W);
+				m_vrVolumeApp->set_AWSD_keyBoard_event(W);
 			}
 			
 		}
@@ -888,7 +888,7 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 			//m_wasd_pressed = m_wasd_pressed | A;
 			if (m_vrVolumeApp) 
 			{
-				m_vrVolumeApp->setAWSDKeyBoardEvent(A);
+				m_vrVolumeApp->set_AWSD_keyBoard_event(A);
 			}
 			
 		}
@@ -896,7 +896,7 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 			//m_wasd_pressed = m_wasd_pressed | S;
 			if (m_vrVolumeApp)
 			{
-				m_vrVolumeApp->setAWSDKeyBoardEvent(S);
+				m_vrVolumeApp->set_AWSD_keyBoard_event(S);
 			}
 			
 		}
@@ -904,7 +904,7 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 			//m_wasd_pressed = m_wasd_pressed | D;
 			if (m_vrVolumeApp)
 			{
-				m_vrVolumeApp->setAWSDKeyBoardEvent(D);
+				m_vrVolumeApp->set_AWSD_keyBoard_event(D);
 			}
 			
 		}
@@ -912,7 +912,7 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 			//m_wasd_pressed = m_wasd_pressed | Q;
 			if (m_vrVolumeApp)
 			{
-				m_vrVolumeApp->setAWSDKeyBoardEvent(Q);
+				m_vrVolumeApp->set_AWSD_keyBoard_event(Q);
 			}
 			
 		}
@@ -920,7 +920,7 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
 			//m_wasd_pressed = m_wasd_pressed | E;
 			if (m_vrVolumeApp)
 			{
-				m_vrVolumeApp->setAWSDKeyBoardEvent(E);
+				m_vrVolumeApp->set_AWSD_keyBoard_event(E);
 			}
 			
 		}
@@ -937,7 +937,7 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 			//m_menu_handler->setAnalogValue(10);
 			if (m_vrVolumeApp)
 			{
-				m_vrVolumeApp->updateUIEvents(10);
+				m_vrVolumeApp->update_ui_events(10);
 			}
 			
 		}
@@ -947,7 +947,7 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 			//m_menu_handler->setAnalogValue(-10);
 			if (m_vrVolumeApp) 
 			{
-				m_vrVolumeApp->updateUIEvents(-10);
+				m_vrVolumeApp->update_ui_events(-10);
 			}
 			
 		}
@@ -959,7 +959,7 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 			//m_trackball.mouse_pressed(2, false);
 			if (m_vrVolumeApp)
 			{
-				m_vrVolumeApp->buttonEventTrackBallHandle(2, 0);
+				m_vrVolumeApp->button_event_trackBall_handle(2, 0);
 			}
 			
 		}
@@ -969,7 +969,7 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 			//m_trackball.mouse_pressed(2, true);
 			if (m_vrVolumeApp)
 			{
-				m_vrVolumeApp->buttonEventTrackBallHandle(2, 1);
+				m_vrVolumeApp->button_event_trackBall_handle(2, 1);
 			}
 			
 		}
@@ -981,8 +981,8 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 		//m_trackball.mouse_pressed(0, false);
 		if (m_vrVolumeApp)
 		{
-			m_vrVolumeApp->buttonEventsUIHandle(0, 0);
-			m_vrVolumeApp->buttonEventTrackBallHandle(0, 0);
+			m_vrVolumeApp->button_events_ui_handle(0, 0);
+			m_vrVolumeApp->button_event_trackBall_handle(0, 0);
 		}
 	
 	}
@@ -992,8 +992,8 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
     if (m_menu_handler != NULL) m_menu_handler->setButtonClick(1, 0);*/
 		if (m_vrVolumeApp)
 		{
-      m_vrVolumeApp->buttonEventsUIHandle(1, 0);
-      m_vrVolumeApp->buttonEventTrackBallHandle(1, 0);
+      m_vrVolumeApp->button_events_ui_handle(1, 0);
+      m_vrVolumeApp->button_event_trackBall_handle(1, 0);
 		}
 		
 	}
@@ -1002,8 +1002,8 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 		if (m_menu_handler != NULL) m_menu_handler->setButtonClick(2, 0);*/
 		if (m_vrVolumeApp)
 		{
-      m_vrVolumeApp->buttonEventsUIHandle(2, 0);
-      m_vrVolumeApp->buttonEventTrackBallHandle(2, 0);
+      m_vrVolumeApp->button_events_ui_handle(2, 0);
+      m_vrVolumeApp->button_event_trackBall_handle(2, 0);
 		}
 	}
 	
@@ -1014,7 +1014,7 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 			//left click
 			if (m_vrVolumeApp)
 			{
-				m_vrVolumeApp->buttonEventsUIHandle(0, 0);
+				m_vrVolumeApp->button_events_ui_handle(0, 0);
 			}
 
 		}
@@ -1024,7 +1024,7 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 			//m_menu_handler->setButtonClick(2, 0);
 			if (m_vrVolumeApp)
 			{
-				m_vrVolumeApp->buttonEventsUIHandle(2, 0);
+				m_vrVolumeApp->button_events_ui_handle(2, 0);
 			}
 			
 		}
@@ -1035,7 +1035,7 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 			//m_menu_handler->setButtonClick(1, 0);
 			if (m_vrVolumeApp)
 			{
-				m_vrVolumeApp->buttonEventsUIHandle(1, 0);
+				m_vrVolumeApp->button_events_ui_handle(1, 0);
 			}
 			
 		}
@@ -1048,7 +1048,7 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 		//m_grab = false;
 		if (m_vrVolumeApp)
 		{
-			m_vrVolumeApp->enableGrab(false);
+			m_vrVolumeApp->enable_grab(false);
 		}
 		//std::cerr << "Grab OFF" << std::endl;
 	}
@@ -1058,7 +1058,7 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 		//m_clipping = false;
 		if (m_vrVolumeApp)
 		{
-			m_vrVolumeApp->enableClipping(false);
+			m_vrVolumeApp->enable_clipping(false);
 		}
 		//std::cerr << "Clipping OFF" << std::endl;
 	}
@@ -1067,7 +1067,7 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 		//m_wasd_pressed = m_wasd_pressed & ~W;
     if (m_vrVolumeApp)
     {
-      m_vrVolumeApp->unsetAWSDKeyBoardEvent(W);
+      m_vrVolumeApp->unset_AWSD_keyBoard_event(W);
     }
 		
 	}
@@ -1076,7 +1076,7 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 		//m_wasd_pressed = m_wasd_pressed & ~A;
     if (m_vrVolumeApp)
     {
-      m_vrVolumeApp->unsetAWSDKeyBoardEvent(A);
+      m_vrVolumeApp->unset_AWSD_keyBoard_event(A);
     }
 	}
 	if (event.getName() == "KbdS_Up") 
@@ -1084,14 +1084,14 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 		//m_wasd_pressed = m_wasd_pressed & ~S;
     if (m_vrVolumeApp)
     {
-      m_vrVolumeApp->unsetAWSDKeyBoardEvent(S);
+      m_vrVolumeApp->unset_AWSD_keyBoard_event(S);
     }
 	}
 	if (event.getName() == "KbdD_Up") {
 		//m_wasd_pressed = m_wasd_pressed & ~D;
     if (m_vrVolumeApp)
     {
-      m_vrVolumeApp->unsetAWSDKeyBoardEvent(D);
+      m_vrVolumeApp->unset_AWSD_keyBoard_event(D);
     }
 	}
 	if (event.getName() == "KbdQ_Up") 
@@ -1099,7 +1099,7 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 		//m_wasd_pressed = m_wasd_pressed & ~Q;
     if (m_vrVolumeApp)
     {
-      m_vrVolumeApp->unsetAWSDKeyBoardEvent(Q);
+      m_vrVolumeApp->unset_AWSD_keyBoard_event(Q);
     }
 	}
 	if (event.getName() == "KbdE_Up") 
@@ -1107,7 +1107,7 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 		//m_wasd_pressed = m_wasd_pressed & ~E;
     if (m_vrVolumeApp)
     {
-      m_vrVolumeApp->unsetAWSDKeyBoardEvent(E);
+      m_vrVolumeApp->unset_AWSD_keyBoard_event(E);
     }
 	}
 
@@ -1115,7 +1115,7 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
 		//m_renderVolume = !m_renderVolume;
 		if (m_vrVolumeApp)
 		{
-			m_vrVolumeApp->enableRenderVolume();
+			m_vrVolumeApp->enable_render_volume();
 		}
     
   }
@@ -1129,7 +1129,7 @@ void VolumeVisualizationApp::onTrackerMove(const VRTrackerEvent &event) {
 			if (m_vrVolumeApp)
 			{
 				glm::mat4 new_pose = glm::make_mat4(event.getTransform());
-				m_vrVolumeApp->updateUIPoseController(new_pose);
+				m_vrVolumeApp->update_UI_pose_controller(new_pose);
 			}
 			
 		}
@@ -1149,7 +1149,7 @@ void VolumeVisualizationApp::onTrackerMove(const VRTrackerEvent &event) {
 		//m_controller_pose = new_pose;
 		if (m_vrVolumeApp)
 		{
-			m_vrVolumeApp->doGrab(new_pose);
+			m_vrVolumeApp->do_grab(new_pose);
 		}
 		
 	}
@@ -1157,7 +1157,7 @@ void VolumeVisualizationApp::onTrackerMove(const VRTrackerEvent &event) {
 		glm::mat4 headPose = glm::make_mat4(event.getTransform());
 		if (m_vrVolumeApp)
 		{
-			m_vrVolumeApp->updateHeadPose(headPose);
+			m_vrVolumeApp->update_head_pose(headPose);
 		}
 		//m_headpose = glm::inverse(m_headpose);
 		m_light_pos[0] = headPose[3][0];
@@ -1179,8 +1179,8 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 	float fps = 1000.0f / std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
 	if (m_vrVolumeApp)
 	{
-		m_vrVolumeApp->updateFps(fps);
-		m_vrVolumeApp->updateDynamicSlices();
+		m_vrVolumeApp->update_fps(fps);
+		m_vrVolumeApp->update_dynamic_slices();
 	}
 	m_lastTime = nowTime;
 	
@@ -1210,8 +1210,8 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 						if (m_vrVolumeApp) 
 						{
 							m_vrVolumeApp->initialize();
-              m_vrVolumeApp->intializeUI();
-							m_vrVolumeApp->loadShaders();
+              m_vrVolumeApp->intialize_ui();
+							m_vrVolumeApp->load_shaders();
 						}
 
 						
@@ -1221,9 +1221,9 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
-		glLightfv(GL_LIGHT0, GL_AMBIENT, glm::value_ptr(m_vrVolumeApp->getAmbient()));
-		glLightfv(GL_LIGHT0, GL_DIFFUSE, glm::value_ptr(m_vrVolumeApp->getDiffuse()));
-		glLightfv(GL_LIGHT0, GL_SPECULAR, glm::value_ptr(m_vrVolumeApp->getNoColor()));
+		glLightfv(GL_LIGHT0, GL_AMBIENT, glm::value_ptr(m_vrVolumeApp->get_ambient()));
+		glLightfv(GL_LIGHT0, GL_DIFFUSE, glm::value_ptr(m_vrVolumeApp->get_diffuse()));
+		glLightfv(GL_LIGHT0, GL_SPECULAR, glm::value_ptr(m_vrVolumeApp->get_no_color()));
 		glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, true);
 		glEnable(GL_COLOR_MATERIAL);
 		glEnable(GL_NORMALIZE);
@@ -1239,15 +1239,15 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
 
   if (m_vrVolumeApp )
   {
-		if (m_vrVolumeApp->pendingModelsToLoad())
+		if (m_vrVolumeApp->pending_models_to_load())
 		{
-			m_vrVolumeApp->loadMeshModel();
+			m_vrVolumeApp->load_mesh_model();
 		}
-		m_vrVolumeApp->initializeTextures();
-		m_vrVolumeApp->update3DUI();
-		m_vrVolumeApp->updateTrackBallState();
-		m_vrVolumeApp->updateAnimation();
-		m_vrVolumeApp->setRendercount(0);
+		m_vrVolumeApp->initialize_textures();
+		m_vrVolumeApp->update_3D_ui();
+		m_vrVolumeApp->update_trackBall_state();
+		m_vrVolumeApp->update_animation();
+		m_vrVolumeApp->set_render_count(0);
 
   }
   
