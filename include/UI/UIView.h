@@ -66,6 +66,9 @@ public:
 
   bool is_use_custom_clip_plane();
 
+  glm::vec3 get_clip_min();
+  glm::vec3 get_clip_max();
+
 private:
 
 

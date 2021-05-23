@@ -508,3 +508,13 @@ bool UIView::is_use_custom_clip_plane()
   return m_useCustomClipPlane;
 }
 
+glm::vec3 UIView::get_clip_min()
+{
+  return m_clip_min;
+}
+
+glm::vec3 UIView::get_clip_max()
+{
+  return m_clip_max;
+}
+

@@ -28,9 +28,6 @@
 namespace fs = std::filesystem;
 
 
-//float noColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-//float ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
-//float diffuse[] = { 0.5f, 0.5f, 0.5f, 1.0f };
 
 VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(argc, argv), m_grab{ false }
 , m_scale{ 1.0f }, width{ 10 }, height{ 10 }, m_multiplier{ 1.0f }, m_threshold{ 0.0 }, m_is2d(true), m_menu_handler(NULL), m_lookingGlass{false}
@@ -68,11 +65,12 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 			else if(helper::ends_with_string(std::string(argv_int[i]),".txt"))
 			{
 				m_vrVolumeApp->load_txt_file(std::string(argv_int[i]));
-				//m_vrVolumeApp->initialize();
 			}
 			else if(helper::ends_with_string(std::string(argv_int[i]), ".nrrd")){
 
-			/*	std::vector<std::string> vals;
+			/*	
+			  NRRD LOADING
+			  std::vector<std::string> vals;
 				vals.push_back(std::string(argv_int[i]));	
 				std::vector<std::promise<Volume*>*> v;
 				std::promise<Volume*>* pm = new std::promise<Volume*>();
@@ -98,270 +96,19 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
 	* UI intialization
 	*/
 	
-	//m_vrVolumeApp->intializeUI();
 
-	//m_object_pose = glm::mat4(1.0f);
 
 	m_light_pos[0] = 0.0;
 	m_light_pos[1] = 4.0;
 	m_light_pos[2] = 0.0;
 	m_light_pos[3] = 1.0;
 
-	//m_renders.push_back(new VolumeSliceRenderer());
-	//m_renders.push_back(new VolumeRaycastRenderer());
-
-	//std::cerr << " Done loading" << std::endl;
-	//float fontsize = 2.0;
-	//if (m_is2d) {
-	//	fontsize = 1.0;
-	//}
-	//if (m_lookingGlass) { 
-	//	fontsize = 3.0;
-	//}
-
-
-	//m_menu_handler = new VRMenuHandler(m_is2d);
-	//VRMenu * menu = m_menu_handler->addNewMenu(std::bind(&VolumeVisualizationApp::ui_callback, this), 1024, 1024, 1, 1, fontsize);
-	//menu->setMenuPose(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 2, -1, 1));
-
-//	fileDialog.SetTitle("load data");
-//#ifdef WITH_NRRD
-//	fileDialog.SetTypeFilters({ ".txt", ".nrrd" });
-//#elseif
-//	fileDialog.SetTypeFilters({ ".txt"});
-//#endif
 }
 
 VolumeVisualizationApp::~VolumeVisualizationApp()
 {
 	
-	/*for (int i = 0; i < m_volumes.size(); i++){
-		std::vector< Volume* > v = m_volumes[i];
-		for (int j = 0; j < v.size(); j++)
-		{
-			delete v[i];
-		}
-		
-	}
-	m_volumes.clear();*/
 	delete m_vrVolumeApp;
-}
-
-void VolumeVisualizationApp::loadTxtFile(std::string filename)
-{
-	std::ifstream inFile;
-	inFile.open(filename);
-
-	std::string line;
-
-	fs::path p_filename(filename);
-
-	while (getline(inFile, line)) {
-		if (line[0] != '#') {
-			std::vector<std::string> vals; // Create vector to hold our words
-			std::stringstream ss(line);
-			std::string buf;
-
-			while (ss >> buf) {
-				vals.push_back(buf);
-			}
-			if (vals.size() > 0) {
-				std::string tag = vals[0];
-				if (tag == "animated")
-				{
-					m_animated = true;
-				}
-				if (tag == "threshold")
-				{
-					m_threshold = stof(vals[1]);
-				}
-				if (tag == "label")
-				{
-					std::cerr << "add Label " << vals[1] << std::endl;
-					std::cerr << "at position " << vals[2] << " , " << vals[3] << " , " << vals[4] << std::endl;
-					std::cerr << "text at position " << vals[2] << " , " << vals[3] << " , " << vals[5] << std::endl;
-					std::cerr << "text Size " << vals[6] << std::endl;
-					std::cerr << "for Volume " << vals[7] << std::endl;
-					m_labels.add(vals[1], stof(vals[2]), stof(vals[3]), stof(vals[4]), stof(vals[5]), stof(vals[6]), stoi(vals[7]) - 1);
-				}
-				if (tag == "desc")
-				{
-					std::cerr << "Load Description " << vals[1] << std::endl;
-					std::cerr << "with size " << vals[2] << std::endl;
-					m_descriptionHeight = stoi(vals[2]);
-					m_descriptionFilename = p_filename.parent_path().string() + OS_SLASH + vals[1];
-					m_description = LoadDescriptionAction(m_descriptionFilename).run();
-					std::cerr << m_description[0] << std::endl;
-				}
-				if (tag == "mesh")
-				{
-				//	std::cerr << "Load Mesh " << vals[1] << std::endl;
-				//	std::cerr << "for Volume " << vals[2] << std::endl;
-					vals[1] = p_filename.parent_path().string() + OS_SLASH + vals[1];
-					std::cerr << "Load Mesh " <<  vals[1] << std::endl;
-					m_models_volumeID.push_back(stoi(vals[2]) - 1);
-					m_models_filenames.push_back(vals[1]);
-					m_models_MV.push_back(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
-					shaderFilePath = p_filename.parent_path().string() + OS_SLASH + "shaders";
-
-				}
-				if (tag == "texture")
-				{
-          
-					//std::cerr << "for Volume " << vals[2] << std::endl;
-					textureFilePath = p_filename.parent_path().string() + OS_SLASH + vals[1];
-					std::cerr << "Load texture " << textureFilePath << std::endl;
-					m_texture = new Texture(GL_TEXTURE_2D, textureFilePath);
-
-				}
-				if (tag == "numVolumes")
-				{
-					m_numVolumes = std::stoi(vals[1]);
-					dataLabels.resize(m_numVolumes);
-					for (int i = 0; i < m_numVolumes;i++)
-					{
-						dataLabels[i] = vals[i + 2];
-					}
-					m_volumes.resize(m_numVolumes);
-					promises.resize(m_numVolumes);
-					futures.resize(m_numVolumes);
-					threads.resize(m_numVolumes);
-					tfn_widget_multi.resize(1);
-					tfn_widget.resize(1);
-					selectedTrFn.resize(1);
-					selectedTrFn[0].resize(m_numVolumes);
-					for (int i = 0; i < m_numVolumes; i++)
-					{
-						selectedTrFn[0][i] = false;
-					}
-				}
-				else if (tag.rfind("volume") == 0)
-				{
-					char str[3];
-          int i;
-
-					std::string strVolumeIndex = tag.substr(6);
-					size_t volumeIndex = std::stoi(strVolumeIndex);
-
-					
-					vals[1] = p_filename.parent_path().string() + OS_SLASH + vals[1];
-
-					
-					
-          std::vector<std::promise<Volume*>*>& v = promises[volumeIndex - 1];
-          std::promise<Volume*>* pm = new std::promise<Volume*>();
-
-          v.push_back(pm);
-
-          //promises[volumeIndex-1]=v;
-
-					std::vector<std::future<Volume*>>* fut;
-					if (!futures[volumeIndex-1])
-					{
-						futures[volumeIndex -1 ] = new std::vector<std::future<Volume*>>;
-						
-					}
-					fut = futures[volumeIndex - 1];
-					
-          fut->push_back(pm->get_future());
-          futures[volumeIndex - 1] = fut;
-
-          std::vector <std::thread*>& ths = threads[volumeIndex - 1];
-          std::vector<std::promise<Volume*>*> v2 = promises[volumeIndex - 1];
-          ths.emplace_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, v2.back()));
-
-          //threads[volumeIndex - 1] = ths;
-
-
-					/*promises[volumeIndex -1].push_back(new std::promise<Volume*>);
-					futures[volumeIndex - 1]->push_back(promises[i].back()->get_future());
-					threads[volumeIndex - 1].push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises[i].back()));*/
-				}
-			}
-		}
-	}
-	inFile.close();
-}
-
-void VolumeVisualizationApp::loadVolume(std::vector<std::string> vals, std::promise<Volume*>* promise)
-{
-	if(vals.size() == 1 && helper::ends_with_string(vals[0],".nrrd"))
-	{
-#ifdef WITH_TEEM
-		Volume* volume = LoadNrrdAction(vals[0]).run();
-		volume->set_volume_position({ 0.0, 0.0, 0.0 });
-		volume->set_volume_scale({ 0.0, 0.0, 0.0 });
-		volume->set_volume_mv(glm::mat4());
-		promise->set_value(volume);;
-#endif
-	}
-	else {
-		std::cerr << "Load volume " << vals[1] << std::endl;
-		std::cerr << "Position " << vals[5] << " , " << vals[6] << " , " << vals[7] << std::endl;
-		std::cerr << "Resolution " << vals[2] << " , " << vals[3] << " , " << vals[4] << std::endl;
-
-		float t_res[3];
-		t_res[0] = stof(vals[2]);
-		t_res[1] = stof(vals[3]);
-		t_res[2] = stof(vals[4]);
-
-		Volume* volume = LoadDataAction(vals[1], &t_res[0]).run(convert);
-
-		volume->set_volume_position({ stof(vals[5]), stof(vals[6]), stof(vals[7]) });
-		volume->set_volume_scale({ 0.0, 0.0, 0.0 });
-		volume->set_volume_mv(glm::mat4());
-
-		if (vals.size() > 9)
-		{
-			std::cerr << "Set render channel to " << vals[9] << std::endl;
-			volume->set_render_channel(std::stoi(vals[9]));
-		}
-		promise->set_value(volume);;
-		std::cerr << "end load" << std::endl;
-	}
-}
-
-void VolumeVisualizationApp::addLodadedTextures()
-{
-	bool allready = true;
-	for (auto& fut : futures)
-	{
-    std::vector <std::future<Volume*>>* _ft = fut;
-    for (auto& f : *_ft)
-    {
-#ifdef _MSC_VER
-      allready = allready & f._Is_ready();
-#else
-      allready = allready & (f.wait_for(std::chrono::seconds(0)) == std::future_status::ready);
-#endif
-  }
-
-	}
-
-	if(allready)
-	{
-		for (int i =0; i < futures.size(); i++)
-		{
-			std::vector <std::future<Volume*>>* _ft = futures[i];
-			int counter = 0;
-			for (auto& value : *_ft)
-			//for (int j = 0; j < _ft->size(); j++)
-			{
-				//Volume* vlm = *_ft[j].get();
-				Volume* vlm = value.get();
-				m_volumes[i].push_back(vlm);
-				threads[i][counter]->join();
-        delete threads[i][counter];
-        delete promises[i][counter];
-				counter++;
-			}
-			
-			
-		}
-		threads.clear();
-		promises.clear();
-		futures.clear();
-	}
 }
 
 void VolumeVisualizationApp::ui_callback()
@@ -673,16 +420,16 @@ void VolumeVisualizationApp::ui_callback()
 
 void VolumeVisualizationApp::initTexture()
 {
-	addLodadedTextures();
-	for (int i = 0; i < m_volumes.size(); i++){
+  /*addLodadedTextures();
+  for (int i = 0; i < m_volumes.size(); i++){
 
-		std::vector< Volume* > vlm = m_volumes[i];
-		for (int j = 0; j < vlm.size(); j++)
-		{
-			vlm[j]->initGL();
-		}
-		
-	}
+    std::vector< Volume* > vlm = m_volumes[i];
+    for (int j = 0; j < vlm.size(); j++)
+    {
+      vlm[j]->initGL();
+    }
+
+  }*/
 
 }
 
@@ -1349,138 +1096,138 @@ void VolumeVisualizationApp::getMinMax(const float frame, float& min, float& max
 
 void VolumeVisualizationApp::loadTextFile(std::string& filename)
 {
-	std::ifstream inFile;
-	inFile.open(filename);
+	//std::ifstream inFile;
+	//inFile.open(filename);
 
-	std::string line;
+	//std::string line;
 
-	fs::path p_filename(filename);
+	//fs::path p_filename(filename);
 
-	while (getline(inFile, line)) {
-		if (line[0] != '#') {
-			std::vector<std::string> vals; // Create vector to hold our words
-			std::stringstream ss(line);
-			std::string buf;
+	//while (getline(inFile, line)) {
+	//	if (line[0] != '#') {
+	//		std::vector<std::string> vals; // Create vector to hold our words
+	//		std::stringstream ss(line);
+	//		std::string buf;
 
-			while (ss >> buf) {
-				vals.push_back(buf);
-			}
-			if (vals.size() > 0) {
-				std::string tag = vals[0];
-				if (tag == "animated")
-				{
-					m_animated = true;
-				}
-				if (tag == "threshold")
-				{
-					m_threshold = stof(vals[1]);
-				}
-				if (tag == "label")
-				{
-					std::cerr << "add Label " << vals[1] << std::endl;
-					std::cerr << "at position " << vals[2] << " , " << vals[3] << " , " << vals[4] << std::endl;
-					std::cerr << "text at position " << vals[2] << " , " << vals[3] << " , " << vals[5] << std::endl;
-					std::cerr << "text Size " << vals[6] << std::endl;
-					std::cerr << "for Volume " << vals[7] << std::endl;
-					m_labels.add(vals[1], stof(vals[2]), stof(vals[3]), stof(vals[4]), stof(vals[5]), stof(vals[6]), stoi(vals[7]) - 1);
-				}
-				if (tag == "desc")
-				{
-					std::cerr << "Load Description " << vals[1] << std::endl;
-					std::cerr << "with size " << vals[2] << std::endl;
-					m_descriptionHeight = stoi(vals[2]);
-					m_descriptionFilename = p_filename.parent_path().string() + OS_SLASH + vals[1];
-					m_description = LoadDescriptionAction(m_descriptionFilename).run();
-					std::cerr << m_description[0] << std::endl;
-				}
-				if (tag == "mesh")
-				{
-					//	std::cerr << "Load Mesh " << vals[1] << std::endl;
-					//	std::cerr << "for Volume " << vals[2] << std::endl;
-					vals[1] = p_filename.parent_path().string() + OS_SLASH + vals[1];
-					std::cerr << "Load Mesh " << vals[1] << std::endl;
-					m_models_volumeID.push_back(stoi(vals[2]) - 1);
-					m_models_filenames.push_back(vals[1]);
-					m_models_MV.push_back(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
-					shaderFilePath = p_filename.parent_path().string() + OS_SLASH + "shaders";
+	//		while (ss >> buf) {
+	//			vals.push_back(buf);
+	//		}
+	//		if (vals.size() > 0) {
+	//			std::string tag = vals[0];
+	//			if (tag == "animated")
+	//			{
+	//				m_animated = true;
+	//			}
+	//			if (tag == "threshold")
+	//			{
+	//				m_threshold = stof(vals[1]);
+	//			}
+	//			if (tag == "label")
+	//			{
+	//				std::cerr << "add Label " << vals[1] << std::endl;
+	//				std::cerr << "at position " << vals[2] << " , " << vals[3] << " , " << vals[4] << std::endl;
+	//				std::cerr << "text at position " << vals[2] << " , " << vals[3] << " , " << vals[5] << std::endl;
+	//				std::cerr << "text Size " << vals[6] << std::endl;
+	//				std::cerr << "for Volume " << vals[7] << std::endl;
+	//				m_labels.add(vals[1], stof(vals[2]), stof(vals[3]), stof(vals[4]), stof(vals[5]), stof(vals[6]), stoi(vals[7]) - 1);
+	//			}
+	//			if (tag == "desc")
+	//			{
+	//				std::cerr << "Load Description " << vals[1] << std::endl;
+	//				std::cerr << "with size " << vals[2] << std::endl;
+	//				m_descriptionHeight = stoi(vals[2]);
+	//				m_descriptionFilename = p_filename.parent_path().string() + OS_SLASH + vals[1];
+	//				m_description = LoadDescriptionAction(m_descriptionFilename).run();
+	//				std::cerr << m_description[0] << std::endl;
+	//			}
+	//			if (tag == "mesh")
+	//			{
+	//				//	std::cerr << "Load Mesh " << vals[1] << std::endl;
+	//				//	std::cerr << "for Volume " << vals[2] << std::endl;
+	//				vals[1] = p_filename.parent_path().string() + OS_SLASH + vals[1];
+	//				std::cerr << "Load Mesh " << vals[1] << std::endl;
+	//				m_models_volumeID.push_back(stoi(vals[2]) - 1);
+	//				m_models_filenames.push_back(vals[1]);
+	//				m_models_MV.push_back(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
+	//				shaderFilePath = p_filename.parent_path().string() + OS_SLASH + "shaders";
 
-				}
-				if (tag == "texture")
-				{
+	//			}
+	//			if (tag == "texture")
+	//			{
 
-					//std::cerr << "for Volume " << vals[2] << std::endl;
-					textureFilePath = p_filename.parent_path().string() + OS_SLASH + vals[1];
-					std::cerr << "Load texture " << textureFilePath << std::endl;
-					m_texture = new Texture(GL_TEXTURE_2D, textureFilePath);
+	//				//std::cerr << "for Volume " << vals[2] << std::endl;
+	//				textureFilePath = p_filename.parent_path().string() + OS_SLASH + vals[1];
+	//				std::cerr << "Load texture " << textureFilePath << std::endl;
+	//				m_texture = new Texture(GL_TEXTURE_2D, textureFilePath);
 
-				}
-				if (tag == "numVolumes")
-				{
-					m_numVolumes = std::stoi(vals[1]);
-					dataLabels.resize(m_numVolumes);
-					for (int i = 0; i < m_numVolumes; i++)
-					{
-						dataLabels[i] = vals[i + 2];
-					}
-					m_volumes.resize(m_numVolumes);
-					promises.resize(m_numVolumes);
-					futures.resize(m_numVolumes);
-					threads.resize(m_numVolumes);
-					tfn_widget_multi.resize(1);
-					tfn_widget.resize(1);
-					selectedTrFn.resize(1);
-					selectedTrFn[0].resize(m_numVolumes);
-					for (int i = 0; i < m_numVolumes; i++)
-					{
-						selectedTrFn[0][i] = false;
-					}
-				}
-				else if (tag.rfind("volume") == 0)
-				{
-					char str[3];
-					int i;
+	//			}
+	//			if (tag == "numVolumes")
+	//			{
+	//				m_numVolumes = std::stoi(vals[1]);
+	//				dataLabels.resize(m_numVolumes);
+	//				for (int i = 0; i < m_numVolumes; i++)
+	//				{
+	//					dataLabels[i] = vals[i + 2];
+	//				}
+	//				m_volumes.resize(m_numVolumes);
+	//				promises.resize(m_numVolumes);
+	//				futures.resize(m_numVolumes);
+	//				threads.resize(m_numVolumes);
+	//				tfn_widget_multi.resize(1);
+	//				tfn_widget.resize(1);
+	//				selectedTrFn.resize(1);
+	//				selectedTrFn[0].resize(m_numVolumes);
+	//				for (int i = 0; i < m_numVolumes; i++)
+	//				{
+	//					selectedTrFn[0][i] = false;
+	//				}
+	//			}
+	//			else if (tag.rfind("volume") == 0)
+	//			{
+	//				char str[3];
+	//				int i;
 
-					std::string strVolumeIndex = tag.substr(6);
-					size_t volumeIndex = std::stoi(strVolumeIndex);
-
-
-					vals[1] = p_filename.parent_path().string() + OS_SLASH + vals[1];
+	//				std::string strVolumeIndex = tag.substr(6);
+	//				size_t volumeIndex = std::stoi(strVolumeIndex);
 
 
-
-					std::vector<std::promise<Volume*>*>& v = promises[volumeIndex - 1];
-					std::promise<Volume*>* pm = new std::promise<Volume*>();
-
-					v.push_back(pm);
-
-					//promises[volumeIndex-1]=v;
-
-					std::vector<std::future<Volume*>>* fut;
-					if (!futures[volumeIndex - 1])
-					{
-						futures[volumeIndex - 1] = new std::vector<std::future<Volume*>>;
-
-					}
-					fut = futures[volumeIndex - 1];
-
-					fut->push_back(pm->get_future());
-					futures[volumeIndex - 1] = fut;
-
-					std::vector <std::thread*>& ths = threads[volumeIndex - 1];
-					std::vector<std::promise<Volume*>*> v2 = promises[volumeIndex - 1];
-					ths.emplace_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, v2.back()));
-
-					//threads[volumeIndex - 1] = ths;
+	//				vals[1] = p_filename.parent_path().string() + OS_SLASH + vals[1];
 
 
-					/*promises[volumeIndex -1].push_back(new std::promise<Volume*>);
-					futures[volumeIndex - 1]->push_back(promises[i].back()->get_future());
-					threads[volumeIndex - 1].push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises[i].back()));*/
-				}
-			}
-		}
-	}
-	inFile.close();
+
+	//				std::vector<std::promise<Volume*>*>& v = promises[volumeIndex - 1];
+	//				std::promise<Volume*>* pm = new std::promise<Volume*>();
+
+	//				v.push_back(pm);
+
+	//				//promises[volumeIndex-1]=v;
+
+	//				std::vector<std::future<Volume*>>* fut;
+	//				if (!futures[volumeIndex - 1])
+	//				{
+	//					futures[volumeIndex - 1] = new std::vector<std::future<Volume*>>;
+
+	//				}
+	//				fut = futures[volumeIndex - 1];
+
+	//				fut->push_back(pm->get_future());
+	//				futures[volumeIndex - 1] = fut;
+
+	//				std::vector <std::thread*>& ths = threads[volumeIndex - 1];
+	//				std::vector<std::promise<Volume*>*> v2 = promises[volumeIndex - 1];
+	//				ths.emplace_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, v2.back()));
+
+	//				//threads[volumeIndex - 1] = ths;
+
+
+	//				/*promises[volumeIndex -1].push_back(new std::promise<Volume*>);
+	//				futures[volumeIndex - 1]->push_back(promises[i].back()->get_future());
+	//				threads[volumeIndex - 1].push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises[i].back()));*/
+	//			}
+	//		}
+	//	}
+	//}
+	//inFile.close();
 }
 
 

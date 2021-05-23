@@ -507,7 +507,7 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
   }
 
   for (auto ren : m_renders)
-    ren->setClipMinMax(m_clip_min, m_clip_max);
+    ren->setClipMinMax(m_ui_view->get_clip_min(), m_ui_view->get_clip_max());
 
   if (m_mesh_model)
   {
