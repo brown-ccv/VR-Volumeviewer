@@ -500,7 +500,7 @@ float UIView::get_multiplier()
 
 bool UIView::is_ui_window_active()
 {
-  return m_menu_handler != NULL && m_menu_handler->windowIsActive();
+  return m_menu_handler != nullptr && m_menu_handler->windowIsActive();
 }
 
 bool UIView::is_use_custom_clip_plane()

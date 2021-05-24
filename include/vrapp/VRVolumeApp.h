@@ -20,7 +20,9 @@ class VRVolumeApp
 public:
 
   VRVolumeApp();
+  ~VRVolumeApp();
   
+
   
   void render(const MinVR::VRGraphicsState& renderState);
 
@@ -105,6 +107,8 @@ public:
   bool is_multi_transfer();
 
   bool is_ui_event();
+
+  bool is_show_menu();
 
 protected:
 
