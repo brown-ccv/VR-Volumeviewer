@@ -164,6 +164,8 @@ add_subdirectory(libs/Model)
 add_subdirectory(libs/Texture)
 add_subdirectory(libs/ShaderProgram)
 add_subdirectory(libs/stb_image)
+# POSSIBLE FIX ON RECURSIVE INCLUDE
+#add_subdirectory(src)
 
 #---------------------- Define the Target ----------------------
 
