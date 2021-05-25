@@ -1,4 +1,6 @@
-#pragma once
+#ifndef VRVOLUMEAPP_H
+#define VRVOLUMEAPP_H
+
 #include <string>
 #include <vector>
 #include <future>
@@ -21,14 +23,12 @@ public:
 
   VRVolumeApp();
   ~VRVolumeApp();
-  
 
-  
+
+
   void render(const MinVR::VRGraphicsState& renderState);
 
   void initialize();
-
-  void load_txt_file(std::string& filename);
 
   void load_volume(std::vector<std::string> vals, std::promise<Volume*>* promise);
 
@@ -39,12 +39,12 @@ public:
   void update_3D_ui();
   void update_2D_ui();
 
-  virtual void clear_data() ;
-  virtual int get_num_volumes() ;
-  virtual bool data_is_multi_channel() ;
-  virtual void get_min_max(const float frame,float & min, float& max) ;
+  void clear_data();
+  int get_num_volumes();
+  bool data_is_multi_channel();
+  void get_min_max(const float frame, float& min, float& max);
 
-  
+
 
   void set_is_2D(bool);
   void set_looking_glass(bool);
@@ -56,11 +56,11 @@ public:
   void update_track_ball_event(float value);
   void button_events_ui_handle(int button, int state);
   void button_event_trackBall_handle(int button, int state);
-  
-  void enable_grab(bool );
+
+  void enable_grab(bool);
   void enable_clipping(bool);
-  
-  void enable_ui_menu( );
+
+  void enable_ui_menu();
 
   void set_AWSD_keyBoard_event(int key);
   void unset_AWSD_keyBoard_event(int key);
@@ -69,14 +69,14 @@ public:
 
   void update_UI_pose_controller(glm::mat4& newPose);
   void update_head_pose(glm::mat4& newPose);
-  
+
   void update_fps(float fps);
   float get_fps();
 
   void update_dynamic_slices();
 
   void do_grab(glm::mat4& pose);
-  
+
   void intialize_ui();
 
   void load_mesh_model();
@@ -110,6 +110,32 @@ public:
 
   bool is_show_menu();
 
+  void set_is_animated(bool);
+
+  void set_threshold(float);
+
+  void add_label(std::string& text, float x, float y, float z, float textPosZ, float size, int volume);
+
+  void set_description(int, std::string& text);
+
+  void set_mesh(int volumeId, std::string& fileName, std::string& shaderFilePath);
+
+  void set_texture(std::string& fileNamePath);
+
+  void init_num_volumes(int);
+
+  void add_data_label(std::string&);
+
+  std::vector<std::promise<Volume*>*>& get_promise(int index);
+
+  std::vector<std::future<Volume*>>* get_future(int index);
+
+  void set_future(int index, std::vector<std::future<Volume*>>*);
+
+  std::vector <std::thread*>& get_thread(int index);
+
+  void init_volume_loading(int index, std::vector<std::string>);
+
 protected:
 
   glm::vec4 m_noColor;// (0.0f, 0.0f, 0.0f, 0.0f);
@@ -119,17 +145,17 @@ protected:
 
   void add_lodaded_textures();
 
-  virtual void initialize_GL();
- 
- 
+  void initialize_GL();
 
-  virtual void render_labels(const MinVR::VRGraphicsState& renderState);
-  virtual void render_mesh(const MinVR::VRGraphicsState& renderState);
-  virtual void render_volume(const MinVR::VRGraphicsState& renderState);
-  virtual void render_ui(const MinVR::VRGraphicsState& renderState);
 
-  virtual void animated_render(int,int);
-  virtual void normal_render_volume(int, int);
+
+  void render_labels(const MinVR::VRGraphicsState& renderState);
+  void render_mesh(const MinVR::VRGraphicsState& renderState);
+  void render_volume(const MinVR::VRGraphicsState& renderState);
+  void render_ui(const MinVR::VRGraphicsState& renderState);
+
+  void animated_render(int, int);
+  void normal_render_volume(int, int);
 
   std::vector < std::vector< Volume* >> m_volumes;
   std::vector<std::string> m_description;
@@ -139,7 +165,7 @@ protected:
   std::vector<pt> m_models_position;
   std::vector<int> m_models_volumeID;
   std::vector<glm::mat4> m_models_MV;
-  
+
   GLfloat m_light_pos[4];
 
 
@@ -149,7 +175,7 @@ protected:
   std::vector< std::vector<std::promise<Volume*>*>> m_promises;
   std::vector< std::vector <std::future<Volume*>>*> m_futures;
   std::vector< std::vector <std::thread*>> m_threads;
-  
+
   Model* m_mesh_model;
   ShaderProgram m_simple_texture_shader;
   std::string m_shader_file_path;
@@ -173,7 +199,7 @@ protected:
 
 
   UIView* m_ui_view;
-  
+
 
   bool m_convert;
   bool m_is2d;
@@ -188,14 +214,14 @@ protected:
   bool m_lookingGlass;
 
   glm::mat4 m_object_pose;
-  
+
 
   Model* mesh_model;
 
   bool m_clipping;
   bool m_use_custom_clip_plane;
   glm::mat4 m_controller_pose;
-  
+
   glm::vec3 m_clip_ypr;
   glm::vec3 m_clip_pos;
   glm::vec3 m_clip_min;
@@ -208,7 +234,7 @@ protected:
   bool m_use_multi_transfer;
   bool m_show_menu;
 
-  
+
 
   /*Input Events*/
   bool m_grab;
@@ -220,4 +246,4 @@ protected:
   CreateMovieAction* m_movieAction;
   std::string m_moviename;
 };
-
+#endif

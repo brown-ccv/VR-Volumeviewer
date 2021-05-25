@@ -7,10 +7,12 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-UIView::UIView(VRVolumeApp& controllerApp):m_controller_app(controllerApp), m_multiplier( 1.0f ), m_threshold{ 0.0f },
-m_z_scale{ 0.16f }, m_scale{ 1.0f }, m_slices(256), m_dynamic_slices{ false }, m_renderVolume(true), m_selectedTrnFnc(0),
-m_animated(false), m_ui_frame_controller{ 0.0f }, m_menu_handler(nullptr), m_initialized(false), m_use_transferfunction( false ),
-m_clip_max( 1.0 ), m_clip_min( 0.0 ), m_clip_ypr( 0.0 ), m_clip_pos( 0.0 ), m_useCustomClipPlane( false ), m_rendermethod( 1 ), m_renderchannel( 0 )
+#include "loader/VRDataLoader.h"
+
+UIView::UIView(VRVolumeApp& controllerApp) :m_controller_app(controllerApp), m_multiplier(1.0f), m_threshold(0.0f),
+m_z_scale(0.16f), m_scale{ 1.0f }, m_slices(256), m_dynamic_slices(false), m_renderVolume(true), m_selectedTrnFnc(0),
+m_animated(false), m_ui_frame_controller(0.0f), m_menu_handler(nullptr), m_initialized(false), m_use_transferfunction(false),
+m_clip_max(1.0), m_clip_min(0.0), m_clip_ypr(0.0), m_clip_pos(0.0), m_useCustomClipPlane(false), m_rendermethod(1), m_renderchannel(0)
 {
 
 }
@@ -26,34 +28,34 @@ void UIView::draw_ui_callback()
   ImGui::BeginTabBar("##tabs");
   if (ImGui::BeginTabItem("General"))
   {
-     if (ImGui::Button("load file", ImVec2(ImGui::GetWindowSize().x * 0.5f - 1.5 * ImGui::GetStyle().ItemSpacing.x, 0.0f)))
-         fileDialog.Open();
-     ImGui::SameLine();
-     if (ImGui::Button("Clear all", ImVec2(ImGui::GetWindowSize().x * 0.5f - 1.5 * ImGui::GetStyle().ItemSpacing.x, 0.0f)))
-       {
-         m_controller_app.clear_data();
-     }
-     
-     ImGui::SliderFloat("alpha multiplier", &m_multiplier, 0.0f, 1.0f, "%.3f");
-     ImGui::SliderFloat("threshold", &m_threshold, 0.0f, 1.0f, "%.3f");
-     ImGui::SliderFloat("scale", &m_scale, 0.001f, 5.0f, "%.3f");
-     ImGui::SliderFloat("z - scale", &m_z_scale, 0.001f, 5.0f, "%.3f");
-     ImGui::SliderInt("Slices", &m_slices, 10, 1024, "%d");
-     ImGui::Checkbox("automatic slice adjustment", &m_dynamic_slices);
+    if (ImGui::Button("load file", ImVec2(ImGui::GetWindowSize().x * 0.5f - 1.5 * ImGui::GetStyle().ItemSpacing.x, 0.0f)))
+      fileDialog.Open();
+    ImGui::SameLine();
+    if (ImGui::Button("Clear all", ImVec2(ImGui::GetWindowSize().x * 0.5f - 1.5 * ImGui::GetStyle().ItemSpacing.x, 0.0f)))
+    {
+      m_controller_app.clear_data();
+    }
 
-     ImGui::SameLine(ImGui::GetWindowSize().x * 0.5f, 0);
-     ImGui::Text("FPS = %f", m_controller_app.get_fps());
-     const char* items[] = { "sliced" , "raycast" };
-     ImGui::Combo("RenderMethod", &m_rendermethod, items, IM_ARRAYSIZE(items));
+    ImGui::SliderFloat("alpha multiplier", &m_multiplier, 0.0f, 1.0f, "%.3f");
+    ImGui::SliderFloat("threshold", &m_threshold, 0.0f, 1.0f, "%.3f");
+    ImGui::SliderFloat("scale", &m_scale, 0.001f, 5.0f, "%.3f");
+    ImGui::SliderFloat("z - scale", &m_z_scale, 0.001f, 5.0f, "%.3f");
+    ImGui::SliderInt("Slices", &m_slices, 10, 1024, "%d");
+    ImGui::Checkbox("automatic slice adjustment", &m_dynamic_slices);
 
-     const char* items_channel[] = { "based on data" , "red", "green" , "blue", "alpha", "rgba", "rgba with alpha as max rgb" };
-     ImGui::Combo("Render Channel", &m_renderchannel, items_channel, IM_ARRAYSIZE(items_channel));
+    ImGui::SameLine(ImGui::GetWindowSize().x * 0.5f, 0);
+    ImGui::Text("FPS = %f", m_controller_app.get_fps());
+    const char* items[] = { "sliced" , "raycast" };
+    ImGui::Combo("RenderMethod", &m_rendermethod, items, IM_ARRAYSIZE(items));
 
-     ImGui::Checkbox("Render Volume data", &m_renderVolume);
+    const char* items_channel[] = { "based on data" , "red", "green" , "blue", "alpha", "rgba", "rgba with alpha as max rgb" };
+    ImGui::Combo("Render Channel", &m_renderchannel, items_channel, IM_ARRAYSIZE(items_channel));
 
-     int numVolumes = m_controller_app.get_num_volumes();
+    ImGui::Checkbox("Render Volume data", &m_renderVolume);
 
-    
+    int numVolumes = m_controller_app.get_num_volumes();
+
+
 
     if (numVolumes > 0)
     {
@@ -123,7 +125,7 @@ void UIView::draw_ui_callback()
           for (int i = 0; i < 3; i++) {
             if (m_animated)
             {
-              /*	
+              /*
                 frame by frame animation
 
                 unsigned int active_volume = floor(m_frame);
@@ -141,14 +143,14 @@ void UIView::draw_ui_callback()
               /*		tfn_widget_multi[m_selectedVolume].setHistogram(m_volumes[m_selectedVolume][0]->getTransferfunction(i), i);*/
             }
           }
-          m_controller_app.set_multi_transfer( true);
+          m_controller_app.set_multi_transfer(true);
           tfn_widget_multi[m_selectedTrnFnc].draw_ui();
         }
         else
         {
           if (m_animated)
           {
-            /*	
+            /*
              frame by frame animation
 
             unsigned int active_volume = floor(m_frame);
@@ -219,7 +221,7 @@ void UIView::draw_ui_callback()
       m_clip_min = glm::vec3(0.0f);
       m_clip_max = glm::vec3(1.0f);
     }
-    
+
     ImGui::Checkbox("Custom Clipping plane", &m_useCustomClipPlane);
     if (m_useCustomClipPlane) {
       ImGui::SliderAngle("Pitch", &m_clip_ypr.y, -90, 90);
@@ -232,20 +234,21 @@ void UIView::draw_ui_callback()
         m_clip_ypr = glm::vec3(0.0f);
         m_clip_pos = glm::vec3(0.0f);
       }
-      
+
     }
     ImGui::EndTabItem();
   }
   ImGui::EndTabBar();
-     
-     //file loading
+
+  //file loading
   fileDialog.Display();
 
   if (fileDialog.HasSelected())
   {
     if (helper::ends_with_string(fileDialog.GetSelected().string(), ".txt"))
     {
-      m_controller_app.load_txt_file(fileDialog.GetSelected().string());
+      VRDataLoader::get_instance()->load_txt_file(m_controller_app, fileDialog.GetSelected().string());
+      // m_controller_app.load_txt_file(fileDialog.GetSelected().string());
     }
 #ifdef WITH_TEEM
     else if (helper::ends_with_string(fileDialog.GetSelected().string(), ".nrrd")) {
@@ -258,9 +261,9 @@ void UIView::draw_ui_callback()
 #endif
     fileDialog.ClearSelected();
   }
-    
-   
-  
+
+
+
   ImGui::End();
 }
 
@@ -288,8 +291,8 @@ void UIView::init_ui(bool is2D, bool lookingGlass)
     menu->setMenuPose(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 2, -1, 1));
     m_initialized = true;
   }
-  
-  
+
+
 }
 
 void UIView::update_ui(int numVolumes)
@@ -306,27 +309,27 @@ void UIView::update_ui(int numVolumes)
 
 void UIView::render_2D()
 {
-  if (m_show_menu ) 
+  if (m_show_menu)
   {
     m_menu_handler->drawMenu();
     if (m_use_transferfunction) {
       tfn_widget[m_selectedTrnFnc].drawLegend();
     }
   }
-  
+
 }
 
 void UIView::render_3D(glm::mat4& space_matrix)
 {
   //render menu	
-  
+
   if (m_show_menu)
   {
     glMatrixMode(GL_MODELVIEW);
     glLoadMatrixf(glm::value_ptr(space_matrix));
     m_menu_handler->drawMenu();
   }
-    
+
 }
 
 
@@ -397,7 +400,7 @@ void UIView::set_button_click(int button, int state)
   {
     m_menu_handler->setButtonClick(button, state);
   }
-  
+
 }
 
 void UIView::set_enable_render_volume()
@@ -411,7 +414,7 @@ void UIView::set_controller_pose(glm::mat4& pose)
   {
     m_menu_handler->setControllerPose(pose);
   }
-  
+
 }
 
 void UIView::set_dynamic_slices(bool dynamicSlices)
@@ -455,9 +458,9 @@ void UIView::update_animation(float speed, int numFrames)
     m_ui_frame_controller += speed;
     if (m_ui_frame_controller > numFrames)
     {
-     
+
       m_ui_frame_controller = 0.0f;
-      
+
     }
     m_controller_app.set_frame(m_ui_frame_controller);
   }

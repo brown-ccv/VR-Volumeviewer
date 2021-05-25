@@ -54,121 +54,121 @@
 #include <iostream>
 
 class VolumeRaycastShader : public Shader
-	{
-		
-	public:
-		VolumeRaycastShader();
-		virtual ~VolumeRaycastShader();
+{
 
-		void render(glm::mat4 &MVP, glm::mat4 &clipPlane, glm::vec3 &camPos);
-		void initGL();
+public:
+  VolumeRaycastShader();
+  virtual ~VolumeRaycastShader();
 
-		void set_stepSize(float x, float y, float z)
-		{
-			m_stepSize[0] = x;
-			m_stepSize[1] = y;
-			m_stepSize[2] = z;
-		}
+  void render(glm::mat4& MVP, glm::mat4& clipPlane, glm::vec3& camPos);
+  void initGL();
 
-		void set_threshold(float threshold)
-		{
-			m_threshold = threshold;
-		}
+  void set_stepSize(float x, float y, float z)
+  {
+    m_stepSize[0] = x;
+    m_stepSize[1] = y;
+    m_stepSize[2] = z;
+  }
 
-		void set_multiplier(float multiplier)
-		{
-			m_multiplier = multiplier;
-		}
+  void set_threshold(float threshold)
+  {
+    m_threshold = threshold;
+  }
 
-		void set_clipping(bool clipping)
-		{
-			m_clipping = clipping;
-		}
+  void set_multiplier(float multiplier)
+  {
+    m_multiplier = multiplier;
+  }
 
-		void set_channel(int channel)
-		{
-			m_channel = channel;
-		}
+  void set_clipping(bool clipping)
+  {
+    m_clipping = clipping;
+  }
 
-		void set_useLut(bool useLUT)
-		{
-			m_useLut = useLUT;
-		}
+  void set_channel(int channel)
+  {
+    m_channel = channel;
+  }
 
-		void setDepthTexture(DepthTexture * depth_texture)
-		{
-			m_depth_texture = depth_texture->depth_texture();
-			m_screen_size[0] = depth_texture->width();
-			m_screen_size[1] = depth_texture->height();
-		} 
+  void set_useLut(bool useLUT)
+  {
+    m_useLut = useLUT;
+  }
 
-		void set_P_inv(glm::mat4 &P_inv)
-		{
-			m_P_inv = P_inv;
-		}
+  void setDepthTexture(DepthTexture* depth_texture)
+  {
+    m_depth_texture = depth_texture->depth_texture();
+    m_screen_size[0] = depth_texture->width();
+    m_screen_size[1] = depth_texture->height();
+  }
 
-		void set_blending(bool useBlending, float alpha, unsigned int texID)
-		{
-			m_use_blending = useBlending;
-			m_blend_volume = texID;
-			m_blending_alpha = alpha;
-		}
+  void set_P_inv(glm::mat4& P_inv)
+  {
+    m_P_inv = P_inv;
+  }
 
-		void useMultichannelColormap(bool useMultiLut)
-		{
-			m_useMultiLut = useMultiLut;
-		}
+  void set_blending(bool useBlending, float alpha, unsigned int texID)
+  {
+    m_use_blending = useBlending;
+    m_blend_volume = texID;
+    m_blending_alpha = alpha;
+  }
 
-		void setClipping(glm::vec3 min_clip, glm::vec3 max_clip) {
-			m_clip_min = min_clip;
-			m_clip_max = max_clip;
-		}
-	
-	private:	
-		GLuint m_volume_uniform;
-		GLuint m_vVertex_attribute;
-		GLuint m_MVP_uniform;
-		
-		GLuint m_camPos_uniform;
+  void useMultichannelColormap(bool useMultiLut)
+  {
+    m_useMultiLut = useMultiLut;
+  }
 
-		float m_stepSize[3];
-		GLuint m_step_size_uniform;
+  void setClipping(glm::vec3 min_clip, glm::vec3 max_clip) {
+    m_clip_min = min_clip;
+    m_clip_max = max_clip;
+  }
 
-		bool m_clipping;
-		GLuint m_clipping_uniform;
-		GLuint m_clipPlane_uniform;
+private:
+  GLuint m_volume_uniform;
+  GLuint m_vVertex_attribute;
+  GLuint m_MVP_uniform;
 
-		float m_threshold;
-		float m_multiplier;
-		int m_channel;
+  GLuint m_camPos_uniform;
 
-		GLuint m_threshold_uniform;
-		GLuint m_multiplier_uniform;
-		GLuint m_channel_uniform;
+  float m_stepSize[3];
+  GLuint m_step_size_uniform;
 
-		bool m_useLut;
-		bool m_useMultiLut;
-		GLuint m_lut_uniform;
-		GLint m_useLut_uniform;
-		GLuint m_useMultiLut_uniform;
-	
-		unsigned int m_depth_texture;
-		unsigned int m_screen_size[2];
-		glm::mat4 m_P_inv;
-		GLuint m_depth_uniform;
-		GLuint m_viewport_uniform;
-		GLuint m_P_inv_uniform;
-		
-		bool m_use_blending;
-		unsigned int m_blend_volume;
-		float m_blending_alpha;
-		GLuint m_useBlend_uniform;
-		GLuint m_blendAlpha_uniform;
-		GLuint m_blendVolume_uniform;
+  bool m_clipping;
+  GLuint m_clipping_uniform;
+  GLuint m_clipPlane_uniform;
 
-		GLuint m_clip_min_uniform;
-		GLuint m_clip_max_uniform;
-		glm::vec3 m_clip_min;
-		glm::vec3 m_clip_max;
-	};
+  float m_threshold;
+  float m_multiplier;
+  int m_channel;
+
+  GLuint m_threshold_uniform;
+  GLuint m_multiplier_uniform;
+  GLuint m_channel_uniform;
+
+  bool m_useLut;
+  bool m_useMultiLut;
+  GLuint m_lut_uniform;
+  GLint m_useLut_uniform;
+  GLuint m_useMultiLut_uniform;
+
+  unsigned int m_depth_texture;
+  unsigned int m_screen_size[2];
+  glm::mat4 m_P_inv;
+  GLuint m_depth_uniform;
+  GLuint m_viewport_uniform;
+  GLuint m_P_inv_uniform;
+
+  bool m_use_blending;
+  unsigned int m_blend_volume;
+  float m_blending_alpha;
+  GLuint m_useBlend_uniform;
+  GLuint m_blendAlpha_uniform;
+  GLuint m_blendVolume_uniform;
+
+  GLuint m_clip_min_uniform;
+  GLuint m_clip_max_uniform;
+  glm::vec3 m_clip_min;
+  glm::vec3 m_clip_max;
+};
 #endif // VOLUMERAYCASTSHADER_H

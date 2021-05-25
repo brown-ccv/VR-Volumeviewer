@@ -52,174 +52,174 @@
 
 struct pt
 {
-	float x;
-	float y;
-	float z;
+  float x;
+  float y;
+  float z;
 };
 
-	class Volume
-	{
-	public:
-		Volume(unsigned int width, unsigned int height, unsigned int depth, double x_scale, double y_scale, double z_scale, unsigned int datatypesize, unsigned int channel = 1);
+class Volume
+{
+public:
+  Volume(unsigned int width, unsigned int height, unsigned int depth, double x_scale, double y_scale, double z_scale, unsigned int datatypesize, unsigned int channel = 1);
 
-		~Volume();
-		
+  ~Volume();
 
-		unsigned get_width() const
-		{
-			return m_width;
-		}
 
-		unsigned get_height() const
-		{
-			return m_height;
-		}
+  unsigned get_width() const
+  {
+    return m_width;
+  }
 
-		unsigned get_depth() const
-		{
-			return m_depth;
-		}
+  unsigned get_height() const
+  {
+    return m_height;
+  }
 
-		unsigned get_channels() const
-		{
-			return m_channels;
-		}
+  unsigned get_depth() const
+  {
+    return m_depth;
+  }
 
-		double get_x_scale() const
-		{
-			return m_x_scale;
-		}
+  unsigned get_channels() const
+  {
+    return m_channels;
+  }
 
-		double get_y_scale() const
-		{
-			return m_y_scale;
-		}
+  double get_x_scale() const
+  {
+    return m_x_scale;
+  }
 
-		double get_z_scale() const
-		{
-			return m_z_scale;
-		}
+  double get_y_scale() const
+  {
+    return m_y_scale;
+  }
 
-		unsigned& get_texture_id() 
-		{
-			return m_texture_id;
-		}
+  double get_z_scale() const
+  {
+    return m_z_scale;
+  }
 
-		void set_texture_id(const unsigned texture_id)
-		{
-			m_texture_id = texture_id;
-		}
+  unsigned& get_texture_id()
+  {
+    return m_texture_id;
+  }
 
-		const pt& get_volume_position() const
-		{
-			return m_volume_position;
-		}
+  void set_texture_id(const unsigned texture_id)
+  {
+    m_texture_id = texture_id;
+  }
 
-		void set_volume_position(const pt pt)
-		{
-			m_volume_position = pt;
-		}
+  const pt& get_volume_position() const
+  {
+    return m_volume_position;
+  }
 
-		const pt& get_volume_scale() const
-		{
-			return m_volume_scale;
-		}
+  void set_volume_position(const pt pt)
+  {
+    m_volume_position = pt;
+  }
 
-		void set_volume_scale(const pt pt)
-		{
-			m_volume_scale = pt;
-		}
+  const pt& get_volume_scale() const
+  {
+    return m_volume_scale;
+  }
 
-		void setMinMax(float min, float max) {
-			m_min = min;
-			m_max = max;
-		}
+  void set_volume_scale(const pt pt)
+  {
+    m_volume_scale = pt;
+  }
 
-		void setTime(time_t tp) {
-			m_time = tp;
-		}
+  void setMinMax(float min, float max) {
+    m_min = min;
+    m_max = max;
+  }
 
-		time_t getTime() {
-			return m_time;
-		}
+  void setTime(time_t tp) {
+    m_time = tp;
+  }
 
-		const float getMin() {
-			return m_min;
-		}
+  time_t getTime() {
+    return m_time;
+  }
 
-		const float getMax() {
-			return m_max;
-		}
+  const float getMin() {
+    return m_min;
+  }
 
-		const glm::mat4& get_volume_mv() const
-		{
-			return m_volume_MV;
-		}
+  const float getMax() {
+    return m_max;
+  }
 
-		void set_volume_mv(const glm::mat4 highp_mat4_x4)
-		{
-			m_volume_MV = highp_mat4_x4;
-		}
+  const glm::mat4& get_volume_mv() const
+  {
+    return m_volume_MV;
+  }
 
-		unsigned char* get_data()
-		{
-			return data;
-		}
+  void set_volume_mv(const glm::mat4 highp_mat4_x4)
+  {
+    m_volume_MV = highp_mat4_x4;
+  }
 
-		const int& render_channel() const
-		{
-			return m_render_channel;
-		}
+  unsigned char* get_data()
+  {
+    return data;
+  }
 
-		void set_render_channel(const int render_channel)
-		{
-			m_render_channel = render_channel;
-		}
+  const int& render_channel() const
+  {
+    return m_render_channel;
+  }
 
-		void computeHistogram();
-		
-		void initGL();
-		void uploadtoPBO();
-		
-		bool& texture_initialized()
-		{
-			return m_texture_initialized;
-		}
+  void set_render_channel(const int render_channel)
+  {
+    m_render_channel = render_channel;
+  }
 
-		const std::vector<float> &getTransferfunction(int channel)
-		{
-			return m_histogram[channel];
-		}
+  void computeHistogram();
 
-	private:
-		unsigned int m_width;
-		unsigned int m_height;
-		unsigned int m_depth;
-		float m_min;
-		float m_max;
-		time_t m_time;
+  void initGL();
+  void uploadtoPBO();
 
-		unsigned int m_channels;
+  bool& texture_initialized()
+  {
+    return m_texture_initialized;
+  }
 
-		double m_x_scale;
-		double m_y_scale;
-		double m_z_scale;
+  const std::vector<float>& getTransferfunction(int channel)
+  {
+    return m_histogram[channel];
+  }
 
-		bool m_texture_initialized;
-		unsigned int m_texture_id;
+private:
+  unsigned int m_width;
+  unsigned int m_height;
+  unsigned int m_depth;
+  float m_min;
+  float m_max;
+  time_t m_time;
 
-		pt m_volume_position;
-		pt m_volume_scale;
-		glm::mat4 m_volume_MV;
+  unsigned int m_channels;
 
-		unsigned int m_pbo;
-		bool m_pbo_upload_started;
-		unsigned int m_datatypesize;
-		unsigned char * data;
+  double m_x_scale;
+  double m_y_scale;
+  double m_z_scale;
 
-		int m_render_channel;
+  bool m_texture_initialized;
+  unsigned int m_texture_id;
 
-		std::vector< std::vector<float> > m_histogram;
-	};
+  pt m_volume_position;
+  pt m_volume_scale;
+  glm::mat4 m_volume_MV;
+
+  unsigned int m_pbo;
+  bool m_pbo_upload_started;
+  unsigned int m_datatypesize;
+  unsigned char* data;
+
+  int m_render_channel;
+
+  std::vector< std::vector<float> > m_histogram;
+};
 
 #endif // VOLUME_H

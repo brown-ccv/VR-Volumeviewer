@@ -32,39 +32,39 @@
 class DepthTexture
 {
 public:
-	DepthTexture();
-	~DepthTexture();
+  DepthTexture();
+  ~DepthTexture();
 
-	void copyDepthbuffer();
+  void copyDepthbuffer();
 
-	unsigned int depth_texture()
-	{
-		return m_depth_texture;
-	};
+  unsigned int depth_texture()
+  {
+    return m_depth_texture;
+  };
 
-	const unsigned& width() const
-	{
-		return m_width;
-	}
+  const unsigned& width() const
+  {
+    return m_width;
+  }
 
-	const unsigned& height() const
-	{
-		return m_height;
-	}
+  const unsigned& height() const
+  {
+    return m_height;
+  }
 
-	static void getJetColor(double value, double min_val, double max_val, float &r, float &g, float &b, float &a);
+  static void getJetColor(double value, double min_val, double max_val, float& r, float& g, float& b, float& a);
 
 private:
-	void create();
+  void create();
 
-	unsigned int m_width;
-	unsigned int m_height;
-	int m_pReadBuffer;
-	int m_pDrawBuffer;
+  unsigned int m_width;
+  unsigned int m_height;
+  int m_pReadBuffer;
+  int m_pDrawBuffer;
 
-	unsigned int m_depth_texture;
+  unsigned int m_depth_texture;
 
-	bool m_isInitialized;
+  bool m_isInitialized;
 };
 
 #endif // DEPTHTEXTURE_H

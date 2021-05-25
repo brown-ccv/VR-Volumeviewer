@@ -53,60 +53,60 @@
 
 
 class VolumeSliceRenderer : public  VolumeRenderer
-	{
-	public:
-		VolumeSliceRenderer();
-		~VolumeSliceRenderer();
+{
+public:
+  VolumeSliceRenderer();
+  ~VolumeSliceRenderer();
 
-		virtual void initGL() override;
-		virtual void render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale, GLint colormap, int renderChannel) override;
+  virtual void initGL() override;
+  virtual void render(Volume* volume, const glm::mat4& MV, glm::mat4& P, float z_scale, GLint colormap, int renderChannel) override;
 
-		virtual void set_threshold(float threshold) override;
-		virtual void set_multiplier(float multiplier) override;
-		virtual void set_numSlices(int slices) override;
-		virtual void useMultichannelColormap(bool useMulti);
+  virtual void set_threshold(float threshold) override;
+  virtual void set_multiplier(float multiplier) override;
+  virtual void set_numSlices(int slices) override;
+  virtual void useMultichannelColormap(bool useMulti);
 
-		virtual void set_blending(bool useBlending, float alpha, Volume* volume) override
-		{
-			//unsupported for now
-		}
+  virtual void set_blending(bool useBlending, float alpha, Volume* volume) override
+  {
+    //unsupported for now
+  }
 
-		virtual void setClipMinMax(glm::vec3 min_clip, glm::vec3 max_clip);
+  virtual void setClipMinMax(glm::vec3 min_clip, glm::vec3 max_clip);
 
-	private:
-		//function to get the max (abs) dimension of the given vertex v
-		int FindAbsMax(glm::vec3 v);
-		
-		//main slicing function
-		void SliceVolume();
+private:
+  //function to get the max (abs) dimension of the given vertex v
+  int FindAbsMax(glm::vec3 v);
 
-		//unit cube vertices
-		static glm::vec3 vertexList[8];
+  //main slicing function
+  void SliceVolume();
 
-		////unit cube edges
-		static const int edgeList[8][12];
-		static const int edges[12][2];
+  //unit cube vertices
+  static glm::vec3 vertexList[8];
 
-		//sliced vertices
-		static const int MAX_SLICES = 1024;
-		glm::vec3 vTextureSlices[MAX_SLICES * 12];
+  ////unit cube edges
+  static const int edgeList[8][12];
+  static const int edges[12][2];
 
-		//total number of slices current used
-		int num_slices = 1024;
+  //sliced vertices
+  static const int MAX_SLICES = 1024;
+  glm::vec3 vTextureSlices[MAX_SLICES * 12];
 
-		//current viewing direction
-		glm::vec3 viewDir;
+  //total number of slices current used
+  int num_slices = 1024;
 
-		void setChannel(Volume* volume);
+  //current viewing direction
+  glm::vec3 viewDir;
 
-		//volume vertex array and buffer objects
-		GLuint volumeVBO;
-		GLuint volumeVAO;
+  void setChannel(Volume* volume);
 
-		//3D texture slicing shader
-		VolumeSliceShader shader;
+  //volume vertex array and buffer objects
+  GLuint volumeVBO;
+  GLuint volumeVAO;
 
-		glm::vec3 m_clip_min; 
-		glm::vec3 m_clip_max;
-	};
+  //3D texture slicing shader
+  VolumeSliceShader shader;
+
+  glm::vec3 m_clip_min;
+  glm::vec3 m_clip_max;
+};
 #endif // VOLUMESLICERENDER_H

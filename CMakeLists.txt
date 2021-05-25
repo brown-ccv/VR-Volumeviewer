@@ -62,6 +62,7 @@ set(source_files
   src/interaction/HelperFunctions.cpp
   src/interaction/CreateMovieAction.cpp
   src/loader/LoadDescriptionAction.cpp
+  src/loader/VRDataLoader.cpp
 )
 
 set(header_files
@@ -87,6 +88,7 @@ set(header_files
   include/interaction/HelperFunctions.h
   include/interaction/CreateMovieAction.h
   include/loader/LoadDescriptionAction.h
+  include/loader/VRDataLoader.h
 )
 
 

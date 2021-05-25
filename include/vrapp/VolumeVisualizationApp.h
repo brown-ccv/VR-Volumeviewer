@@ -47,56 +47,56 @@ class Texture;
 class UIView;
 class VRVolumeApp;
 
-class VolumeVisualizationApp : public VRApp{
+class VolumeVisualizationApp : public VRApp {
 public:
-    
-    /** The constructor passes argc, argv, and a MinVR config file on to VRApp.
-     */
-    VolumeVisualizationApp(int argc, char** argv);
-    virtual ~VolumeVisualizationApp();
 
-	
-	
-    /** USER INTERFACE CALLBACKS **/
+  /** The constructor passes argc, argv, and a MinVR config file on to VRApp.
+   */
+  VolumeVisualizationApp(int argc, char** argv);
+  virtual ~VolumeVisualizationApp();
 
-	virtual void onCursorMove(const VRCursorEvent& state);
-	
-    virtual void onAnalogChange(const VRAnalogEvent &state);
-    
-    virtual void onButtonDown(const VRButtonEvent &state);
-    
-    virtual void onButtonUp(const VRButtonEvent &state);
-    
-    virtual void onTrackerMove(const VRTrackerEvent &state);
-    
-    /** RENDERING CALLBACKS **/
-    
-    virtual void onRenderGraphicsScene(const VRGraphicsState& state);
-    
-    virtual void onRenderGraphicsContext(const VRGraphicsState& state);
 
-		
+
+  /** USER INTERFACE CALLBACKS **/
+
+  virtual void onCursorMove(const VRCursorEvent& state);
+
+  virtual void onAnalogChange(const VRAnalogEvent& state);
+
+  virtual void onButtonDown(const VRButtonEvent& state);
+
+  virtual void onButtonUp(const VRButtonEvent& state);
+
+  virtual void onTrackerMove(const VRTrackerEvent& state);
+
+  /** RENDERING CALLBACKS **/
+
+  virtual void onRenderGraphicsScene(const VRGraphicsState& state);
+
+  virtual void onRenderGraphicsContext(const VRGraphicsState& state);
+
+
 
 private:
-	
-	int width;
-	int height;
+
+  int width;
+  int height;
 
 
-	GLfloat m_light_pos[4];
-	
+  GLfloat m_light_pos[4];
 
-	unsigned int rendercount;
 
-	
-	
-	
-	std::chrono::steady_clock::time_point m_lastTime;
-	
+  unsigned int rendercount;
 
-	
-	VRVolumeApp* m_vrVolumeApp;
-	
+
+
+
+  std::chrono::steady_clock::time_point m_lastTime;
+
+
+
+  VRVolumeApp* m_vrVolumeApp;
+
 };
 
 

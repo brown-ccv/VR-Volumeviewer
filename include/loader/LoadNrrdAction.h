@@ -35,11 +35,11 @@
 class LoadNrrdAction
 {
 public:
-	LoadNrrdAction(std::string file);
-	Volume* run();
+  LoadNrrdAction(std::string file);
+  Volume* run();
 
 private:
-	std::string m_file;
+  std::string m_file;
 };
 
 #endif // IFDEF_H

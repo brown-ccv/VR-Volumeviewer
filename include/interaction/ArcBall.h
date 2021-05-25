@@ -32,58 +32,58 @@
 
 enum WASD_KEYS
 {
-	W = 1 << 0, // binary 000001
-	A = 1 << 1, // binary 000010
-	S = 1 << 2, // binary 000100
-	D = 1 << 3, // binary 001000
-	Q = 1 << 4, // binary 010000
-	E = 1 << 5, // binary 100000
+  W = 1 << 0, // binary 000001
+  A = 1 << 1, // binary 000010
+  S = 1 << 2, // binary 000100
+  D = 1 << 3, // binary 001000
+  Q = 1 << 4, // binary 010000
+  E = 1 << 5, // binary 100000
 };
 
 /** Adds a HeadMatrix to the RenderState that gets updated repeatedly based
     upon head tracking events.
  */
 class ArcBall {
-	public:
+public:
 
-		ArcBall();
-	    
-		virtual ~ArcBall();
+  ArcBall();
 
-		void mouse_pressed(int button, bool isDown);
-		void mouse_move(float x, float y);
-		void mouse_scroll(float dist);
-		void setCameraCenterRotation( bool useCameraCenter);
-		void wasd_pressed(int awsd);
+  virtual ~ArcBall();
 
-		glm::mat4 &getViewmatrix()
-		{
-			updateCameraMatrix();
-			return viewmatrix;
-		}
+  void mouse_pressed(int button, bool isDown);
+  void mouse_move(float x, float y);
+  void mouse_scroll(float dist);
+  void setCameraCenterRotation(bool useCameraCenter);
+  void wasd_pressed(int awsd);
 
-	protected:
-		void Rotate(float dTheta, float dPhi);
-		void RotateEyeAxis(float dy);
-		void Zoom(float distance);
-		void Pan(float dx, float dy);
-		void updateCameraMatrix();
-			
-		float m_radius;
-		glm::vec3 m_target;
-		glm::vec3 m_up;
-		glm::vec3 m_eye;
+  glm::mat4& getViewmatrix()
+  {
+    updateCameraMatrix();
+    return viewmatrix;
+  }
 
-		glm::mat4 viewmatrix;
-		bool m_mouse_left_pressed;
-		bool m_mouse_right_pressed;
-		bool m_mouse_center_pressed; 
-		float last_x, last_y;
-		float m_PanFactor;
-		float m_RotateFactor;
-		float m_cameraScrollFactor;
+protected:
+  void Rotate(float dTheta, float dPhi);
+  void RotateEyeAxis(float dy);
+  void Zoom(float distance);
+  void Pan(float dx, float dy);
+  void updateCameraMatrix();
 
-		bool m_rotate_camera_center;
+  float m_radius;
+  glm::vec3 m_target;
+  glm::vec3 m_up;
+  glm::vec3 m_eye;
+
+  glm::mat4 viewmatrix;
+  bool m_mouse_left_pressed;
+  bool m_mouse_right_pressed;
+  bool m_mouse_center_pressed;
+  float last_x, last_y;
+  float m_PanFactor;
+  float m_RotateFactor;
+  float m_cameraScrollFactor;
+
+  bool m_rotate_camera_center;
 };
 
 #endif

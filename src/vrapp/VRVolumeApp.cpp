@@ -17,23 +17,15 @@
 #include <sstream> 
 #include "GLMLoader.h"
 
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#include <windows.h>
-#define OS_SLASH_LOCAL "\\"
-#include "../../external/msvc/dirent.h"
-#else
-#define OS_SLASH_LOCAL "//"
-#include <dirent.h>
-#endif
+
 
 #include <glm/gtx/euler_angles.hpp>
 
 
-VRVolumeApp::VRVolumeApp():m_mesh_model(nullptr), m_clip_max{ 1.0f }, m_clip_min{ 0.0f }, m_clip_ypr{ 0.0f }, m_clip_pos{ 0.0 }, m_wasd_pressed(0),
-m_lookingGlass( false ), m_isInitailized(false), m_speed(0.01f), m_movieAction( nullptr ), m_moviename( "movie.mp4" ), m_noColor(0.0f),
+VRVolumeApp::VRVolumeApp() :m_mesh_model(nullptr), m_clip_max{ 1.0f }, m_clip_min{ 0.0f }, m_clip_ypr{ 0.0f }, m_clip_pos{ 0.0 }, m_wasd_pressed(0),
+m_lookingGlass(false), m_isInitailized(false), m_speed(0.01f), m_movieAction(nullptr), m_moviename("movie.mp4"), m_noColor(0.0f),
 m_ambient(0.2f, 0.2f, 0.2f, 1.0f), m_diffuse(0.5f, 0.5f, 0.5f, 1.0f), m_ui_view(nullptr), m_animated(false), m_numVolumes(0), m_selectedVolume(0),
-m_multiplier( 1.0f ), m_threshold( 0.0f ),m_frame( 0.0f ), m_use_multi_transfer( false ), m_clipping(false) , m_show_menu( true )
+m_multiplier(1.0f), m_threshold(0.0f), m_frame(0.0f), m_use_multi_transfer(false), m_clipping(false), m_show_menu(true)
 {
   m_renders.push_back(new VolumeSliceRenderer());
   m_renders.push_back(new VolumeRaycastRenderer());
@@ -89,23 +81,19 @@ void VRVolumeApp::initialize_GL()
 
 void VRVolumeApp::load_mesh_model()
 {
-	for (std::string filename : m_models_filenames) {
+  for (std::string filename : m_models_filenames) {
 
-		m_mesh_model = GLMLoader::loadObjModel(filename);
+    m_mesh_model = GLMLoader::loadObjModel(filename);
 
 
-		if (m_texture)
-		{
-			m_mesh_model->addTexture(m_texture);
-		}
-		
-		/*  glmFacetNormals(pmodel);
-			glmVertexNormals(pmodel, 90.0);
-		 glColor4f(1.0, 1.0, 1.0, 1.0);
-			m_models_displayLists.push_back(glmList(pmodel, GLM_SMOOTH));
-			glmDelete(pmodel);*/
-	}
-	m_models_filenames.clear();
+    if (m_texture)
+    {
+      m_mesh_model->addTexture(m_texture);
+    }
+
+
+  }
+  m_models_filenames.clear();
 }
 
 void VRVolumeApp::load_shaders()
@@ -114,8 +102,6 @@ void VRVolumeApp::load_shaders()
   std::string vertexShaderFolderPath = m_shader_file_path + OS_SLASH + std::string("shader.vert");
   std::string fragmentShaderFolderPath = m_shader_file_path + OS_SLASH + std::string("shader.frag");
   m_simple_texture_shader.LoadShaders(vertexShaderFolderPath.c_str(), fragmentShaderFolderPath.c_str());
-  // simpleTextureShader.addUniform("m");
-   //simpleTextureShader.addUniform("v");
   m_simple_texture_shader.addUniform("p");
   m_simple_texture_shader.addUniform("mv");
 }
@@ -145,7 +131,7 @@ void VRVolumeApp::update_trackBall_state()
   {
     m_trackball.wasd_pressed(m_wasd_pressed);
   }
-   
+
 }
 
 void VRVolumeApp::update_animation()
@@ -226,151 +212,99 @@ bool VRVolumeApp::is_show_menu()
   return m_show_menu;
 }
 
+void VRVolumeApp::set_is_animated(bool aniamted)
+{
+  m_animated = aniamted;
+}
+
+void VRVolumeApp::set_threshold(float threshold)
+{
+  m_threshold = threshold;
+}
+
+void VRVolumeApp::add_label(std::string& text, float x, float y, float z, float textPosZ, float size, int volume)
+{
+  m_labels.add(text, x, y, z, textPosZ, size, volume);
+}
+
+void VRVolumeApp::set_description(int descriptionHeight, std::string& descriptionFilename)
+{
+  m_descriptionHeight = descriptionHeight;
+  m_descriptionFilename = descriptionFilename;
+  m_description = LoadDescriptionAction(m_descriptionFilename).run();
+  // std::cerr << m_description[0] << std::endl;
+}
+
+void VRVolumeApp::set_mesh(int volumeId, std::string& fileName, std::string& shaderFilePath)
+{
+
+  m_models_volumeID.push_back(volumeId - 1);
+  m_models_filenames.push_back(fileName);
+  m_models_MV.push_back(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
+  m_shader_file_path = shaderFilePath;
+
+}
+
+void VRVolumeApp::set_texture(std::string& fileNamePath)
+{
+  std::cerr << "Load texture " << fileNamePath << std::endl;
+  m_texture = new Texture(GL_TEXTURE_2D, fileNamePath);
+}
+
+void VRVolumeApp::init_num_volumes(int nVolumes)
+{
+  m_numVolumes = nVolumes;
+  //m_data_labels.resize(m_numVolumes);
+  m_volumes.resize(m_numVolumes);
+  m_promises.resize(m_numVolumes);
+  m_futures.resize(m_numVolumes);
+  m_threads.resize(m_numVolumes);
+  m_ui_view->update_ui(m_numVolumes);
+
+}
+
+void VRVolumeApp::add_data_label(std::string& label)
+{
+  m_ui_view->add_data_label(label);
+}
+
+std::vector<std::promise<Volume*>*>& VRVolumeApp::get_promise(int index)
+{
+  return m_promises[index - 1];
+}
+
+std::vector<std::future<Volume*>>* VRVolumeApp::get_future(int index)
+{
+  return m_futures[index - 1];
+}
+
+void VRVolumeApp::set_future(int index, std::vector<std::future<Volume*>>* futures)
+{
+  m_futures[index - 1] = futures;
+}
+
+std::vector <std::thread*>& VRVolumeApp::get_thread(int index)
+{
+  return  m_threads[index - 1];
+}
+
+void VRVolumeApp::init_volume_loading(int index, std::vector<std::string> vals)
+{
+
+  std::vector <std::thread*>& ths = m_threads[index - 1];
+  std::vector<std::promise<Volume*>*> v2 = m_promises[index - 1];
+  ths.emplace_back(new std::thread(&VRVolumeApp::load_volume, this, vals, v2.back()));
+}
+
 void VRVolumeApp::intialize_ui()
 {
   if (m_ui_view)
   {
     m_ui_view->init_ui(m_is2d, m_lookingGlass);
   }
-  
+
 }
 
-void VRVolumeApp::load_txt_file(std::string& filename)
-{
-	std::ifstream inFile;
-	inFile.open(filename);
-
-	std::string line;
-
-	std::filesystem::path p_filename(filename);
-
-	while (getline(inFile, line)) {
-		if (line[0] != '#') {
-			std::vector<std::string> vals; // Create vector to hold our words
-			std::stringstream ss(line);
-			std::string buf;
-
-			while (ss >> buf) {
-				vals.push_back(buf);
-			}
-			if (vals.size() > 0) {
-				std::string tag = vals[0];
-				if (tag == "animated")
-				{
-					m_animated = true;
-				}
-				if (tag == "threshold")
-				{
-					m_threshold = stof(vals[1]);
-				}
-				if (tag == "label")
-				{
-					std::cerr << "add Label " << vals[1] << std::endl;
-					std::cerr << "at position " << vals[2] << " , " << vals[3] << " , " << vals[4] << std::endl;
-					std::cerr << "text at position " << vals[2] << " , " << vals[3] << " , " << vals[5] << std::endl;
-					std::cerr << "text Size " << vals[6] << std::endl;
-					std::cerr << "for Volume " << vals[7] << std::endl;
-					m_labels.add(vals[1], stof(vals[2]), stof(vals[3]), stof(vals[4]), stof(vals[5]), stof(vals[6]), stoi(vals[7]) - 1);
-				}
-				if (tag == "desc")
-				{
-					std::cerr << "Load Description " << vals[1] << std::endl;
-					std::cerr << "with size " << vals[2] << std::endl;
-					m_descriptionHeight = stoi(vals[2]);
-					m_descriptionFilename = p_filename.parent_path().string() + OS_SLASH_LOCAL + vals[1];
-					m_description = LoadDescriptionAction(m_descriptionFilename).run();
-					std::cerr << m_description[0] << std::endl;
-				}
-				if (tag == "mesh")
-				{
-					//	std::cerr << "Load Mesh " << vals[1] << std::endl;
-					//	std::cerr << "for Volume " << vals[2] << std::endl;
-					vals[1] = p_filename.parent_path().string() + OS_SLASH_LOCAL + vals[1];
-					std::cerr << "Load Mesh " << vals[1] << std::endl;
-					m_models_volumeID.push_back(stoi(vals[2]) - 1);
-					m_models_filenames.push_back(vals[1]);
-					m_models_MV.push_back(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
-					m_shader_file_path = p_filename.parent_path().string() + OS_SLASH_LOCAL + "shaders";
-
-				}
-				if (tag == "texture")
-				{
-
-					//std::cerr << "for Volume " << vals[2] << std::endl;
-					m_texture_filePath = p_filename.parent_path().string() + OS_SLASH_LOCAL + vals[1];
-					std::cerr << "Load texture " << m_texture_filePath << std::endl;
-					m_texture = new Texture(GL_TEXTURE_2D, m_texture_filePath);
-
-				}
-				if (tag == "numVolumes")
-				{
-					m_numVolumes = std::stoi(vals[1]);
-					//m_data_labels.resize(m_numVolumes);
-					for (int i = 0; i < m_numVolumes; i++)
-					{
-						m_ui_view->add_data_label(vals[i + 2]);
-					}
-					m_volumes.resize(m_numVolumes);
-					m_promises.resize(m_numVolumes);
-					m_futures.resize(m_numVolumes);
-					m_threads.resize(m_numVolumes);
-          m_ui_view->update_ui(m_numVolumes);
-
-					/*tfn_widget_multi.resize(1);
-					tfn_widget.resize(1);
-					selectedTrFn.resize(1);
-
-					*/
-					
-					
-				}
-				else if (tag.rfind("volume") == 0)
-				{
-					char str[3];
-					int i;
-
-					std::string strVolumeIndex = tag.substr(6);
-					size_t volumeIndex = std::stoi(strVolumeIndex);
-
-
-					vals[1] = p_filename.parent_path().string() + OS_SLASH_LOCAL + vals[1];
-
-
-
-					std::vector<std::promise<Volume*>*>& v = m_promises[volumeIndex - 1];
-					std::promise<Volume*>* pm = new std::promise<Volume*>();
-
-					v.push_back(pm);
-
-					//promises[volumeIndex-1]=v;
-
-					std::vector<std::future<Volume*>>* fut;
-					if (!m_futures[volumeIndex - 1])
-					{
-						m_futures[volumeIndex - 1] = new std::vector<std::future<Volume*>>;
-
-					}
-					fut = m_futures[volumeIndex - 1];
-
-					fut->push_back(pm->get_future());
-					m_futures[volumeIndex - 1] = fut;
-
-					std::vector <std::thread*>& ths = m_threads[volumeIndex - 1];
-					std::vector<std::promise<Volume*>*> v2 = m_promises[volumeIndex - 1];
-					ths.emplace_back(new std::thread(&VRVolumeApp::load_volume, this, vals, v2.back()));
-
-					//threads[volumeIndex - 1] = ths;
-
-
-					/*promises[volumeIndex -1].push_back(new std::promise<Volume*>);
-					futures[volumeIndex - 1]->push_back(promises[i].back()->get_future());
-					threads[volumeIndex - 1].push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises[i].back()));*/
-				}
-			}
-		}
-	}
-	inFile.close();
-}
 
 void VRVolumeApp::load_volume(std::vector<std::string> vals, std::promise<Volume*>* promise)
 {
@@ -435,9 +369,9 @@ void VRVolumeApp::load_nrrd_file(std::string& filename)
   {
     m_ui_view->update_ui(m_numVolumes);
   }
-  
-  
-  }
+
+
+}
 
 void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
 {
@@ -486,7 +420,7 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
       glm::mat4 volume_mv = m_volumes[0][m_models_volumeID[i]]->get_volume_mv();
       volume_mv = glm::translate(volume_mv, glm::vec3(-0.5f, -0.5f, -0.5f * m_volumes[0][m_models_volumeID[i]]->get_volume_scale().x / (m_volumes[0][m_models_volumeID[i]]->get_volume_scale().z)));
       volume_mv = glm::scale(volume_mv, glm::vec3(m_volumes[0][m_models_volumeID[i]]->get_volume_scale().x, m_volumes[0][m_models_volumeID[i]]->get_volume_scale().y, m_volumes[0][m_models_volumeID[i]]->get_volume_scale().x));
-      
+
       m_mesh_model->setMVMatrix(volume_mv);
       m_models_MV[i] = volume_mv;
 
@@ -531,7 +465,7 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
       ren->setClipMinMax(m_ui_view->get_clip_min(), m_ui_view->get_clip_max());
     }
   }
-    
+
 
   if (m_mesh_model)
   {
@@ -546,11 +480,11 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
 
   if (m_ui_view && !m_is2d)
   {
-    
+
     glm::mat4 viewMatrix = glm::make_mat4(renderState.getViewMatrix());
     m_ui_view->render_3D(viewMatrix);
   }
-  
+
 
   m_depthTextures[m_rendercount]->copyDepthbuffer();
   (static_cast <VolumeRaycastRenderer*> (m_renders[1]))->setDepthTexture(m_depthTextures[m_rendercount]);
@@ -641,19 +575,19 @@ void VRVolumeApp::render_volume(const MinVR::VRGraphicsState& renderState)
     ren->useMultichannelColormap(m_use_multi_transfer);
   }
 
-  
 
-    for (int tfn = 0; tfn < m_ui_view->get_num_transfer_functions(); tfn++)
+
+  for (int tfn = 0; tfn < m_ui_view->get_num_transfer_functions(); tfn++)
+  {
+
+    for (int vol = 0; vol < m_numVolumes; vol++)
     {
+      m_animated ? animated_render(tfn, vol) : normal_render_volume(tfn, vol);
 
-      for (int vol = 0; vol < m_numVolumes; vol++)
-      {
-        m_animated ? animated_render(tfn, vol) : normal_render_volume(tfn, vol);
-     
-      }
     }
-  
-  
+  }
+
+
 }
 
 void VRVolumeApp::normal_render_volume(int tfn, int vol)
@@ -699,12 +633,12 @@ void VRVolumeApp::animated_render(int tfn, int vol)
   {
     if (active_volume < m_volumes[vol].size() && active_volume2 < m_volumes[vol].size() && m_volumes[vol][active_volume]->texture_initialized() && m_volumes[vol][active_volume2]->texture_initialized())
     {
-    
+
       m_renders[renderMethod]->set_blending(true, m_frame - active_volume, m_volumes[vol][active_volume2]);
 
       if (m_ui_view->is_render_volume_enabled())
       {
-        
+
         GLint colorMap = m_ui_view->get_transfer_function_colormap(tfn);
         GLint colorMapMult = m_ui_view->get_multitransfer_function_colormap(tfn);
         GLint lut = -1;
@@ -720,7 +654,7 @@ void VRVolumeApp::animated_render(int tfn, int vol)
           }
         }
 
-        std::cout << "render" << std::endl ;
+        std::cout << "render" << std::endl;
         m_renders[renderMethod]->render(m_volumes[vol][active_volume], m_volumes[vol][active_volume]->get_volume_mv(), m_projection_mtrx, m_volumes[vol][active_volume]->get_volume_scale().x / m_volumes[vol][active_volume]->get_volume_scale().z,
           lut, m_ui_view->get_render_channel());
       }
@@ -745,7 +679,7 @@ void VRVolumeApp::render_ui(const MinVR::VRGraphicsState& renderState)
       m_ui_view->render_2D();
     }
   }
-  
+
 
   m_depthTextures[m_rendercount]->copyDepthbuffer();
   (static_cast <VolumeRaycastRenderer*> (m_renders[1]))->setDepthTexture(m_depthTextures[m_rendercount]);
@@ -762,7 +696,7 @@ void VRVolumeApp::update_frame_state()
     m_frame += m_speed;
     if (m_frame > m_volumes[m_selectedVolume].size() - 1) m_frame = 0.0;
   }
-	m_rendercount = 0;
+  m_rendercount = 0;
 }
 
 void VRVolumeApp::update_3D_ui()
@@ -816,7 +750,7 @@ void VRVolumeApp::add_lodaded_textures()
       int counter = 0;
       for (auto& value : *_ft)
       {
-        
+
         Volume* vlm = value.get();
         m_volumes[i].push_back(vlm);
         m_threads[i][counter]->join();
@@ -827,9 +761,9 @@ void VRVolumeApp::add_lodaded_textures()
 
 
     }
-		m_threads.clear();
-		m_promises.clear();
-		m_futures.clear();
+    m_threads.clear();
+    m_promises.clear();
+    m_futures.clear();
   }
 }
 
@@ -870,7 +804,7 @@ bool VRVolumeApp::data_is_multi_channel()
       }
     }
   }
- 
+
 
   return is_multi_channel;
 }
@@ -901,7 +835,7 @@ void VRVolumeApp::set_looking_glass(bool islookingGlass)
 
 void VRVolumeApp::set_convert(bool covert)
 {
-   m_convert = covert;
+  m_convert = covert;
 }
 
 void VRVolumeApp::set_num_volumes(int nVolumes)
@@ -916,8 +850,8 @@ void VRVolumeApp::mouse_pos_event(glm::vec2& mPos)
   {
     m_ui_view->set_cursor_pos(mPos);
   }
-  
-  
+
+
 }
 
 void VRVolumeApp::update_ui_events(float value)
@@ -940,7 +874,7 @@ void VRVolumeApp::button_events_ui_handle(int button, int state)
   {
     m_ui_view->set_button_click(button, state);
   }
-  
+
 }
 
 void VRVolumeApp::button_event_trackBall_handle(int button, int state)
@@ -995,7 +929,7 @@ void VRVolumeApp::update_head_pose(glm::mat4& newPose)
   {
     m_headpose = newPose;
   }
-  
+
 }
 
 void VRVolumeApp::update_fps(float fps)
@@ -1010,7 +944,7 @@ float VRVolumeApp::get_fps()
 
 void VRVolumeApp::update_dynamic_slices()
 {
-  if (m_ui_view && m_ui_view->is_dynamic_slices()) 
+  if (m_ui_view && m_ui_view->is_dynamic_slices())
   {
     m_ui_view->update_slices(m_fps);
   }

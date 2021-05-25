@@ -5,7 +5,7 @@
 #include <cctype>
 #include "loader/LoadDataAction.h"
 #ifdef WITH_TEEM
-	#include "loader/LoadNrrdAction.h"
+#include "loader/LoadNrrdAction.h"
 #endif
 #include "interaction/HelperFunctions.h"
 //#include <glm/gtc/type_ptr.inl>
@@ -22,7 +22,7 @@
 #include "render/FontHandler.h"
 #include <filesystem>
 #include "UI/UIView.h"
-
+#include "loader/VRDataLoader.h"
 
 
 namespace fs = std::filesystem;
@@ -31,519 +31,520 @@ namespace fs = std::filesystem;
 
 VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(argc, argv), m_vrVolumeApp(nullptr)
 {
-	int argc_int = this->getLeftoverArgc();
-	char** argv_int = this->getLeftoverArgv();
-	
-	m_vrVolumeApp = new VRVolumeApp();
+  int argc_int = this->getLeftoverArgc();
+  char** argv_int = this->getLeftoverArgv();
 
-	if (argc_int >= 2) {
-		for (int i = 1; i < argc_int; i++) {
-			
+  m_vrVolumeApp = new VRVolumeApp();
 
-			if (std::string(argv_int[i]) == std::string("use2DUI"))
-			{
-				//m_is2d = true;
-				m_vrVolumeApp->set_is_2D(true);
-			}
-			if (std::string(argv_int[i]) == std::string("useHolo"))
-			{
-				//m_lookingGlass = true;
-				//m_speed = 0.5;
-				m_vrVolumeApp->set_looking_glass(true);
+  if (argc_int >= 2) {
+    for (int i = 1; i < argc_int; i++) {
 
-			}
-			else if (std::string(argv_int[i]) == std::string("convert")) {
-				//convert = true;
-				m_vrVolumeApp->set_convert(true);
-			}
-			else if(helper::ends_with_string(std::string(argv_int[i]),".txt"))
-			{
-				m_vrVolumeApp->load_txt_file(std::string(argv_int[i]));
-			}
-			else if(helper::ends_with_string(std::string(argv_int[i]), ".nrrd")){
 
-			/*	
-			  NRRD LOADING
-			  std::vector<std::string> vals;
-				vals.push_back(std::string(argv_int[i]));	
-				std::vector<std::promise<Volume*>*> v;
-				std::promise<Volume*>* pm = new std::promise<Volume*>();
-				
-				v.push_back(pm);
-				promises.push_back(v);
-				
-				std::vector<std::future<Volume*>>* fut = new std::vector<std::future<Volume*>>;
-				fut->push_back(pm->get_future());
-				futures.push_back(fut);
-				
-				std::vector <std::thread*> ths;
-				std::vector<std::promise<Volume*>*> v2= promises.back();
-				ths.emplace_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, v2.back()));
-				threads.push_back(ths);*/
-				m_vrVolumeApp->load_nrrd_file(std::string(argv_int[i]));
-				//m_vrVolumeApp->initialize();
-			}
-		}
-	}
+      if (std::string(argv_int[i]) == std::string("use2DUI"))
+      {
+        //m_is2d = true;
+        m_vrVolumeApp->set_is_2D(true);
+      }
+      if (std::string(argv_int[i]) == std::string("useHolo"))
+      {
+        //m_lookingGlass = true;
+        //m_speed = 0.5;
+        m_vrVolumeApp->set_looking_glass(true);
 
-	m_light_pos[0] = 0.0;
-	m_light_pos[1] = 4.0;
-	m_light_pos[2] = 0.0;
-	m_light_pos[3] = 1.0;
+      }
+      else if (std::string(argv_int[i]) == std::string("convert")) {
+        //convert = true;
+        m_vrVolumeApp->set_convert(true);
+      }
+      else if (helper::ends_with_string(std::string(argv_int[i]), ".txt"))
+      {
+        std::string fileName = argv_int[i];
+        VRDataLoader::get_instance()->load_txt_file(*m_vrVolumeApp, fileName);
+      }
+      else if (helper::ends_with_string(std::string(argv_int[i]), ".nrrd")) {
+
+        /*
+          NRRD LOADING
+          std::vector<std::string> vals;
+          vals.push_back(std::string(argv_int[i]));
+          std::vector<std::promise<Volume*>*> v;
+          std::promise<Volume*>* pm = new std::promise<Volume*>();
+
+          v.push_back(pm);
+          promises.push_back(v);
+
+          std::vector<std::future<Volume*>>* fut = new std::vector<std::future<Volume*>>;
+          fut->push_back(pm->get_future());
+          futures.push_back(fut);
+
+          std::vector <std::thread*> ths;
+          std::vector<std::promise<Volume*>*> v2= promises.back();
+          ths.emplace_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, v2.back()));
+          threads.push_back(ths);*/
+        m_vrVolumeApp->load_nrrd_file(std::string(argv_int[i]));
+        //m_vrVolumeApp->initialize();
+      }
+    }
+  }
+
+  m_light_pos[0] = 0.0;
+  m_light_pos[1] = 4.0;
+  m_light_pos[2] = 0.0;
+  m_light_pos[3] = 1.0;
 
 }
 
 VolumeVisualizationApp::~VolumeVisualizationApp()
 {
-	
-	delete m_vrVolumeApp;
+
+  delete m_vrVolumeApp;
 }
 
 
 void VolumeVisualizationApp::onCursorMove(const VRCursorEvent& event)
 {
-	if (event.getName() == "Mouse_Move" )
-	{
-		
-		if (m_vrVolumeApp)
-		{
+  if (event.getName() == "Mouse_Move")
+  {
+
+    if (m_vrVolumeApp)
+    {
       glm::vec2 pos2d(event.getPos()[0], event.getPos()[1]);
       m_vrVolumeApp->mouse_pos_event(pos2d);
-		}
-		
-		
-	}
+    }
+
+
+  }
 }
 
 #define count_Packages 
 #ifdef count_Packages
-	int last_received = 0;
+int last_received = 0;
 #endif count_Packages
 
-void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event) {
-	if (m_vrVolumeApp && m_vrVolumeApp->is_show_menu()  && m_vrVolumeApp->is_ui_event()) {
-		if (event.getName() == "HTC_Controller_Right_TrackPad0_Y" || event.getName() == "HTC_Controller_1_TrackPad0_Y"
-			|| (event.getName() == "Wand_Joystick_Y_Update" && !(event.getValue() > -0.1 && event.getValue() < 0.1)))
-			//m_menu_handler->setAnalogValue(event.getValue());
-			m_vrVolumeApp->update_ui_events(event.getValue());
-		if (event.getName() == "MouseWheel_Spin") {
-			std::cerr << event.getValue() << std::endl;
-			//m_menu_handler->setAnalogValue(event.getValue() * 10);
-			m_vrVolumeApp->update_ui_events(event.getValue() * 10);
-		}
-	}
-	else {
-		if (event.getName() == "MouseWheel_Spin") {
-			if (m_vrVolumeApp)
-			{
-				m_vrVolumeApp->update_track_ball_event(event.getValue() * 0.01);
-			}
-			
-		}
-		
-	}
+void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent& event) {
+  if (m_vrVolumeApp && m_vrVolumeApp->is_show_menu() && m_vrVolumeApp->is_ui_event()) {
+    if (event.getName() == "HTC_Controller_Right_TrackPad0_Y" || event.getName() == "HTC_Controller_1_TrackPad0_Y"
+      || (event.getName() == "Wand_Joystick_Y_Update" && !(event.getValue() > -0.1 && event.getValue() < 0.1)))
+      //m_menu_handler->setAnalogValue(event.getValue());
+      m_vrVolumeApp->update_ui_events(event.getValue());
+    if (event.getName() == "MouseWheel_Spin") {
+      std::cerr << event.getValue() << std::endl;
+      //m_menu_handler->setAnalogValue(event.getValue() * 10);
+      m_vrVolumeApp->update_ui_events(event.getValue() * 10);
+    }
+  }
+  else {
+    if (event.getName() == "MouseWheel_Spin") {
+      if (m_vrVolumeApp)
+      {
+        m_vrVolumeApp->update_track_ball_event(event.getValue() * 0.01);
+      }
 
-	if (event.getName() == "PhotonLoopFinished") {
-	
-		m_vrVolumeApp->update_3D_ui();
-		m_vrVolumeApp->update_2D_ui();
+    }
 
-		if (last_received + 1 != event.getValue()) {
-			std::cerr << "Problem with package , received " << event.getValue() << " expected "  << last_received + 1 << std::endl;
-		}
-		last_received = event.getValue();
-	}
+  }
+
+  if (event.getName() == "PhotonLoopFinished") {
+
+    m_vrVolumeApp->update_3D_ui();
+    m_vrVolumeApp->update_2D_ui();
+
+    if (last_received + 1 != event.getValue()) {
+      std::cerr << "Problem with package , received " << event.getValue() << " expected " << last_received + 1 << std::endl;
+    }
+    last_received = event.getValue();
+  }
 }
 
 
-void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event) {
-	if (m_vrVolumeApp && m_vrVolumeApp->is_ui_event()) {
-		if (event.getName() == "MouseBtnLeft_Down")
-		{
-				m_vrVolumeApp->button_events_ui_handle(0, 1);
-		}
-		else if (event.getName() == "MouseBtnRight_Down")
-		{
-			m_vrVolumeApp->button_events_ui_handle(1, 1);
-		}
-		else if (event.getName() == "MouseBtnMiddle_Down")
-		{
-      m_vrVolumeApp->button_events_ui_handle(2, 0);
-		}
-	}
-	else
-	{
-		if (event.getName() == "MouseBtnLeft_Down")
-		{
-      m_vrVolumeApp->button_event_trackBall_handle(0, 1);
-		}
-		else if (event.getName() == "MouseBtnRight_Down")
-		{
-        m_vrVolumeApp->button_event_trackBall_handle(1, 1);
-		}
-		else if (event.getName() == "MouseBtnMiddle_Down") 
-		{
-      m_vrVolumeApp->button_event_trackBall_handle(2, 1);
-		}
-	}
-
-	if (m_vrVolumeApp && m_vrVolumeApp->is_show_menu() && m_vrVolumeApp->is_ui_event()) {
-		if (event.getName() == "HTC_Controller_Right_Axis1Button_Down" || event.getName() == "HTC_Controller_1_Axis1Button_Down" || event.getName() == "B10_Down")
-		{
+void VolumeVisualizationApp::onButtonDown(const VRButtonEvent& event) {
+  if (m_vrVolumeApp && m_vrVolumeApp->is_ui_event()) {
+    if (event.getName() == "MouseBtnLeft_Down")
+    {
       m_vrVolumeApp->button_events_ui_handle(0, 1);
-		}
-		else if (event.getName() == "HTC_Controller_Right_GripButton_Down" || event.getName() == "HTC_Controller_1_GripButton_Down" || event.getName() == "Wand_Right_Btn_Down")
-		{
-      m_vrVolumeApp->button_events_ui_handle(2, 1);
-		}
-		//else if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
-		else if (event.getName() == "HTC_Controller_Right_Axis0Button_Down" || event.getName() == "HTC_Controller_1_Axis0Button_Down" || event.getName() == "B08_Down" )
-		{
+    }
+    else if (event.getName() == "MouseBtnRight_Down")
+    {
       m_vrVolumeApp->button_events_ui_handle(1, 1);
-		}
-	}
-	else {
-		// This routine is called for all Button_Down events.  Check event->getName()
-		// to see exactly which button has been pressed down.
-		//std::cerr << "onButtonDown " << event.getName() << std::endl;
-		if (event.getName() == "KbdEsc_Down")
-		{
-			exit(0);
-		}
-		else if (event.getName() == "HTC_Controller_Right_Axis1Button_Down" || event.getName() == "HTC_Controller_1_Axis1Button_Down" || event.getName() == "B10_Down")
-		{
-			//m_grab = true;
-			//std::cerr << "Grab ON" << std::endl;
-			if (m_vrVolumeApp)
-			{
-				m_vrVolumeApp->enable_grab(true);
-			}
-			
-		}
-		//else if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
-		else if (event.getName() == "HTC_Controller_Right_Axis0Button_Down" || event.getName() == "HTC_Controller_1_Axis0Button_Down" || event.getName() == "Wand_Right_Btn_Down")
-		{
-			//m_clipping = true;
-			if (m_vrVolumeApp) 
-			{
-				m_vrVolumeApp->enable_clipping(true);
-			}
-			
-			//std::cerr << "Clipping ON" << std::endl;
-		}
-		else if (event.getName() == "HTC_Controller_Right_GripButton_Down" || event.getName() == "HTC_Controller_1_GripButton_Down" || event.getName() == "B08_Down")
-		{
-			//m_show_menu = !m_show_menu;
-			if (m_vrVolumeApp)
-			{
-				m_vrVolumeApp->enable_ui_menu();
-			}
-			
-		}
-	}
-	if (!(m_vrVolumeApp && m_vrVolumeApp->is_show_menu() && m_vrVolumeApp->is_ui_event())) {
-		if (event.getName() == "KbdW_Down") 
-		{
-			m_vrVolumeApp->set_AWSD_keyBoard_event(W);	
-		}
-		if (event.getName() == "KbdA_Down") 
-		{
-			m_vrVolumeApp->set_AWSD_keyBoard_event(A);
-		}
-		if (event.getName() == "KbdS_Down") 
-		{
-      m_vrVolumeApp->set_AWSD_keyBoard_event(S);
-		}
-		if (event.getName() == "KbdD_Down") 
-		{
-      m_vrVolumeApp->set_AWSD_keyBoard_event(D);			
-		}
-		if (event.getName() == "KbdQ_Down") 
-		{
-      m_vrVolumeApp->set_AWSD_keyBoard_event(Q);
-		}
-		if (event.getName() == "KbdE_Down") 
-		{
-      m_vrVolumeApp->set_AWSD_keyBoard_event(E);
-		}
+    }
+    else if (event.getName() == "MouseBtnMiddle_Down")
+    {
+      m_vrVolumeApp->button_events_ui_handle(2, 0);
+    }
+  }
+  else
+  {
+    if (event.getName() == "MouseBtnLeft_Down")
+    {
+      m_vrVolumeApp->button_event_trackBall_handle(0, 1);
+    }
+    else if (event.getName() == "MouseBtnRight_Down")
+    {
+      m_vrVolumeApp->button_event_trackBall_handle(1, 1);
+    }
+    else if (event.getName() == "MouseBtnMiddle_Down")
+    {
+      m_vrVolumeApp->button_event_trackBall_handle(2, 1);
+    }
+  }
 
-   
-	}
+  if (m_vrVolumeApp && m_vrVolumeApp->is_show_menu() && m_vrVolumeApp->is_ui_event()) {
+    if (event.getName() == "HTC_Controller_Right_Axis1Button_Down" || event.getName() == "HTC_Controller_1_Axis1Button_Down" || event.getName() == "B10_Down")
+    {
+      m_vrVolumeApp->button_events_ui_handle(0, 1);
+    }
+    else if (event.getName() == "HTC_Controller_Right_GripButton_Down" || event.getName() == "HTC_Controller_1_GripButton_Down" || event.getName() == "Wand_Right_Btn_Down")
+    {
+      m_vrVolumeApp->button_events_ui_handle(2, 1);
+    }
+    //else if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
+    else if (event.getName() == "HTC_Controller_Right_Axis0Button_Down" || event.getName() == "HTC_Controller_1_Axis0Button_Down" || event.getName() == "B08_Down")
+    {
+      m_vrVolumeApp->button_events_ui_handle(1, 1);
+    }
+  }
+  else {
+    // This routine is called for all Button_Down events.  Check event->getName()
+    // to see exactly which button has been pressed down.
+    //std::cerr << "onButtonDown " << event.getName() << std::endl;
+    if (event.getName() == "KbdEsc_Down")
+    {
+      exit(0);
+    }
+    else if (event.getName() == "HTC_Controller_Right_Axis1Button_Down" || event.getName() == "HTC_Controller_1_Axis1Button_Down" || event.getName() == "B10_Down")
+    {
+      //m_grab = true;
+      //std::cerr << "Grab ON" << std::endl;
+      if (m_vrVolumeApp)
+      {
+        m_vrVolumeApp->enable_grab(true);
+      }
+
+    }
+    //else if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
+    else if (event.getName() == "HTC_Controller_Right_Axis0Button_Down" || event.getName() == "HTC_Controller_1_Axis0Button_Down" || event.getName() == "Wand_Right_Btn_Down")
+    {
+      //m_clipping = true;
+      if (m_vrVolumeApp)
+      {
+        m_vrVolumeApp->enable_clipping(true);
+      }
+
+      //std::cerr << "Clipping ON" << std::endl;
+    }
+    else if (event.getName() == "HTC_Controller_Right_GripButton_Down" || event.getName() == "HTC_Controller_1_GripButton_Down" || event.getName() == "B08_Down")
+    {
+      //m_show_menu = !m_show_menu;
+      if (m_vrVolumeApp)
+      {
+        m_vrVolumeApp->enable_ui_menu();
+      }
+
+    }
+  }
+  if (!(m_vrVolumeApp && m_vrVolumeApp->is_show_menu() && m_vrVolumeApp->is_ui_event())) {
+    if (event.getName() == "KbdW_Down")
+    {
+      m_vrVolumeApp->set_AWSD_keyBoard_event(W);
+    }
+    if (event.getName() == "KbdA_Down")
+    {
+      m_vrVolumeApp->set_AWSD_keyBoard_event(A);
+    }
+    if (event.getName() == "KbdS_Down")
+    {
+      m_vrVolumeApp->set_AWSD_keyBoard_event(S);
+    }
+    if (event.getName() == "KbdD_Down")
+    {
+      m_vrVolumeApp->set_AWSD_keyBoard_event(D);
+    }
+    if (event.getName() == "KbdQ_Down")
+    {
+      m_vrVolumeApp->set_AWSD_keyBoard_event(Q);
+    }
+    if (event.getName() == "KbdE_Down")
+    {
+      m_vrVolumeApp->set_AWSD_keyBoard_event(E);
+    }
+
+
+  }
 }
 
 
-void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event) {
-	if (m_vrVolumeApp && m_vrVolumeApp->is_ui_event()) {
-		if (event.getName() == "MouseBtnMiddle_ScrollUp")
-		{
+void VolumeVisualizationApp::onButtonUp(const VRButtonEvent& event) {
+  if (m_vrVolumeApp && m_vrVolumeApp->is_ui_event()) {
+    if (event.getName() == "MouseBtnMiddle_ScrollUp")
+    {
       m_vrVolumeApp->update_ui_events(10);
-		}
+    }
 
-		if (event.getName() == "MouseBtnMiddle_ScrollDown")
-		{		
+    if (event.getName() == "MouseBtnMiddle_ScrollDown")
+    {
       m_vrVolumeApp->update_ui_events(-10);
-		}
-	}
-	else
-	{
-		if (event.getName() == "MouseBtnMiddle_ScrollUp")
-		{
-			if (m_vrVolumeApp)
-			{
-				m_vrVolumeApp->button_event_trackBall_handle(2, 0);
-			}
-			
-		}
+    }
+  }
+  else
+  {
+    if (event.getName() == "MouseBtnMiddle_ScrollUp")
+    {
+      if (m_vrVolumeApp)
+      {
+        m_vrVolumeApp->button_event_trackBall_handle(2, 0);
+      }
 
-		if (event.getName() == "MouseBtnMiddle_ScrollDown")
-		{
-			if (m_vrVolumeApp)
-			{
-				m_vrVolumeApp->button_event_trackBall_handle(2, 1);
-			}
-		}
-	}
-	
-	if (event.getName() == "MouseBtnLeft_Up")
-	{
-		if (m_vrVolumeApp)
-		{
-			m_vrVolumeApp->button_events_ui_handle(0, 0);
-			m_vrVolumeApp->button_event_trackBall_handle(0, 0);
-		}
-	
-	}
-	else if (event.getName() == "MouseBtnRight_Up")
-	{
+    }
 
-		if (m_vrVolumeApp)
-		{
+    if (event.getName() == "MouseBtnMiddle_ScrollDown")
+    {
+      if (m_vrVolumeApp)
+      {
+        m_vrVolumeApp->button_event_trackBall_handle(2, 1);
+      }
+    }
+  }
+
+  if (event.getName() == "MouseBtnLeft_Up")
+  {
+    if (m_vrVolumeApp)
+    {
+      m_vrVolumeApp->button_events_ui_handle(0, 0);
+      m_vrVolumeApp->button_event_trackBall_handle(0, 0);
+    }
+
+  }
+  else if (event.getName() == "MouseBtnRight_Up")
+  {
+
+    if (m_vrVolumeApp)
+    {
       m_vrVolumeApp->button_events_ui_handle(1, 0);
       m_vrVolumeApp->button_event_trackBall_handle(1, 0);
-		}
-		
-	}
-	else if (event.getName() == "MouseBtnMiddle_Up") {
-	
-		if (m_vrVolumeApp)
-		{
+    }
+
+  }
+  else if (event.getName() == "MouseBtnMiddle_Up") {
+
+    if (m_vrVolumeApp)
+    {
       m_vrVolumeApp->button_events_ui_handle(2, 0);
       m_vrVolumeApp->button_event_trackBall_handle(2, 0);
-		}
-	}
-	
+    }
+  }
 
-	if (m_vrVolumeApp && m_vrVolumeApp->is_show_menu() ) {
-		if (event.getName() == "HTC_Controller_Right_Axis1Button_Up" || event.getName() == "HTC_Controller_1_Axis1Button_Up" || event.getName() == "B10_Up")
-		{
+
+  if (m_vrVolumeApp && m_vrVolumeApp->is_show_menu()) {
+    if (event.getName() == "HTC_Controller_Right_Axis1Button_Up" || event.getName() == "HTC_Controller_1_Axis1Button_Up" || event.getName() == "B10_Up")
+    {
       m_vrVolumeApp->button_events_ui_handle(0, 0);
-		}
-		else if (event.getName() == "HTC_Controller_Right_GripButton_Up" || event.getName() == "HTC_Controller_1_GripButton_Up" || event.getName() == "Wand_Right_Btn_Up")
-		{
+    }
+    else if (event.getName() == "HTC_Controller_Right_GripButton_Up" || event.getName() == "HTC_Controller_1_GripButton_Up" || event.getName() == "Wand_Right_Btn_Up")
+    {
       m_vrVolumeApp->button_events_ui_handle(2, 0);
-		}
-		//else if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
-		else if (event.getName() == "HTC_Controller_Right_Axis0Button_Up" || event.getName() == "HTC_Controller_1_Axis0Button_Up" || event.getName() == "B08_Up")
-		{
+    }
+    //else if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
+    else if (event.getName() == "HTC_Controller_Right_Axis0Button_Up" || event.getName() == "HTC_Controller_1_Axis0Button_Up" || event.getName() == "B08_Up")
+    {
       m_vrVolumeApp->button_events_ui_handle(1, 0);
-		}
-	}
-	// This routine is called for all Button_Up events.  Check event->getName()
-	// to see exactly which button has been released.
-	//std::cerr << "onButtonUp " << event.getName() << std::endl;
-	if (event.getName() == "HTC_Controller_Right_Axis1Button_Up" || event.getName() == "HTC_Controller_1_Axis1Button_Up" || event.getName() == "B10_Up")
-	{
-		
-		if (m_vrVolumeApp)
-		{
-			m_vrVolumeApp->enable_grab(false);
-		}
-		
-	}
-	//else if (event.getName() == "HTC_Controller_Right_AButton_Up" || event.getName() == "HTC_Controller_1_AButton_Up")
-	else if (event.getName() == "HTC_Controller_Right_Axis0Button_Up" || event.getName() == "HTC_Controller_1_Axis0Button_Up" || event.getName() == "Wand_Right_Btn_Up")
-	{
+    }
+  }
+  // This routine is called for all Button_Up events.  Check event->getName()
+  // to see exactly which button has been released.
+  //std::cerr << "onButtonUp " << event.getName() << std::endl;
+  if (event.getName() == "HTC_Controller_Right_Axis1Button_Up" || event.getName() == "HTC_Controller_1_Axis1Button_Up" || event.getName() == "B10_Up")
+  {
+
+    if (m_vrVolumeApp)
+    {
+      m_vrVolumeApp->enable_grab(false);
+    }
+
+  }
+  //else if (event.getName() == "HTC_Controller_Right_AButton_Up" || event.getName() == "HTC_Controller_1_AButton_Up")
+  else if (event.getName() == "HTC_Controller_Right_Axis0Button_Up" || event.getName() == "HTC_Controller_1_Axis0Button_Up" || event.getName() == "Wand_Right_Btn_Up")
+  {
 
     if (m_vrVolumeApp)
     {
       m_vrVolumeApp->enable_clipping(false);
     }
 
-	}
+  }
 
-	if (event.getName() == "KbdW_Up") {
+  if (event.getName() == "KbdW_Up") {
 
     if (m_vrVolumeApp)
     {
       m_vrVolumeApp->unset_AWSD_keyBoard_event(W);
     }
-		
-	}
-	if (event.getName() == "KbdA_Up") 
-	{
+
+  }
+  if (event.getName() == "KbdA_Up")
+  {
     if (m_vrVolumeApp)
     {
       m_vrVolumeApp->unset_AWSD_keyBoard_event(A);
     }
-	}
-	if (event.getName() == "KbdS_Up") 
-	{
+  }
+  if (event.getName() == "KbdS_Up")
+  {
     if (m_vrVolumeApp)
     {
       m_vrVolumeApp->unset_AWSD_keyBoard_event(S);
     }
-	}
-	if (event.getName() == "KbdD_Up") {
+  }
+  if (event.getName() == "KbdD_Up") {
     if (m_vrVolumeApp)
     {
       m_vrVolumeApp->unset_AWSD_keyBoard_event(D);
     }
-	}
-	if (event.getName() == "KbdQ_Up") 
-	{
+  }
+  if (event.getName() == "KbdQ_Up")
+  {
     if (m_vrVolumeApp)
     {
       m_vrVolumeApp->unset_AWSD_keyBoard_event(Q);
     }
-	}
-	if (event.getName() == "KbdE_Up") 
-	{
+  }
+  if (event.getName() == "KbdE_Up")
+  {
     if (m_vrVolumeApp)
     {
       m_vrVolumeApp->unset_AWSD_keyBoard_event(E);
     }
-	}
+  }
 
   if (event.getName() == "KbdSpace_Up") {
-		//m_renderVolume = !m_renderVolume;
-		if (m_vrVolumeApp)
-		{
-			m_vrVolumeApp->enable_render_volume();
-		}
+    //m_renderVolume = !m_renderVolume;
+    if (m_vrVolumeApp)
+    {
+      m_vrVolumeApp->enable_render_volume();
+    }
   }
 }
 
 
-void VolumeVisualizationApp::onTrackerMove(const VRTrackerEvent &event) {
-	
-		if (event.getName() == "HTC_Controller_Right_Move" || event.getName() == "HTC_Controller_1_Move" || event.getName() == "Wand0_Move") 
-		{
+void VolumeVisualizationApp::onTrackerMove(const VRTrackerEvent& event) {
 
-      if (m_vrVolumeApp)
-      {
-        glm::mat4 new_pose = glm::make_mat4(event.getTransform());
-        m_vrVolumeApp->update_UI_pose_controller(new_pose);
-      }
+  if (event.getName() == "HTC_Controller_Right_Move" || event.getName() == "HTC_Controller_1_Move" || event.getName() == "Wand0_Move")
+  {
 
-		}
-	
-
-
-	// This routine is called for all Tracker_Move events.  Check event->getName()
-    // to see exactly which tracker has moved, and then access the tracker's new
-    // 4x4 transformation matrix with event->getTransform().
-	if (event.getName() == "HTC_Controller_Right_Move" || event.getName() == "HTC_Controller_1_Move" || event.getName() == "Wand0_Move") {
-		glm::mat4 new_pose = glm::make_mat4(event.getTransform());
-		
-		if (m_vrVolumeApp)
-		{
-			m_vrVolumeApp->do_grab(new_pose);
-		}
-		
-	}
-	else if (event.getName() == "HTC_HMD_1_Move") {
-		glm::mat4 headPose = glm::make_mat4(event.getTransform());
-		if (m_vrVolumeApp)
-		{
-			m_vrVolumeApp->update_head_pose(headPose);
-		}
-		//m_headpose = glm::inverse(m_headpose);
-		m_light_pos[0] = headPose[3][0];
-		m_light_pos[1] = headPose[3][1];
-		m_light_pos[2] = headPose[3][2];
-	}
-}
-
-
-    
-void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &renderState) {
-    // This routine is called once per graphics context at the start of the
-    // rendering process.  So, this is the place to initialize textures,
-    // load models, or do other operations that you only want to do once per
-    // frame when in stereo mode.
-	
-	std::chrono::steady_clock::time_point nowTime = std::chrono::steady_clock::now();
-	std::chrono::duration<double> time_span = std::chrono::duration<double>(nowTime - m_lastTime);
-	float fps = 1000.0f / std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-	if (m_vrVolumeApp)
-	{
-		m_vrVolumeApp->update_fps(fps);
-		m_vrVolumeApp->update_dynamic_slices();
-	}
-	m_lastTime = nowTime;
-	
-	
-	
-    if (renderState.isInitialRenderCall()) {
-	
-       #ifndef __APPLE__
-            glewExperimental = GL_TRUE;
-            GLenum err = glewInit();
-            if (GLEW_OK != err) {
-                std::cout << "Error initializing GLEW." << std::endl;
-            }
-        #endif        
-					
-						if (m_vrVolumeApp) 
-						{
-							m_vrVolumeApp->initialize();
-              m_vrVolumeApp->intialize_ui();
-							m_vrVolumeApp->load_shaders();
-						}
-
-		glEnable(GL_LIGHTING);
-		glEnable(GL_LIGHT0);
-		glLightfv(GL_LIGHT0, GL_AMBIENT, glm::value_ptr(m_vrVolumeApp->get_ambient()));
-		glLightfv(GL_LIGHT0, GL_DIFFUSE, glm::value_ptr(m_vrVolumeApp->get_diffuse()));
-		glLightfv(GL_LIGHT0, GL_SPECULAR, glm::value_ptr(m_vrVolumeApp->get_no_color()));
-		glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, true);
-		glEnable(GL_COLOR_MATERIAL);
-		glEnable(GL_NORMALIZE);
-        glEnable(GL_DEPTH_TEST);
-        glClearDepth(1.0f);
-        glDepthFunc(GL_LEQUAL);
-        glClearColor(0.0, 0.0, 0.0, 1);
+    if (m_vrVolumeApp)
+    {
+      glm::mat4 new_pose = glm::make_mat4(event.getTransform());
+      m_vrVolumeApp->update_UI_pose_controller(new_pose);
     }
 
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glLightfv(GL_LIGHT0, GL_POSITION, m_light_pos);
+  }
 
-  if (m_vrVolumeApp )
-  {
-		if (m_vrVolumeApp->pending_models_to_load())
-		{
-			m_vrVolumeApp->load_mesh_model();
-		}
-		m_vrVolumeApp->initialize_textures();
-		m_vrVolumeApp->update_3D_ui();
-		m_vrVolumeApp->update_trackBall_state();
-		m_vrVolumeApp->update_animation();
-		m_vrVolumeApp->set_render_count(0);
+
+
+  // This routine is called for all Tracker_Move events.  Check event->getName()
+    // to see exactly which tracker has moved, and then access the tracker's new
+    // 4x4 transformation matrix with event->getTransform().
+  if (event.getName() == "HTC_Controller_Right_Move" || event.getName() == "HTC_Controller_1_Move" || event.getName() == "Wand0_Move") {
+    glm::mat4 new_pose = glm::make_mat4(event.getTransform());
+
+    if (m_vrVolumeApp)
+    {
+      m_vrVolumeApp->do_grab(new_pose);
+    }
 
   }
-  
+  else if (event.getName() == "HTC_HMD_1_Move") {
+    glm::mat4 headPose = glm::make_mat4(event.getTransform());
+    if (m_vrVolumeApp)
+    {
+      m_vrVolumeApp->update_head_pose(headPose);
+    }
+    //m_headpose = glm::inverse(m_headpose);
+    m_light_pos[0] = headPose[3][0];
+    m_light_pos[1] = headPose[3][1];
+    m_light_pos[2] = headPose[3][2];
+  }
+}
+
+
+
+void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState& renderState) {
+  // This routine is called once per graphics context at the start of the
+  // rendering process.  So, this is the place to initialize textures,
+  // load models, or do other operations that you only want to do once per
+  // frame when in stereo mode.
+
+  std::chrono::steady_clock::time_point nowTime = std::chrono::steady_clock::now();
+  std::chrono::duration<double> time_span = std::chrono::duration<double>(nowTime - m_lastTime);
+  float fps = 1000.0f / std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
+  if (m_vrVolumeApp)
+  {
+    m_vrVolumeApp->update_fps(fps);
+    m_vrVolumeApp->update_dynamic_slices();
+  }
+  m_lastTime = nowTime;
+
+
+
+  if (renderState.isInitialRenderCall()) {
+
+#ifndef __APPLE__
+    glewExperimental = GL_TRUE;
+    GLenum err = glewInit();
+    if (GLEW_OK != err) {
+      std::cout << "Error initializing GLEW." << std::endl;
+    }
+#endif        
+
+    if (m_vrVolumeApp)
+    {
+      m_vrVolumeApp->initialize();
+      m_vrVolumeApp->intialize_ui();
+      m_vrVolumeApp->load_shaders();
+    }
+
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, glm::value_ptr(m_vrVolumeApp->get_ambient()));
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, glm::value_ptr(m_vrVolumeApp->get_diffuse()));
+    glLightfv(GL_LIGHT0, GL_SPECULAR, glm::value_ptr(m_vrVolumeApp->get_no_color()));
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, true);
+    glEnable(GL_COLOR_MATERIAL);
+    glEnable(GL_NORMALIZE);
+    glEnable(GL_DEPTH_TEST);
+    glClearDepth(1.0f);
+    glDepthFunc(GL_LEQUAL);
+    glClearColor(0.0, 0.0, 0.0, 1);
+  }
+
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  glLightfv(GL_LIGHT0, GL_POSITION, m_light_pos);
+
+  if (m_vrVolumeApp)
+  {
+    if (m_vrVolumeApp->pending_models_to_load())
+    {
+      m_vrVolumeApp->load_mesh_model();
+    }
+    m_vrVolumeApp->initialize_textures();
+    m_vrVolumeApp->update_3D_ui();
+    m_vrVolumeApp->update_trackBall_state();
+    m_vrVolumeApp->update_animation();
+    m_vrVolumeApp->set_render_count(0);
+
+  }
+
 
 }
 
 
 void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState& renderState) {
-	// This routine is called once per eye.  This is the place to actually
-	// draw the scene...
+  // This routine is called once per eye.  This is the place to actually
+  // draw the scene...
 
-	if (m_vrVolumeApp)
-	{
-		m_vrVolumeApp->render(renderState);
-	}
+  if (m_vrVolumeApp)
+  {
+    m_vrVolumeApp->render(renderState);
+  }
 
 }

@@ -33,9 +33,9 @@
 
 namespace helper
 {
-	bool ends_with_string(std::string const& str, std::string const& what);
-	bool contains_string(std::string const& str, std::string const& what);
-	bool replace(std::string& str, const std::string& from, const std::string& to);
+  bool ends_with_string(std::string const& str, std::string const& what);
+  bool contains_string(std::string const& str, std::string const& what);
+  bool replace(std::string& str, const std::string& from, const std::string& to);
 }
 
 #endif // HELPERFUNCTIONS_H

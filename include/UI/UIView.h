@@ -1,4 +1,6 @@
-#pragma once
+#ifndef UIVIEW_H
+#define UIVIEW_H
+
 #include "VRMenuHandler.h"
 #include "imfilebrowser.h"
 #include "transferfunction/transfer_function_multichannel_widget.h"
@@ -12,8 +14,8 @@ class UIView
 public:
   UIView(VRVolumeApp& controllerApp);
   void draw_ui_callback();
-  void init_ui( bool is2D, bool lookingGlass);
-  void update_ui(int numVolumes );
+  void init_ui(bool is2D, bool lookingGlass);
+  void update_ui(int numVolumes);
   void render_2D();
   void render_3D(glm::mat4& space_matrix);
   void update_3D_ui_frame();
@@ -46,7 +48,7 @@ public:
 
   bool is_stopped();
 
-  void update_animation(float speed, int numFrames );
+  void update_animation(float speed, int numFrames);
 
   void add_data_label(std::string& dataLabel);
 
@@ -75,7 +77,7 @@ private:
   VRVolumeApp& m_controller_app;
   VRMenuHandler* m_menu_handler;
   ImGui::FileBrowser fileDialog;
-  
+
   float m_multiplier;
   float m_threshold;
   int m_rendermethod;
@@ -86,7 +88,7 @@ private:
   float m_scale;
   int m_slices;
   bool m_dynamic_slices;
-  
+
   bool m_show_menu;
   bool m_renderVolume;
   std::vector<TransferFunctionMultiChannelWidget> tfn_widget_multi;
@@ -107,8 +109,9 @@ private:
   glm::vec3 m_clip_ypr;
   glm::vec3 m_clip_pos;
 
-  
+
 
   bool m_initialized;
 };
 
+#endif

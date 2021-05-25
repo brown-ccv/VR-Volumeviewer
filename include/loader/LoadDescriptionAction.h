@@ -35,13 +35,13 @@
 class LoadDescriptionAction
 {
 public:
-	LoadDescriptionAction(std::string file);
-	std::vector<std::string> run();
+  LoadDescriptionAction(std::string file);
+  std::vector<std::string> run();
 
 private:
-	std::istream& safeGetline(std::istream& is, std::string& t);
+  std::istream& safeGetline(std::istream& is, std::string& t);
 
-	std::string m_file;
+  std::string m_file;
 };
 
 #endif // IFDEF_H

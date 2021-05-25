@@ -35,19 +35,19 @@
 class Labels
 {
 public:
-	Labels();
-	~Labels();
+  Labels();
+  ~Labels();
 
-	void add(std::string text, float x, float y, float z, float textPosZ, float size, int volume);
-	void draw(std::vector<glm::mat4> &MV, glm::mat4 &headpose, float z_scale);
-	void clear();
+  void add(std::string text, float x, float y, float z, float textPosZ, float size, int volume);
+  void draw(std::vector<glm::mat4>& MV, glm::mat4& headpose, float z_scale);
+  void clear();
 
 private:
-	std::vector<std::string> m_text;
-	std::vector <glm::vec3 > m_position;
-	std::vector <glm::vec3 > m_position2;
-	std::vector<int> m_size;
-	std::vector<int> m_volume;
+  std::vector<std::string> m_text;
+  std::vector <glm::vec3 > m_position;
+  std::vector <glm::vec3 > m_position2;
+  std::vector<int> m_size;
+  std::vector<int> m_volume;
 };
 
 #endif // LABELS_H

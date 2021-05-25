@@ -44,23 +44,23 @@
 #endif
 
 class LoadDataAction
-	{
-		
-	public:
-		LoadDataAction(std::string folder, float* res);
-		Volume* run(bool convert = false);
+{
 
-		private:
-			std::vector<std::string> readTiffs(std::string foldername);
+public:
+  LoadDataAction(std::string folder, float* res);
+  Volume* run(bool convert = false);
 
-			std::string m_folder;
-			float* m_res;
+private:
+  std::vector<std::string> readTiffs(std::string foldername);
 
-			void mergeRGB(std::vector <cv::Mat> &image_r, std::vector <cv::Mat> &image_g, std::vector <cv::Mat> &image_b, std::vector <cv::Mat> &image);
-			static void uploadDataCV_8U(std::vector <cv::Mat> image, Volume* volume);
-			static void uploadDataCV_16U(std::vector <cv::Mat> image, Volume* volume);
-			static void uploadData_32F_raw(std::string filename, Volume* volume);
-	};
+  std::string m_folder;
+  float* m_res;
+
+  void mergeRGB(std::vector <cv::Mat>& image_r, std::vector <cv::Mat>& image_g, std::vector <cv::Mat>& image_b, std::vector <cv::Mat>& image);
+  static void uploadDataCV_8U(std::vector <cv::Mat> image, Volume* volume);
+  static void uploadDataCV_16U(std::vector <cv::Mat> image, Volume* volume);
+  static void uploadData_32F_raw(std::string filename, Volume* volume);
+};
 
 
 #endif // LOADDATAACTION_H
