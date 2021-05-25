@@ -52,37 +52,37 @@
 #include "VolumeRenderer.h"
 
 class VolumeRaycastRenderer : public  VolumeRenderer
-	{
-	public:
-		VolumeRaycastRenderer();
-		~VolumeRaycastRenderer();
+{
+public:
+  VolumeRaycastRenderer();
+  ~VolumeRaycastRenderer();
 
-		virtual void initGL() override;
-		virtual void render(Volume* volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale, GLint colormap, int renderChannel) override;
+  virtual void initGL() override;
+  virtual void render(Volume* volume, const glm::mat4& MV, glm::mat4& P, float z_scale, GLint colormap, int renderChannel) override;
 
-		virtual void set_threshold(float threshold) override;
-		virtual void set_multiplier(float multiplier) override;
-		virtual void set_blending(bool useBlending, float alpha, Volume* volume) override;
-		virtual void useMultichannelColormap(bool useMulti);
+  virtual void set_threshold(float threshold) override;
+  virtual void set_multiplier(float multiplier) override;
+  virtual void set_blending(bool useBlending, float alpha, Volume* volume) override;
+  virtual void useMultichannelColormap(bool useMulti);
 
-		virtual void set_numSlices(int slices) override;
-	
-		void setDepthTexture(DepthTexture* depth_texture)
-		{
-			shader.setDepthTexture(depth_texture);
-		}
+  virtual void set_numSlices(int slices) override;
 
-		virtual void setClipMinMax(glm::vec3 min_clip, glm::vec3 max_clip);
+  void setDepthTexture(DepthTexture* depth_texture)
+  {
+    shader.setDepthTexture(depth_texture);
+  }
 
-	private:
-		void setChannel(Volume* volume);
+  virtual void setClipMinMax(glm::vec3 min_clip, glm::vec3 max_clip);
 
-		////volume vertex array and buffer objects
-		GLuint cubeVBOID;
-		GLuint cubeVAOID;
-		GLuint cubeIndicesID;
+private:
+  void setChannel(Volume* volume);
 
-		//3D texture slicing shader
-		VolumeRaycastShader shader;
-	};
+  ////volume vertex array and buffer objects
+  GLuint cubeVBOID;
+  GLuint cubeVAOID;
+  GLuint cubeIndicesID;
+
+  //3D texture slicing shader
+  VolumeRaycastShader shader;
+};
 #endif // VOLUMESLICERCASTRENDER_H

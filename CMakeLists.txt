@@ -42,6 +42,7 @@ option(WITH_TEEM "Adds support of nrrd files through teem" OFF)
 set(source_files
   src/main.cpp
   src/vrapp/VolumeVisualizationApp.cpp
+  src/vrapp/VRVolumeApp.cpp
   src/loader/LoadDataAction.cpp
   src/render/Shader.cpp
   src/render/Volume.cpp
@@ -49,7 +50,7 @@ set(source_files
   src/render/VolumeSliceShader.cpp
   src/render/VolumeRaycastRenderer.cpp
   src/render/VolumeRaycastShader.cpp
-  
+  src/UI/UIView.cpp
   libs/glm.cpp
   src/render/FrameBufferObject.cpp
   src/render/DepthTexture.cpp
@@ -61,10 +62,12 @@ set(source_files
   src/interaction/HelperFunctions.cpp
   src/interaction/CreateMovieAction.cpp
   src/loader/LoadDescriptionAction.cpp
+  src/loader/VRDataLoader.cpp
 )
 
 set(header_files
   include/vrapp/VolumeVisualizationApp.h
+  include/vrapp/VRVolumeApp.h
   include/loader/LoadDataAction.h
   include/render/Shader.h
   include/render/Volume.h
@@ -72,7 +75,7 @@ set(header_files
   include/render/VolumeSliceShader.h
   include/render/VolumeRaycastRenderer.h
   include/render/VolumeRaycastShader.h
-  
+  include/UI/UIView.h
   libs/glm.h
   include/render/FrameBufferObject.h
   include/render/DepthTexture.h
@@ -85,6 +88,7 @@ set(header_files
   include/interaction/HelperFunctions.h
   include/interaction/CreateMovieAction.h
   include/loader/LoadDescriptionAction.h
+  include/loader/VRDataLoader.h
 )
 
 
@@ -111,6 +115,8 @@ include_directories(
   ${GLEW_INCLUDE_DIRS}
   ${FTGL_INCLUDE_DIR}
   ${FREETYPE_INCLUDE_DIRS}
+  include/
+  libs/
 )
 
 
@@ -160,6 +166,8 @@ add_subdirectory(libs/Model)
 add_subdirectory(libs/Texture)
 add_subdirectory(libs/ShaderProgram)
 add_subdirectory(libs/stb_image)
+# POSSIBLE FIX ON RECURSIVE INCLUDE
+#add_subdirectory(src)
 
 #---------------------- Define the Target ----------------------
 
@@ -175,3 +183,4 @@ foreach(_source IN ITEMS ${_source_list})
     source_group("${_group_path}" FILES "${_source}")
 endforeach()
 
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/shaders DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

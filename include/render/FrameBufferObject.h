@@ -30,48 +30,48 @@
 #define FRAMEBUFFEROBJECT_H
 
 
-	class FrameBufferObject
-	{
-	public:
-		FrameBufferObject();
-		~FrameBufferObject();
+class FrameBufferObject
+{
+public:
+  FrameBufferObject();
+  ~FrameBufferObject();
 
-		void bind(bool clipping_on);
-		void unbind();
+  void bind(bool clipping_on);
+  void unbind();
 
-		unsigned int depth_texture()
-		{
-			return m_nDepthBufferId;
-		};
+  unsigned int depth_texture()
+  {
+    return m_nDepthBufferId;
+  };
 
-		const unsigned& width() const
-		{
-			return m_width;
-		}
+  const unsigned& width() const
+  {
+    return m_width;
+  }
 
-		const unsigned& height() const
-		{
-			return m_height;
-		}
+  const unsigned& height() const
+  {
+    return m_height;
+  }
 
-	private:
-		void create();
+private:
+  void create();
 
-		unsigned int m_width;
-		unsigned int m_height;
+  unsigned int m_width;
+  unsigned int m_height;
 
-		unsigned int m_nDepthBufferId;
-		//unsigned int m_nResolveTextureId;
-		unsigned int m_nRenderFramebufferId;
+  unsigned int m_nDepthBufferId;
+  //unsigned int m_nResolveTextureId;
+  unsigned int m_nRenderFramebufferId;
 
-		int m_pdrawFboId;
-		int m_preadFboId;
-		int m_pReadBuffer;
-		int m_pDrawBuffer;
-		int m_pDepthTest;
-		float m_pClearDepth;
+  int m_pdrawFboId;
+  int m_preadFboId;
+  int m_pReadBuffer;
+  int m_pDrawBuffer;
+  int m_pDepthTest;
+  float m_pClearDepth;
 
-		bool m_isInitialized;
-	};
+  bool m_isInitialized;
+};
 
 #endif // FRAMEBUFFEROBJECT_H

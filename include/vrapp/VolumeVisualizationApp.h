@@ -3,17 +3,17 @@
 
 #include "GL/glew.h"
 #include "VRMenuHandler.h"
-#include "../../libs/transferfunction/transfer_function_multichannel_widget.h"
-#include "../../libs/transferfunction/transfer_function_widget.h"
+#include "transferfunction/transfer_function_multichannel_widget.h"
+#include "transferfunction/transfer_function_widget.h"
 #include "imfilebrowser.h"
 #include <api/MinVR.h>
-#include "../render/FrameBufferObject.h"
-#include "../render/Volume.h"
-#include "../interaction/Labels.h"
-#include "../render/VolumeRaycastRenderer.h"
-#include "../render/DepthTexture.h"
+#include "render/FrameBufferObject.h"
+#include "render/Volume.h"
+#include "interaction/Labels.h"
+#include "render/VolumeRaycastRenderer.h"
+#include "render/DepthTexture.h"
 #include <future>
-#include "../interaction/ArcBall.h"
+#include "interaction/ArcBall.h"
 
 
 
@@ -40,153 +40,63 @@ using namespace MinVR;
 #include "../interaction/CreateMovieAction.h"
 #include "ShaderProgram.h"
 
+#include "VRVolumeApp.h"
+
 class Model;
 class Texture;
+class UIView;
+class VRVolumeApp;
+
 class VolumeVisualizationApp : public VRApp {
 public:
-    
-    /** The constructor passes argc, argv, and a MinVR config file on to VRApp.
-     */
-    VolumeVisualizationApp(int argc, char** argv);
-    virtual ~VolumeVisualizationApp();
 
-	void loadTxtFile(std::string filename);
+  /** The constructor passes argc, argv, and a MinVR config file on to VRApp.
+   */
+  VolumeVisualizationApp(int argc, char** argv);
+  virtual ~VolumeVisualizationApp();
 
-	void loadVolume(std::vector<std::string> vals, std::promise<Volume*>* promise);
-	
-    /** USER INTERFACE CALLBACKS **/
 
-	void ui_callback();
 
-	virtual void onCursorMove(const VRCursorEvent& state);
-	
-    virtual void onAnalogChange(const VRAnalogEvent &state);
-    
-    virtual void onButtonDown(const VRButtonEvent &state);
-    
-    virtual void onButtonUp(const VRButtonEvent &state);
-    
-    virtual void onTrackerMove(const VRTrackerEvent &state);
-    
-    /** RENDERING CALLBACKS **/
-    
-    virtual void onRenderGraphicsScene(const VRGraphicsState& state);
-    
-    virtual void onRenderGraphicsContext(const VRGraphicsState& state);
+  /** USER INTERFACE CALLBACKS **/
 
-		/*MVC calls*/
+  virtual void onCursorMove(const VRCursorEvent& state);
 
-		void clearData();
-		int numVolumes();
+  virtual void onAnalogChange(const VRAnalogEvent& state);
 
-		bool dataIsMultiChannel();
+  virtual void onButtonDown(const VRButtonEvent& state);
 
-		void getMinMax(const float frame, float & min, float & max);
+  virtual void onButtonUp(const VRButtonEvent& state);
+
+  virtual void onTrackerMove(const VRTrackerEvent& state);
+
+  /** RENDERING CALLBACKS **/
+
+  virtual void onRenderGraphicsScene(const VRGraphicsState& state);
+
+  virtual void onRenderGraphicsContext(const VRGraphicsState& state);
+
+
 
 private:
-	void addLodadedTextures();
-	void initTexture();
 
-	int width;
-	int height;
-
-	glm::mat4 P;
-	glm::mat4 MV;
-
-	float m_scale;
-	int m_slices;
-	
-	bool m_grab;
-	bool m_clipping;
-	bool m_animated;
-
-	float m_speed;
-	float m_frame;
-	float m_stopped;
-	float m_z_scale;
-	glm::mat4 m_controller_pose;
-	glm::mat4 m_object_pose;
-	glm::mat4 m_to_volume;
-	glm::mat4 m_headpose;
-
-	std::vector <std::string> m_models_filenames;
-	std::vector <unsigned int> m_models_displayLists;
-	std::vector<pt> m_models_position;
-	std::vector<int> m_models_volumeID;
-	std::vector<glm::mat4> m_models_MV;
-	Labels m_labels;
-
-	GLfloat m_light_pos[4];
-	
-	std::vector < std::vector< Volume * >> m_volumes;
-	
-	float m_multiplier;
-	float m_threshold;
-	int m_rendermethod;
-	int m_renderchannel;
-	bool m_use_transferfunction;
-	bool m_use_multi_transfer;
-	
-	std::vector <VolumeRenderer*> m_renders;
-	std::vector <DepthTexture*> m_depthTextures;
-	unsigned int rendercount;
-
-	VRMenuHandler* m_menu_handler;
-
-	std::vector<TransferFunctionMultiChannelWidget> tfn_widget_multi;
-	std::vector<TransferFunctionWidget> tfn_widget;
-	ImGui::FileBrowser fileDialog;
-	
-	std::vector< std::vector<std::promise<Volume*> *>> promises;
-	std::vector< std::vector <std::future<Volume*>>*> futures;
-	std::vector< std::vector <std::thread *>> threads;
-
-	std::chrono::steady_clock::time_point m_lastTime;
-	bool m_dynamic_slices;
-	float m_fps;
-	bool m_show_menu;
-
-	//2D
-	bool m_is2d;
-	bool m_lookingGlass;
-	ArcBall m_trackball;
-
-	bool convert;
-
-	glm::vec3 m_clip_min;
-	glm::vec3 m_clip_max;
-
-	bool m_useCustomClipPlane;
-	glm::vec3 m_clip_ypr;
-	glm::vec3 m_clip_pos;
-
-	int m_wasd_pressed;
-	bool m_useCameraCenterRotations;
-
-	CreateMovieAction * m_movieAction;
-	std::string m_moviename;
-
-	std::vector<std::string> m_description;
-	int m_descriptionHeight;
-	std::string m_descriptionFilename;
+  int width;
+  int height;
 
 
-	Model* mesh_model;
-	ShaderProgram simpleTextureShader;
-	std::string shaderFilePath;
-	std::string textureFilePath;
-	Texture* m_texture;
+  GLfloat m_light_pos[4];
 
-	bool m_renderVolume;
 
-	std::vector<std::vector<bool>> selectedTrFn;
-	int m_selectedTrnFnc;
+  unsigned int rendercount;
 
-	size_t m_numVolumes;
-	int m_selectedVolume;
-	std::vector<std::string> dataLabels;
 
-	
+
+
+  std::chrono::steady_clock::time_point m_lastTime;
+
+
+
+  VRVolumeApp* m_vrVolumeApp;
+
 };
 
 

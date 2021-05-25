@@ -35,20 +35,20 @@
 namespace helper
 {
 
-	bool replace(std::string& str, const std::string& from, const std::string& to) {
-		size_t start_pos = str.find(from);
-		if (start_pos == std::string::npos)
-			return false;
-		str.replace(start_pos, from.length(), to);
-		return true;
-	}
+  bool replace(std::string& str, const std::string& from, const std::string& to) {
+    size_t start_pos = str.find(from);
+    if (start_pos == std::string::npos)
+      return false;
+    str.replace(start_pos, from.length(), to);
+    return true;
+  }
 
-	bool ends_with_string(std::string const& str, std::string const& what) {
-		return what.size() <= str.size()
-			&& str.find(what, str.size() - what.size()) != str.npos;
-	}
+  bool ends_with_string(std::string const& str, std::string const& what) {
+    return what.size() <= str.size()
+      && str.find(what, str.size() - what.size()) != str.npos;
+  }
 
-	bool contains_string(std::string const& str, std::string const& what) {
-		return str.find(what) != std::string::npos;
-	}
+  bool contains_string(std::string const& str, std::string const& what) {
+    return str.find(what) != std::string::npos;
+  }
 }

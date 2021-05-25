@@ -34,103 +34,103 @@
 #include <iostream>
 #include "teem/nrrd.h"
 
-LoadNrrdAction::LoadNrrdAction(std::string file):m_file(file)
+LoadNrrdAction::LoadNrrdAction(std::string file) :m_file(file)
 {
-	
+
 }
 
 Volume* LoadNrrdAction::run()
 {
-	int dimension[3];
-	float spacing[3];
-	int channels;
+  int dimension[3];
+  float spacing[3];
+  int channels;
 
-	
-	std::cerr << "Loading Volume  " << m_file << std::endl;
-	
-	Nrrd* nrrd = nrrdNew();
-	if (nrrdLoad(nrrd, m_file.c_str(), NULL)){
-		char * err = biffGetDone(NRRD);
-		std::cerr << "NRRD : trouble reading " << m_file << " " << err << std::endl;
-		free(err);
-		return nullptr;
-	}
 
-	if (nrrd->dim > 4)
-	{
-		std::cerr << "NRRD :  nrrd input can only handle data with dimension 4 or less." <<std::endl;
-		nrrdNuke(nrrd);
-		return nullptr;
-	}
-	else if (nrrd->spaceDim > 3) {
-		std::cerr << "NRRD :  nrrd input can only handle data with space dimension 3 or less." << std::endl;
-		nrrdNuke(nrrd);
-		return nullptr;
-	}
+  std::cerr << "Loading Volume  " << m_file << std::endl;
 
-	//single channel
-	if(nrrd->dim == 3)
-	{
-		channels = 1;
-		dimension[0] = nrrd->axis[0].size;
-		dimension[1] = nrrd->axis[1].size;
-		dimension[2] = nrrd->axis[2].size;
-		spacing[0] = nrrd->axis[0].spaceDirection[0];
-		spacing[1] = nrrd->axis[1].spaceDirection[1];
-		spacing[2] = nrrd->axis[2].spaceDirection[2];
+  Nrrd* nrrd = nrrdNew();
+  if (nrrdLoad(nrrd, m_file.c_str(), NULL)) {
+    char* err = biffGetDone(NRRD);
+    std::cerr << "NRRD : trouble reading " << m_file << " " << err << std::endl;
+    free(err);
+    return nullptr;
+  }
 
-	}
-	//multi channel image
-	else if (nrrd->dim == 4)
-	{
-		channels = nrrd->axis[0].size;
-		dimension[0] = nrrd->axis[1].size;
-		dimension[1] = nrrd->axis[2].size;
-		dimension[2] = nrrd->axis[3].size;
-		spacing[0] = nrrd->axis[1].spaceDirection[0];
-		spacing[1] = nrrd->axis[2].spaceDirection[1];
-		spacing[2] = nrrd->axis[3].spaceDirection[2];
-		if(channels != 1 && channels != 3 && channels != 4)
-		{
-			std::cerr << "NRRD : only 1,3 and 4 channels supported : current " << channels << std::endl;
-			nrrdNuke(nrrd);
-			return nullptr;
-		}
-	}
-	else
-	{
-		std::cerr << "NRRD : only volumetric data supported" << std::endl;
-		nrrdNuke(nrrd);
-		return nullptr;
-	}
-	
+  if (nrrd->dim > 4)
+  {
+    std::cerr << "NRRD :  nrrd input can only handle data with dimension 4 or less." << std::endl;
+    nrrdNuke(nrrd);
+    return nullptr;
+  }
+  else if (nrrd->spaceDim > 3) {
+    std::cerr << "NRRD :  nrrd input can only handle data with space dimension 3 or less." << std::endl;
+    nrrdNuke(nrrd);
+    return nullptr;
+  }
 
-	int datasize = -1;
-	switch (nrrd->type)
-	{
-		case nrrdTypeUChar:  datasize = 1; break;
-		case nrrdTypeUShort: datasize = 2; break;
-		case nrrdTypeFloat:  datasize = 4; break;
-		default: break;
-	}
+  //single channel
+  if (nrrd->dim == 3)
+  {
+    channels = 1;
+    dimension[0] = nrrd->axis[0].size;
+    dimension[1] = nrrd->axis[1].size;
+    dimension[2] = nrrd->axis[2].size;
+    spacing[0] = nrrd->axis[0].spaceDirection[0];
+    spacing[1] = nrrd->axis[1].spaceDirection[1];
+    spacing[2] = nrrd->axis[2].spaceDirection[2];
 
-	if (datasize < 0)
-	{
-		std::cerr << "NRRD : datatype not supported" << std::endl;
-		nrrdNuke(nrrd);
-		return nullptr;
-	}
+  }
+  //multi channel image
+  else if (nrrd->dim == 4)
+  {
+    channels = nrrd->axis[0].size;
+    dimension[0] = nrrd->axis[1].size;
+    dimension[1] = nrrd->axis[2].size;
+    dimension[2] = nrrd->axis[3].size;
+    spacing[0] = nrrd->axis[1].spaceDirection[0];
+    spacing[1] = nrrd->axis[2].spaceDirection[1];
+    spacing[2] = nrrd->axis[3].spaceDirection[2];
+    if (channels != 1 && channels != 3 && channels != 4)
+    {
+      std::cerr << "NRRD : only 1,3 and 4 channels supported : current " << channels << std::endl;
+      nrrdNuke(nrrd);
+      return nullptr;
+    }
+  }
+  else
+  {
+    std::cerr << "NRRD : only volumetric data supported" << std::endl;
+    nrrdNuke(nrrd);
+    return nullptr;
+  }
 
-	std::cerr << "Loading Volume size:  " << dimension[0] << " , " << dimension[1] << " , " << dimension[2]
-		<< " spacing:  " << spacing[0] << " , " << spacing[1] << " , " << spacing[2] << " Channels " << channels << std::endl;
 
-	Volume * volume = new Volume(dimension[0],  dimension[1], dimension[2], spacing[0], spacing[1], spacing[2], datasize, channels);
-	void* volume_data = reinterpret_cast <void*> (volume->get_data());
+  int datasize = -1;
+  switch (nrrd->type)
+  {
+  case nrrdTypeUChar:  datasize = 1; break;
+  case nrrdTypeUShort: datasize = 2; break;
+  case nrrdTypeFloat:  datasize = 4; break;
+  default: break;
+  }
 
-	memcpy(volume_data, nrrd->data,
-		nrrdElementNumber(nrrd) * nrrdElementSize(nrrd));
-	
-	nrrdNuke(nrrd);
-	volume->computeHistogram();
-	return volume;
+  if (datasize < 0)
+  {
+    std::cerr << "NRRD : datatype not supported" << std::endl;
+    nrrdNuke(nrrd);
+    return nullptr;
+  }
+
+  std::cerr << "Loading Volume size:  " << dimension[0] << " , " << dimension[1] << " , " << dimension[2]
+    << " spacing:  " << spacing[0] << " , " << spacing[1] << " , " << spacing[2] << " Channels " << channels << std::endl;
+
+  Volume* volume = new Volume(dimension[0], dimension[1], dimension[2], spacing[0], spacing[1], spacing[2], datasize, channels);
+  void* volume_data = reinterpret_cast <void*> (volume->get_data());
+
+  memcpy(volume_data, nrrd->data,
+    nrrdElementNumber(nrrd) * nrrdElementSize(nrrd));
+
+  nrrdNuke(nrrd);
+  volume->computeHistogram();
+  return volume;
 }

@@ -27,27 +27,27 @@
 #ifndef SHADER_H_
 #define SHADER_H_
 
-	class Shader{
+class Shader {
 
-	protected:
-		Shader();
-		virtual ~Shader();
+protected:
+  Shader();
+  virtual ~Shader();
 
-		unsigned int m_programID;
-		const char *m_shader;
-		const char *m_vertexShader;
-		const char *m_fragmentShader;
+  unsigned int m_programID;
+  const char* m_shader;
+  const char* m_vertexShader;
+  const char* m_fragmentShader;
 
-	public:
-		void bindProgram();
+public:
+  void bindProgram();
 
-		void unbindProgram();
+  void unbindProgram();
 
-		unsigned int getProgram();
+  unsigned int getProgram();
 
-	private:	
-		unsigned int compileShader();
-	};
+private:
+  unsigned int compileShader();
+};
 
 
 #endif /* DISTORTIONSHADER_H_ */

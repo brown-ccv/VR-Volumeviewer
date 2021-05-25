@@ -26,7 +26,7 @@
 
 #include <GL/glew.h>
 
-#include "../../include/render/Shader.h"
+#include "render/Shader.h"
 #include <iostream>
 #include <vector>
 
@@ -43,132 +43,132 @@
 
 Shader::Shader() : m_programID(0), m_shader(0), m_vertexShader(0), m_fragmentShader(0)
 {
-	/*m_shader = "Distortion";
-	m_vertexShader = "varying vec2 texture_coordinate; \n"
-			"void main()\n"
-			"{\n"
-			"	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; \n"
-			"	texture_coordinate = vec2(gl_MultiTexCoord0); \n"
-			"}\n";
-	m_fragmentShader = "varying vec2 texture_coordinate;\n"
-			"uniform sampler2D displacement;\n"
-			"uniform sampler2D texture;\n"
-			"void main()\n"
-			"{\n"
-			"		vec4 disp_coords = texture2D(displacement,texture_coordinate);\n"
-			"		gl_FragColor = texture2D(texture, disp_coords.xy);\n"
-			"}\n";*/
+  /*m_shader = "Distortion";
+  m_vertexShader = "varying vec2 texture_coordinate; \n"
+      "void main()\n"
+      "{\n"
+      "	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; \n"
+      "	texture_coordinate = vec2(gl_MultiTexCoord0); \n"
+      "}\n";
+  m_fragmentShader = "varying vec2 texture_coordinate;\n"
+      "uniform sampler2D displacement;\n"
+      "uniform sampler2D texture;\n"
+      "void main()\n"
+      "{\n"
+      "		vec4 disp_coords = texture2D(displacement,texture_coordinate);\n"
+      "		gl_FragColor = texture2D(texture, disp_coords.xy);\n"
+      "}\n";*/
 }
 
 Shader::~Shader()
 {
-	if (m_programID)
-	{
-		glDeleteProgram(m_programID);
-		m_programID = 0;
-	}
+  if (m_programID)
+  {
+    glDeleteProgram(m_programID);
+    m_programID = 0;
+  }
 }
 
 void Shader::bindProgram()
 {
-	if (!m_programID)
-	{
-		m_programID = compileShader();
-	}
-	glUseProgram(m_programID);
+  if (!m_programID)
+  {
+    m_programID = compileShader();
+  }
+  glUseProgram(m_programID);
 }
 
 void Shader::unbindProgram()
 {
-	glUseProgram(0);
+  glUseProgram(0);
 }
 
 unsigned Shader::getProgram()
 {
-	if (!m_programID)
-	{
-		m_programID = compileShader();
-	}
+  if (!m_programID)
+  {
+    m_programID = compileShader();
+  }
 
-	return m_programID;
+  return m_programID;
 }
 
 unsigned int Shader::compileShader()
 {
-	if (!m_shader || !m_vertexShader || !m_fragmentShader) {
-		std::cerr << "could not create Shader" << std::endl;
-		return 0;
-	}
+  if (!m_shader || !m_vertexShader || !m_fragmentShader) {
+    std::cerr << "could not create Shader" << std::endl;
+    return 0;
+  }
 
-	GLuint programID = glCreateProgram();
+  GLuint programID = glCreateProgram();
 
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &m_vertexShader, NULL);
-	glCompileShader(vertexShader);
+  GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+  glShaderSource(vertexShader, 1, &m_vertexShader, NULL);
+  glCompileShader(vertexShader);
 
-	GLint shaderCompiled = GL_FALSE;
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &shaderCompiled);
-	if (shaderCompiled != GL_TRUE)
-	{
-		std::cerr << "Error compiling vertex shader " << m_shader << std::endl;
-		
-		GLint maxLength = 0;
-		glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
+  GLint shaderCompiled = GL_FALSE;
+  glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &shaderCompiled);
+  if (shaderCompiled != GL_TRUE)
+  {
+    std::cerr << "Error compiling vertex shader " << m_shader << std::endl;
 
-		// The maxLength includes the NULL character
-		std::vector<GLchar> errorLog(maxLength);
-		glGetShaderInfoLog(vertexShader, maxLength, &maxLength, &errorLog[0]);
-		std::string s(errorLog.begin(), errorLog.end());
-		std::cerr << s.c_str() << std::endl;
+    GLint maxLength = 0;
+    glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
 
-		glDeleteProgram(programID);
-		glDeleteShader(vertexShader);
-		return 0;
-	}
+    // The maxLength includes the NULL character
+    std::vector<GLchar> errorLog(maxLength);
+    glGetShaderInfoLog(vertexShader, maxLength, &maxLength, &errorLog[0]);
+    std::string s(errorLog.begin(), errorLog.end());
+    std::cerr << s.c_str() << std::endl;
 
-	glAttachShader(programID, vertexShader);
-	glDeleteShader(vertexShader); // the program hangs onto this once it's attached
+    glDeleteProgram(programID);
+    glDeleteShader(vertexShader);
+    return 0;
+  }
 
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &m_fragmentShader, NULL);
-	glCompileShader(fragmentShader);
+  glAttachShader(programID, vertexShader);
+  glDeleteShader(vertexShader); // the program hangs onto this once it's attached
 
-	shaderCompiled = GL_FALSE;
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &shaderCompiled);
-	if (shaderCompiled != GL_TRUE)
-	{
-		std::cerr << "Error compiling fragment shader " << m_shader << std::endl;
+  GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(fragmentShader, 1, &m_fragmentShader, NULL);
+  glCompileShader(fragmentShader);
 
-		GLint maxLength = 0;
-		glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &maxLength);
+  shaderCompiled = GL_FALSE;
+  glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &shaderCompiled);
+  if (shaderCompiled != GL_TRUE)
+  {
+    std::cerr << "Error compiling fragment shader " << m_shader << std::endl;
 
-		// The maxLength includes the NULL character
-		std::vector<GLchar> errorLog(maxLength);
-		glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, &errorLog[0]);
-		std::string s(errorLog.begin(), errorLog.end());
-		std::cerr << s.c_str() << std::endl;
+    GLint maxLength = 0;
+    glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &maxLength);
 
-		glDeleteProgram(programID);
-		glDeleteShader(fragmentShader);
-		return 0;
-	}
+    // The maxLength includes the NULL character
+    std::vector<GLchar> errorLog(maxLength);
+    glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, &errorLog[0]);
+    std::string s(errorLog.begin(), errorLog.end());
+    std::cerr << s.c_str() << std::endl;
 
-	glAttachShader(programID, fragmentShader);
-	glDeleteShader(fragmentShader); // the program hangs onto this once it's attached
+    glDeleteProgram(programID);
+    glDeleteShader(fragmentShader);
+    return 0;
+  }
 
-	glLinkProgram(programID);
+  glAttachShader(programID, fragmentShader);
+  glDeleteShader(fragmentShader); // the program hangs onto this once it's attached
 
-	GLint success = GL_TRUE;
-	glGetProgramiv(programID, GL_LINK_STATUS, &success);
-	if (success != GL_TRUE)
-	{
-		std::cerr << "Error linking program " << m_shader << std::endl;
-		glDeleteProgram(success);
-		return 0;
-	}
+  glLinkProgram(programID);
 
-	glUseProgram(programID);
-	glUseProgram(0);
+  GLint success = GL_TRUE;
+  glGetProgramiv(programID, GL_LINK_STATUS, &success);
+  if (success != GL_TRUE)
+  {
+    std::cerr << "Error linking program " << m_shader << std::endl;
+    glDeleteProgram(success);
+    return 0;
+  }
 
-	return programID;
+  glUseProgram(programID);
+  glUseProgram(0);
+
+  return programID;
 }

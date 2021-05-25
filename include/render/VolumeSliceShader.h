@@ -50,67 +50,67 @@
 
 #include <glm/glm.hpp>
 
-	class VolumeSliceShader : public Shader
-	{
-		
-	public:
-		VolumeSliceShader();
-		virtual ~VolumeSliceShader();
+class VolumeSliceShader : public Shader
+{
 
-		void render(glm::mat4 &MVP, glm::mat4 &clipPlane, GLsizei count);
-		void initGL();
+public:
+  VolumeSliceShader();
+  virtual ~VolumeSliceShader();
 
-		void set_threshold(float threshold)
-		{
-			m_threshold = threshold;
-		}
+  void render(glm::mat4& MVP, glm::mat4& clipPlane, GLsizei count);
+  void initGL();
 
-		void set_multiplier(float multiplier)
-		{
-			m_multiplier = multiplier;
-		}
+  void set_threshold(float threshold)
+  {
+    m_threshold = threshold;
+  }
 
-		void set_clipping(bool clipping)
-		{
-			m_clipping = clipping;
-		}
+  void set_multiplier(float multiplier)
+  {
+    m_multiplier = multiplier;
+  }
 
-		void set_channel(int channel)
-		{
-			m_channel = channel;
-		}
+  void set_clipping(bool clipping)
+  {
+    m_clipping = clipping;
+  }
 
-		void set_useLut(bool useLUT)
-		{
-			m_useLut = useLUT;
-		}
+  void set_channel(int channel)
+  {
+    m_channel = channel;
+  }
 
-		void useMultichannelColormap(bool useMultiLut)
-		{
-			m_useMultiLut = useMultiLut;
-		}
-		
-	private:
-		float m_threshold;
-		float m_multiplier;
-		bool m_clipping;
-		int m_channel;
-		bool m_useLut;
-		bool m_useMultiLut;
-		
-		GLuint m_volume_uniform;
-		GLuint m_vVertex_attribute;
-		GLuint m_MVP_uniform;
-		GLuint m_clipPlane_uniform;
+  void set_useLut(bool useLUT)
+  {
+    m_useLut = useLUT;
+  }
 
-		GLuint m_clipping_uniform;
-		GLuint m_threshold_uniform;
-		GLuint m_multiplier_uniform;
-		GLuint m_viewport_uniform;
-		GLuint m_channel_uniform;
+  void useMultichannelColormap(bool useMultiLut)
+  {
+    m_useMultiLut = useMultiLut;
+  }
 
-		GLuint m_lut_uniform;
-		GLuint m_useLut_uniform;
-		GLuint m_useMultiLut_uniform;
-	};
+private:
+  float m_threshold;
+  float m_multiplier;
+  bool m_clipping;
+  int m_channel;
+  bool m_useLut;
+  bool m_useMultiLut;
+
+  GLuint m_volume_uniform;
+  GLuint m_vVertex_attribute;
+  GLuint m_MVP_uniform;
+  GLuint m_clipPlane_uniform;
+
+  GLuint m_clipping_uniform;
+  GLuint m_threshold_uniform;
+  GLuint m_multiplier_uniform;
+  GLuint m_viewport_uniform;
+  GLuint m_channel_uniform;
+
+  GLuint m_lut_uniform;
+  GLuint m_useLut_uniform;
+  GLuint m_useMultiLut_uniform;
+};
 #endif // VOLUMESLICERENDERSHADER_H

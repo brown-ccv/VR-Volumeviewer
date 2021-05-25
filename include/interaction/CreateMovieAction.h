@@ -32,24 +32,24 @@
 #include <opencv2/core/mat.hpp>
 
 class CreateMovieAction
-	{
-		
-	public:
-		CreateMovieAction();
-		~CreateMovieAction();
+{
 
-		void addFrame();
+public:
+  CreateMovieAction();
+  ~CreateMovieAction();
 
-		void clear();
+  void addFrame();
 
-		void save(std::string filename);
+  void clear();
 
-		private:
-			std::vector<cv::Mat> m_frames;
+  void save(std::string filename);
+
+private:
+  std::vector<cv::Mat> m_frames;
 #ifndef _MSC_VER
-		int m_frame;
+  int m_frame;
 #endif
-	};
+};
 
 
 #endif // CREATEMOVIEACTION_H
