@@ -26,7 +26,7 @@ add_definitions(-D_HAS_STD_BYTE=0)
 if (UNIX)
 	add_compile_options(-lpthread)
 	add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
-	SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++17 -pthread")
+	SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++17 -stdlib=libc++ -pthread")
 endif (UNIX)
 
 #---------------------- Source for this Project ----------------------
@@ -140,7 +140,6 @@ set(LIBRARIES
 if (UNIX)
 	set(LIBRARIES
 		${LIBRARIES}
-		stdc++fs
 	)
 endif (UNIX)
 

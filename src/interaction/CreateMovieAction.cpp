@@ -38,6 +38,7 @@
 #elif defined(__APPLE__)
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/glu.h>
+#include <iomanip> // std::setw
 #else
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>

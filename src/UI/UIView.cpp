@@ -1,5 +1,5 @@
 #include "UI/UIView.h"
-#include "UI/UIController.h"
+//#include "UI/UIController.h"
 #include "interaction/CreateMovieAction.h"
 #include "interaction/HelperFunctions.h"
 
@@ -247,7 +247,8 @@ void UIView::draw_ui_callback()
   {
     if (helper::ends_with_string(fileDialog.GetSelected().string(), ".txt"))
     {
-      VRDataLoader::get_instance()->load_txt_file(m_controller_app, fileDialog.GetSelected().string());
+      std::string selected_file_str = fileDialog.GetSelected().string();
+      VRDataLoader::get_instance()->load_txt_file(m_controller_app, selected_file_str);
       // m_controller_app.load_txt_file(fileDialog.GetSelected().string());
     }
 #ifdef WITH_TEEM

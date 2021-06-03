@@ -13,7 +13,7 @@
 
 #include "GL/glew.h"
 #include <filesystem>
-#include <fstream> 
+#include <fstream>
 #include <sstream> 
 #include "GLMLoader.h"
 
@@ -148,6 +148,7 @@ void VRVolumeApp::update_animation()
 void VRVolumeApp::run_movie()
 {
 #ifndef _MSC_VER
+  namespace fs = std::filesystem;
   fs::create_directory("movie");
 #endif
   if (m_movieAction)

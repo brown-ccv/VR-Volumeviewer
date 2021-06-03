@@ -81,7 +81,8 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
           std::vector<std::promise<Volume*>*> v2= promises.back();
           ths.emplace_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, v2.back()));
           threads.push_back(ths);*/
-        m_vrVolumeApp->load_nrrd_file(std::string(argv_int[i]));
+        std::string nrrd_file_str = std::string(argv_int[i]);
+        m_vrVolumeApp->load_nrrd_file(nrrd_file_str);
         //m_vrVolumeApp->initialize();
       }
     }
