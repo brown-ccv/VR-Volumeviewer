@@ -25,7 +25,7 @@ class TransferFunctionMultiChannelWidget {
 
 	std::vector<uint8_t> current_colormap;
 
-	std::vector < std::vector<vec2f> > alpha_control_pts = { { vec2f(0.f), vec2f(1.f) }, { vec2f(0.f), vec2f(1.f) }, { vec2f(0.f), vec2f(1.f) } };
+	
 	
 	std::vector < size_t> selected_point = { (size_t)-1,(size_t)-1,(size_t)-1 };
 
@@ -35,6 +35,9 @@ class TransferFunctionMultiChannelWidget {
 	std::vector < std::vector<float> > current_histogram;
 	
 public:
+
+	std::vector < std::vector<vec2f> > alpha_control_pts = { { vec2f(0.f), vec2f(1.f) }, { vec2f(0.f), vec2f(1.f) }, { vec2f(0.f), vec2f(1.f) } };
+
 	TransferFunctionMultiChannelWidget();
 
     // Add a colormap preset. The image should be a 1D RGBA8 image
@@ -60,6 +63,9 @@ public:
     // Get back the RGBA32F color data for the transfer function
     // as separate color and opacity vectors
     void get_colormapf(std::vector<float> &color, std::vector<float> &opacity);
+
+
+		void draw_histogram();
 
 	GLint get_colormap_gpu()
 	{

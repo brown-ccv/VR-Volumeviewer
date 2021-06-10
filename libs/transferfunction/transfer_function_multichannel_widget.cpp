@@ -250,6 +250,70 @@ std::vector<float> TransferFunctionMultiChannelWidget::get_colormapf()
     return colormapf;
 }
 
+void TransferFunctionMultiChannelWidget::draw_histogram()
+{
+	update_gpu_image();
+	colormap_changed = false;
+
+	const ImGuiIO& io = ImGui::GetIO();
+
+	ImGui::Text("Transfer Function");
+	ImGui::TextWrapped(
+		"Left click to add a point, right click remove. "
+		"Left click + drag to move points.");
+
+	vec2f canvas_size = ImGui::GetContentRegionAvail();
+	canvas_size.y -= 80;
+	canvas_size.y = canvas_size.y / 3;
+	vec2f canvas_pos = ImGui::GetCursorScreenPos();
+
+	const float point_radius = 20.f;
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+	// Note: If you're not using OpenGL for rendering your UI, the setup for
+	// displaying the colormap texture in the UI will need to be updated.
+	for (int i = 0; i < 3; i++) {
+		vec2f canvas_pos = ImGui::GetCursorScreenPos();
+
+		draw_list->PushClipRect(canvas_pos, canvas_pos + canvas_size);
+
+		const vec2f view_scale(canvas_size.x, -canvas_size.y);
+		const vec2f view_offset(canvas_pos.x, canvas_pos.y + canvas_size.y);
+		ImColor color;
+		if (i == 0)
+			color = ImColor(180, 120, 120, 255);
+		else if (i == 1)
+			color = ImColor(120, 180, 120, 255);
+		else
+			color = ImColor(120, 120, 180, 255);
+
+		draw_list->AddRect(canvas_pos - vec2f(0, -1), canvas_pos + canvas_size, color);
+		ImGui::InvisibleButton("tfn_canvas", canvas_size);
+		
+		if (i == 0)
+			color = ImColor(255, 120, 120, 255);
+		else if (i == 1)
+			color = ImColor(120, 255, 120, 255);
+		else
+			color = ImColor(120, 120, 255, 255);
+		
+
+
+		//Code to Draw histogram in the UI
+		
+		for (int k = 0; k < current_histogram[i].size(); k++) {
+				vec2f lp = vec2f(((float)k) / current_histogram[i].size(), 0.0f);
+				vec2f hp = vec2f(((float)k + 1.0f) / current_histogram[i].size(), current_histogram[i][k]);
+				draw_list->AddRectFilled(lp * view_scale + view_offset, hp * view_scale + view_offset, 0x77777777);
+			}
+
+		
+		draw_list->PopClipRect();
+
+		ImGui::Dummy(ImVec2(0.0f, 20.0f));
+	}
+}
+
 void TransferFunctionMultiChannelWidget::setHistogram(const std::vector<float> &hist, int channel)
 {
 	current_histogram[channel] = hist;

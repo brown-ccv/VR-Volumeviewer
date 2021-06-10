@@ -9,12 +9,23 @@
 
 #include "loader/VRDataLoader.h"
 
+#include <fstream>
+
 UIView::UIView(VRVolumeApp& controllerApp) :m_controller_app(controllerApp), m_multiplier(1.0f), m_threshold(0.0f),
 m_z_scale(0.16f), m_scale{ 1.0f }, m_slices(256), m_dynamic_slices(false), m_renderVolume(true), m_selectedTrnFnc(0),
 m_animated(false), m_ui_frame_controller(0.0f), m_menu_handler(nullptr), m_initialized(false), m_use_transferfunction(false),
-m_clip_max(1.0), m_clip_min(0.0), m_clip_ypr(0.0), m_clip_pos(0.0), m_useCustomClipPlane(false), m_rendermethod(1), m_renderchannel(0)
-{
+m_clip_max(1.0), m_clip_min(0.0), m_clip_ypr(0.0), m_clip_pos(0.0), m_useCustomClipPlane(false), m_rendermethod(1), m_renderchannel(0),
+m_table_selection(-1), m_modal_trnfct_open(false), m_save_trnfct_open(false), m_trnfnct_counter(1), m_file_dialog_open(false),
+m_file_load_trnsf(false)
 
+{
+  
+}
+
+UIView::~UIView()
+{
+  delete m_menu_handler;
+  
 }
 
 void UIView::draw_ui_callback()
@@ -29,7 +40,11 @@ void UIView::draw_ui_callback()
   if (ImGui::BeginTabItem("General"))
   {
     if (ImGui::Button("load file", ImVec2(ImGui::GetWindowSize().x * 0.5f - 1.5 * ImGui::GetStyle().ItemSpacing.x, 0.0f)))
-      fileDialog.Open();
+    {
+      m_file_dialog_open = true;
+      //fileDialog.Open();
+    }
+      
     ImGui::SameLine();
     if (ImGui::Button("Clear all", ImVec2(ImGui::GetWindowSize().x * 0.5f - 1.5 * ImGui::GetStyle().ItemSpacing.x, 0.0f)))
     {
@@ -62,50 +77,137 @@ void UIView::draw_ui_callback()
       if (ImGui::SmallButton("New")) {
         tfn_widget.push_back(TransferFunctionWidget());
         tfn_widget_multi.push_back(TransferFunctionMultiChannelWidget());
-        int index = m_selectedTrFn.size();
-        m_selectedTrFn.push_back(std::vector<bool>(numVolumes));
+        int index = m_selected_volume_TrFn.size();
+        m_selected_volume_TrFn.push_back(std::vector<bool>(numVolumes));
         for (int i = 0; i < numVolumes; i++)
         {
-          m_selectedTrFn[index][i] = false;
+          m_selected_volume_TrFn[index][i] = false;
         }
+
+        MyTransFerFunctions trfntc;
+        char label[32];
+
+        sprintf(label, "TF%d", m_trnfnct_counter++);
+        trfntc.ID =  tfn_widget.size();
+        trfntc.Name = label;
+        for (int i = 0; i < numVolumes; i++)
+        {
+          trfntc.volumes.push_back(false);
+        }
+        m_tfns.push_back(trfntc);
       };
       ImGui::SameLine();
       if (ImGui::SmallButton("Remove")) {
-
-
+        
+        if (m_tfns.size() == 1)
+        {
+          //there should be one by default
+          tfn_widget.clear();
+          tfn_widget_multi.clear();
+          m_tfns.clear();
+          tfn_widget.push_back(TransferFunctionWidget());
+          tfn_widget_multi.push_back(TransferFunctionMultiChannelWidget());
+          MyTransFerFunctions trfntc;
+          char label[32];
+          sprintf(label, "TF%d", (int)tfn_widget.size());
+          trfntc.ID = tfn_widget.size();
+          trfntc.Name = label;
+          for (int i = 0; i < numVolumes; i++)
+          {
+            trfntc.volumes.push_back(false);
+          }
+          m_tfns.push_back(trfntc);
+          m_table_selection = 0;
+        }
+        else if (m_tfns.size() > 1 && m_table_selection >= 0)
+        {
+          tfn_widget.erase(tfn_widget.begin() + m_table_selection); ;
+          tfn_widget_multi.erase(tfn_widget_multi.begin() + m_table_selection);
+          m_tfns.erase(m_tfns.begin() + m_table_selection);
+          if (m_table_selection != 0)
+          {
+            m_table_selection = m_table_selection - 1;
+          }
+          
+        }
+      };
+      ImGui::SameLine();
+      if (ImGui::SmallButton("Clear")) {
+        tfn_widget.clear();
+        tfn_widget_multi.clear();
+        m_tfns.clear();
+        tfn_widget.push_back(TransferFunctionWidget());
+        tfn_widget_multi.push_back(TransferFunctionMultiChannelWidget());
+        MyTransFerFunctions trfntc;
+        char label[32];
+        sprintf(label, "TF%d", (int)tfn_widget.size());
+        trfntc.ID = tfn_widget.size();
+        trfntc.Name = label;
+        for (int i = 0; i < numVolumes; i++)
+        {
+          trfntc.volumes.push_back(false);
+        }
+        m_tfns.push_back(trfntc);
+        m_table_selection = 0;
       };
 
-      ImGui::BeginTable("##Transfer Function Editor", 3);
-      ImGui::TableSetupColumn("Name");
+      ImGui::SameLine();
+      if (ImGui::SmallButton("Save")) {
+        m_save_trnfct_open = true;
+      };
+
+      ImGui::SameLine();
+      if (ImGui::SmallButton("Load")) {
+        
+        m_file_load_trnsf = true;
+        
+      };
+
+      int selection = 0;
+      
+      ImGui::BeginTable("##Transfer Function Editor", numVolumes+1, ImGuiTableFlags_Borders);
+      ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+      
       for (int column = 0; column < numVolumes; column++)
       {
         ImGui::TableSetupColumn(m_dataLabels[column].c_str());
       }
       ImGui::TableHeadersRow();
-
-      for (int row = 0; row < tfn_widget.size(); row++)
+      
+      for (int row = 0; row < m_tfns.size(); row++)
       {
         ImGui::TableNextRow();
         for (int col = 0; col < numVolumes + 1; col++)
         {
           ImGui::TableSetColumnIndex(col);
+          
           if (col == 0)
           {
-            char buf[32];
-            sprintf(buf, "TF%d", row);
-            if (ImGui::SmallButton(buf)) {
-              std::cout << buf << std::endl;
-              m_selectedTrnFnc = row;
-            };
+           
+            ImGuiSelectableFlags selectable_flags =  ImGuiSelectableFlags_AllowDoubleClick;
+            bool item_is_selected = (row == m_table_selection) ? true : false;
+            if (ImGui::Selectable(m_tfns[row].Name.c_str(), item_is_selected, selectable_flags))
+            {
+              m_table_selection = row;
+              
+              if (ImGui::IsMouseDoubleClicked(0))
+              {
+                m_copy_trnfnct_name = m_tfns[row].Name;
+                m_modal_trnfct_open = true;
+              }
+              
+              
+            }
+ 
 
           }
           else
           {
             char buf[32];
             sprintf(buf, "##On%d%d", col, row);
-            bool b = m_selectedTrFn[row][col - 1];
+            bool b = m_tfns[row].volumes[col - 1];
             ImGui::Checkbox(buf, &b);
-            m_selectedTrFn[row][col - 1] = b;
+            m_tfns[row].volumes[col - 1] = b;
             if (b)
             {
               std::cout << "ddd" << std::endl;
@@ -116,6 +218,81 @@ void UIView::draw_ui_callback()
       }
 
       ImGui::EndTable();
+
+
+      if (m_save_trnfct_open)
+      {
+        ImGui::OpenPopup("Save Transfer Functions");
+        ImGui::SetNextWindowSize(ImVec2(350, 200), ImGuiCond_FirstUseEver);
+        if (ImGui::BeginPopupModal("Save Transfer Functions", &m_save_trnfct_open))
+        {
+          char* writable = new char[m_save_file_name.size() + 1];
+          std::copy(m_save_file_name.begin(), m_save_file_name.end(), writable);
+          writable[m_save_file_name.size()] = '\0'; // don't forget the terminating 0
+          //ImGui::PushItemWidth(-1);
+          ImGui::InputText("##text2", writable, IM_ARRAYSIZE(writable));
+          ImGui::IsItemActive();
+          
+          /*
+          ImGui::SameLine();
+          if (ImGui::Button("dir"))
+          {
+            fileDialogSave->Open();
+          }*/
+          //ImGui::PopItemWidth();
+
+          if (ImGui::Button("Save"))
+          {
+            save_trans_functions();
+            m_save_trnfct_open = false;
+            ImGui::CloseCurrentPopup();
+          }
+          if (ImGui::Button("Cancel"))
+          {
+            m_save_trnfct_open = false;
+            ImGui::CloseCurrentPopup();
+          }
+
+          ImGui::EndPopup();
+        }
+      }
+    
+
+
+
+
+
+      if (m_modal_trnfct_open)
+      {
+        ImGui::OpenPopup("Modal window");
+        ImGui::SetNextWindowSize(ImVec2(350, 400), ImGuiCond_FirstUseEver);
+        if (ImGui::BeginPopupModal("Modal window", &m_modal_trnfct_open))
+        {
+          char* writable = new char[m_copy_trnfnct_name.size() + 1];
+          std::copy(m_copy_trnfnct_name.begin(), m_copy_trnfnct_name.end(), writable);
+          writable[m_copy_trnfnct_name.size()] = '\0'; // don't forget the terminating 0
+          //ImGui::PushItemWidth(-1);
+          ImGui::InputText("##text1", writable, IM_ARRAYSIZE(writable));
+          ImGui::IsItemActive();
+          //ImGui::PopItemWidth();
+
+          if (ImGui::Button("Save"))
+          {
+            m_tfns[m_table_selection].Name = m_copy_trnfnct_name;
+            m_modal_trnfct_open = false;
+            ImGui::CloseCurrentPopup();
+          }
+          if (ImGui::Button("Cancel"))
+          {
+            m_modal_trnfct_open = false;
+            ImGui::CloseCurrentPopup();
+          }
+
+          ImGui::EndPopup();
+        }
+      }
+     
+
 
       ImGui::Checkbox("use transferfunction", &m_use_transferfunction);
       if (m_use_transferfunction) {
@@ -144,7 +321,8 @@ void UIView::draw_ui_callback()
             }
           }
           m_controller_app.set_multi_transfer(true);
-          tfn_widget_multi[m_selectedTrnFnc].draw_ui();
+          //tfn_widget_multi[m_selectedTrnFnc].draw_histogram();
+          tfn_widget_multi[m_table_selection].draw_ui();
         }
         else
         {
@@ -167,7 +345,8 @@ void UIView::draw_ui_callback()
             tfn_widget[m_selectedVolume].setMinMax(m_volumes[m_selectedVolume][0]->getMin(), m_volumes[m_selectedVolume][0]->getMax());*/
           }
           m_controller_app.set_multi_transfer(false);
-          tfn_widget[m_selectedTrnFnc].draw_ui();
+         // tfn_widget[m_selectedTrnFnc].draw_histogram();
+          tfn_widget[m_table_selection].draw_ui();
         }
       }
 
@@ -241,27 +420,98 @@ void UIView::draw_ui_callback()
   ImGui::EndTabBar();
 
   //file loading
-  fileDialog.Display();
-
-  if (fileDialog.HasSelected())
+  if (m_file_dialog_open)
   {
-    if (helper::ends_with_string(fileDialog.GetSelected().string(), ".txt"))
+    ImGui::OpenPopup("Open File");
+    m_file_dialog_open = false;
+  }
+
+  
+   
+
+  if (fileDialog.showFileDialog("Open File", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310)))
+  {
+   
+    if (helper::ends_with_string(fileDialog.selected_fn, ".txt"))
     {
-      VRDataLoader::get_instance()->load_txt_file(m_controller_app, fileDialog.GetSelected().string());
+      VRDataLoader::get_instance()->load_txt_file(m_controller_app, fileDialog.selected_path);
       // m_controller_app.load_txt_file(fileDialog.GetSelected().string());
     }
-#ifdef WITH_TEEM
-    else if (helper::ends_with_string(fileDialog.GetSelected().string(), ".nrrd")) {
+    #ifdef WITH_TEEM
+    else if (helper::ends_with_string(fileDialog.selected_fn, ".nrrd")) {
       std::vector<std::string> vals;
       /*	vals.push_back(fileDialog.GetSelected().string());
         promises.push_back(new std::promise<Volume*>);
         futures.push_back(promises.back()->get_future());
         threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));*/
     }
-#endif
-    fileDialog.ClearSelected();
+    #endif
   }
 
+  //fileDialog.Display();
+
+//  if (fileDialog.HasSelected())
+//  {
+//    if (helper::ends_with_string(fileDialog.GetSelected().string(), ".txt"))
+//    {
+//      VRDataLoader::get_instance()->load_txt_file(m_controller_app, fileDialog.GetSelected().string());
+//      // m_controller_app.load_txt_file(fileDialog.GetSelected().string());
+//    }
+//#ifdef WITH_TEEM
+//    else if (helper::ends_with_string(fileDialog.GetSelected().string(), ".nrrd")) {
+//      std::vector<std::string> vals;
+//      /*	vals.push_back(fileDialog.GetSelected().string());
+//        promises.push_back(new std::promise<Volume*>);
+//        futures.push_back(promises.back()->get_future());
+//        threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));*/
+//    }
+//#endif
+//    fileDialog.ClearSelected();
+//  }
+
+
+  if (m_file_load_trnsf)
+  {
+    ImGui::OpenPopup("Load File");
+    m_file_load_trnsf = false;
+
+  }
+
+  if (fileDialogLoadTrnsFnc.showFileDialog("Load File", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310)))
+  {
+    
+    if (helper::ends_with_string(fileDialogLoadTrnsFnc.selected_fn, ".fnc"))
+    {
+
+      tfn_widget.clear();
+      tfn_widget_multi.clear();
+      m_tfns.clear();
+      load_trans_functions(fileDialogLoadTrnsFnc.selected_path);
+      m_table_selection = 0;
+
+    }
+  }
+
+  //fileDialogLoadTrnsFnc->Display();
+
+
+  //if (fileDialogLoadTrnsFnc->HasSelected())
+  //{
+  //  //std::cout << "Selected filename" << fileDialogLoadTrnsFnc->GetSelected().string() << std::endl;
+  //  if (helper::ends_with_string(fileDialogLoadTrnsFnc->GetSelected().string(), ".fnc"))
+  //  {
+
+  //    tfn_widget.clear();
+  //    tfn_widget_multi.clear();
+  //    m_tfns.clear();
+  //    load_trans_functions(fileDialogLoadTrnsFnc->GetSelected().string());
+  //    m_table_selection = 0;
+  //    
+  //  }
+  //  
+  //  
+  //  fileDialogLoadTrnsFnc->ClearSelected();
+  //}
 
 
   ImGui::End();
@@ -272,7 +522,7 @@ void UIView::init_ui(bool is2D, bool lookingGlass)
 
   if (!m_initialized)
   {
-    fileDialog.SetTitle("load data");
+    //fileDialog.SetTitle("load data");
 #ifdef WITH_NRRD
     fileDialog.SetTypeFilters({ ".txt", ".nrrd" });
     #elseif
@@ -290,6 +540,7 @@ void UIView::init_ui(bool is2D, bool lookingGlass)
     VRMenu* menu = m_menu_handler->addNewMenu(std::bind(&UIView::draw_ui_callback, this), 1024, 1024, 1, 1, fontsize);
     menu->setMenuPose(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 2, -1, 1));
     m_initialized = true;
+
   }
 
 
@@ -299,12 +550,24 @@ void UIView::update_ui(int numVolumes)
 {
   tfn_widget_multi.resize(1);
   tfn_widget.resize(1);
-  m_selectedTrFn.resize(1);
-  m_selectedTrFn[0].resize(numVolumes);
+ /* m_selected_volume_TrFn.resize(1);
+  m_selected_volume_TrFn[0].resize(numVolumes);
   for (int i = 0; i < numVolumes; i++)
   {
-    m_selectedTrFn[0][i] = false;
+    m_selected_volume_TrFn[0][i] = false;
+  }*/
+
+  MyTransFerFunctions trfntc;
+  char label[32];
+  sprintf(label, "TF%d", m_trnfnct_counter++);
+  trfntc.ID = tfn_widget.size();
+  trfntc.Name = label;
+  for (int i = 0; i < numVolumes; i++)
+  {
+    trfntc.volumes.push_back(false);
   }
+  m_tfns.push_back(trfntc);
+  m_table_selection = 0;
 }
 
 void UIView::render_2D()
@@ -361,7 +624,8 @@ int UIView::get_num_transfer_functions()
 
 bool UIView::is_transfer_function_enabled(int tfn, int vol)
 {
-  return m_selectedTrFn[tfn][vol];
+  //return m_selected_volume_TrFn[tfn][vol];
+  return m_tfns[tfn].volumes[vol];
 }
 
 int UIView::get_render_method()
@@ -519,5 +783,162 @@ glm::vec3 UIView::get_clip_min()
 glm::vec3 UIView::get_clip_max()
 {
   return m_clip_max;
+}
+
+void UIView::set_chracter(char c)
+{
+  if (m_modal_trnfct_open)
+  {
+    m_copy_trnfnct_name += c;
+  }
+  if (m_save_trnfct_open)
+  {
+    m_save_file_name += c;
+  }
+}
+
+void UIView::remove_character()
+{
+  if (m_modal_trnfct_open)
+  {
+    m_copy_trnfnct_name.pop_back();
+  }
+  
+  if (m_save_trnfct_open)
+  {
+    m_save_file_name.pop_back();
+  }
+}
+
+void UIView::add_trans_function()
+{
+
+}
+
+void UIView::save_trans_functions()
+{
+  std::string fileName = m_save_file_name + ".fnc";
+  std::ofstream savefile(fileName);
+  std::string pointsLine;
+  if (savefile.is_open())
+  {
+    savefile << "numFunction " << std::to_string(m_tfns.size()) << "\n";
+    for(int i = 0; i < m_tfns.size();i++)
+    {
+      //savefile << m_tfns[i].ID + ",";
+      savefile << "FuncName " + std::to_string(i+1) + " " + m_tfns[i].Name + " " + std::to_string(tfn_widget[i].get_colormap_gpu()) +"\n";
+   /*   for (int j = 0; j < tfn_widget_multi[i].alpha_control_pts.size(); j++)
+      {
+        if (j != tfn_widget_multi[i].alpha_control_pts.size()-1)
+        {
+          savefile << std::to_string(tfn_widget_multi[i].alpha_control_pts[j][0].x) +","+ std::to_string(tfn_widget_multi[i].alpha_control_pts[j][0].y) +
+            std::to_string(tfn_widget_multi[i].alpha_control_pts[j][1].x) + "," + std::to_string(tfn_widget_multi[i].alpha_control_pts[j][1].y);
+        }
+        else
+        {
+          savefile << std::to_string(tfn_widget_multi[i].alpha_control_pts[j][0].x) + "," + std::to_string(tfn_widget_multi[i].alpha_control_pts[j][0].y )+
+            std::to_string(tfn_widget_multi[i].alpha_control_pts[j][1].x) + "," + std::to_string(tfn_widget_multi[i].alpha_control_pts[j][1].y) +";";
+        }
+        
+      }*/
+      savefile << "FuncPoints " << std::to_string(i+1) << " ";
+      for (int j = 0; j < tfn_widget[i].alpha_control_pts.size(); j++)
+      {
+        if (j != tfn_widget[i].alpha_control_pts.size() - 1)
+        {
+          savefile << std::to_string(tfn_widget[i].alpha_control_pts[j].x) + "," + std::to_string(tfn_widget[i].alpha_control_pts[j].y) + ";";
+        }
+        else
+        {
+          savefile << std::to_string(tfn_widget[i].alpha_control_pts[j].x) + "," + std::to_string(tfn_widget[i].alpha_control_pts[j].y) ;
+        }
+
+      }
+      savefile << "\n";
+    }
+    savefile.close();
+  }
+}
+
+void UIView::load_trans_functions(std::string filePath)
+{
+  std::string line;
+  std::ifstream loadFile(filePath);
+  int numFunctions = 0;
+
+  if (loadFile.is_open())
+  {
+    while (std::getline(loadFile, line))
+    {
+      std::vector<std::string> vals; // Create vector to hold our words
+      std::stringstream ss(line);
+      std::string buf;
+
+      while (ss >> buf) {
+        vals.push_back(buf);
+      }
+
+      if (vals.size() > 0) 
+      {
+        std::string tag = vals[0];
+        if (tag == "numFunction")
+        {
+          numFunctions = std::stoi( vals[1]) ;
+          tfn_widget.resize(numFunctions);
+          tfn_widget_multi.resize(numFunctions);
+          m_tfns.resize(numFunctions);
+          m_trnfnct_counter = numFunctions+1;
+         
+
+        }
+        if (tag == "FuncName")
+        {
+          int index = std::stoi(vals[1])-1;
+          m_tfns[index].Name = vals[2];
+          int numVolumes = m_controller_app.get_num_volumes();
+          for (int i = 0; i < numVolumes; i++)
+          {
+            m_tfns[index].volumes.push_back(false);
+          }
+          tfn_widget[index].selected_colormap = std::stoi(vals[3]);
+          tfn_widget[index].update_colormap();
+        }
+        if (tag == "FuncPoints")
+        {
+          int index = std::stoi(vals[1])-1;
+          std::string points = vals[2];
+          size_t pos = 0;
+          std::string token;
+          std::string delimiter = ";";
+          size_t last = 0; size_t next = 0;
+          std::string point;
+          int poinCounter = 0;
+          tfn_widget[index].alpha_control_pts.clear();
+          while ((next = points.find(delimiter, last)) != std::string::npos) {
+
+            point = points.substr(last, next - last);
+            int comaPos = point.find(",");
+            float pointX = std::stof(point.substr(0, comaPos));
+            float pointY = std::stof(point.substr(comaPos+1));
+            tfn_widget[index].alpha_control_pts.push_back(TransferFunctionWidget::vec2f(pointX, pointY));
+            std::cout << point << std::endl;
+
+            last = next + 1;
+            poinCounter++;
+          }
+          point = points.substr(last);
+          int comaPos = point.find(",");
+          float pointX = std::stof(point.substr(0, comaPos));
+          float pointY = std::stof(point.substr(comaPos + 1));
+          tfn_widget[index].alpha_control_pts.push_back(TransferFunctionWidget::vec2f(pointX, pointY));
+          std::cout << points.substr(last) << std::endl;
+          
+        }
+
+      }
+    }
+    loadFile.close();
+  }
+
 }
 

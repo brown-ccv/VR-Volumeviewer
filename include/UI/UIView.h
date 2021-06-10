@@ -2,17 +2,24 @@
 #define UIVIEW_H
 
 #include "VRMenuHandler.h"
+#if (!defined(__APPLE__))
 #include "imfilebrowser.h"
+#endif
+#include "ImGuiFileBrowser.h"
 #include "transferfunction/transfer_function_multichannel_widget.h"
 #include "transferfunction/transfer_function_widget.h"
 
 class VRVolumeApp;
 class CreateMovieAction;
+#define INPUT_TEXT_SIZE 200
 
 class UIView
 {
 public:
   UIView(VRVolumeApp& controllerApp);
+  ~UIView();
+  
+
   void draw_ui_callback();
   void init_ui(bool is2D, bool lookingGlass);
   void update_ui(int numVolumes);
@@ -71,12 +78,31 @@ public:
   glm::vec3 get_clip_min();
   glm::vec3 get_clip_max();
 
+  void set_chracter(char c);
+
+  void remove_character();
+
 private:
 
+  struct MyTransFerFunctions
+  {
+    int         ID;
+    std::string Name;
+    std::vector<bool> volumes;
+  };
+
+  void add_trans_function();
+
+  void save_trans_functions();
+
+  void load_trans_functions(std::string filePath);
 
   VRVolumeApp& m_controller_app;
   VRMenuHandler* m_menu_handler;
-  ImGui::FileBrowser fileDialog;
+  imgui_addons::ImGuiFileBrowser fileDialog;
+  bool m_file_dialog_open;
+  imgui_addons::ImGuiFileBrowser fileDialogLoadTrnsFnc;
+  bool m_file_load_trnsf;
 
   float m_multiplier;
   float m_threshold;
@@ -93,7 +119,8 @@ private:
   bool m_renderVolume;
   std::vector<TransferFunctionMultiChannelWidget> tfn_widget_multi;
   std::vector<TransferFunctionWidget> tfn_widget;
-  std::vector<std::vector<bool>> m_selectedTrFn;
+  std::vector<MyTransFerFunctions> m_tfns;
+  std::vector<std::vector<bool>> m_selected_volume_TrFn;
 
   std::vector<std::string> m_dataLabels;
   int m_selectedTrnFnc;
@@ -109,9 +136,19 @@ private:
   glm::vec3 m_clip_ypr;
   glm::vec3 m_clip_pos;
 
-
+  int m_table_selection;
 
   bool m_initialized;
+
+  bool m_modal_trnfct_open;
+
+  bool m_save_trnfct_open;
+
+  std::string m_copy_trnfnct_name;
+
+  std::string m_save_file_name;
+
+  unsigned int m_trnfnct_counter;
 };
 
 #endif

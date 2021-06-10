@@ -417,6 +417,56 @@ void TransferFunctionWidget::drawLegend() {
 
 }
 
+void TransferFunctionWidget::draw_histogram()
+{
+  //update_gpu_image();
+  
+
+  const ImGuiIO& io = ImGui::GetIO();
+
+  ImGui::Text("Histogram");
+  
+  vec2f canvas_size = ImGui::GetContentRegionAvail();
+  // Note: If you're not using OpenGL for rendering your UI, the setup for
+  // displaying the colormap texture in the UI will need to be updated.
+  ImGui::Image(reinterpret_cast<void*>(colormap_img), ImVec2(canvas_size.x, 16));
+  vec2f canvas_pos = ImGui::GetCursorScreenPos();
+  canvas_size.y -= 80;
+
+  const float point_radius = 20.f;
+
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  draw_list->PushClipRect(canvas_pos, canvas_pos + canvas_size);
+
+  const vec2f view_scale(canvas_size.x, -canvas_size.y);
+  const vec2f view_offset(canvas_pos.x, canvas_pos.y + canvas_size.y);
+
+  draw_list->AddRect(canvas_pos, canvas_pos + canvas_size, ImColor(180, 180, 180, 255));
+
+  //ImGui::InvisibleButton("tfn_canvas", canvas_size);
+  
+
+  // Draw the alpha control points, and build the points for the polyline
+  // which connects them
+  
+
+  //Code to Draw histogram in the UI
+  for (int i = 0; i < current_histogram.size(); i++) {
+    vec2f lp = vec2f(((float)i) / current_histogram.size(), 0.0f);
+    vec2f hp = vec2f(((float)i + 1.0f) / current_histogram.size(), current_histogram[i]);
+    draw_list->AddRectFilled(lp * view_scale + view_offset, hp * view_scale + view_offset, 0x77777777);
+  }
+
+
+  draw_list->PopClipRect();
+
+  
+
+  
+
+  
+}
+
 void TransferFunctionWidget::update_gpu_image()
 {
     GLint prev_tex_2d = 0;

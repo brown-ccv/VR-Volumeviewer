@@ -136,6 +136,8 @@ public:
 
   void init_volume_loading(int index, std::vector<std::string>);
 
+  void set_character_state(std::string& key, int state);
+
 protected:
 
   glm::vec4 m_noColor;// (0.0f, 0.0f, 0.0f, 0.0f);
