@@ -171,6 +171,11 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent& event) {
     {
       m_vrVolumeApp->button_events_ui_handle(2, 0);
     }
+
+    if (m_vrVolumeApp)
+    {
+      m_vrVolumeApp->set_character_state(event.getName(), 1);
+    }
   }
   else
   {
@@ -283,6 +288,11 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent& event) {
     if (event.getName() == "MouseBtnMiddle_ScrollDown")
     {
       m_vrVolumeApp->update_ui_events(-10);
+    }
+
+    if (m_vrVolumeApp)
+    {
+      m_vrVolumeApp->set_character_state(event.getName(), 0);
     }
   }
   else
@@ -422,6 +432,9 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent& event) {
       m_vrVolumeApp->enable_render_volume();
     }
   }
+
+  
+
 }
 
 

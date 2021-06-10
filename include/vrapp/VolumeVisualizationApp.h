@@ -5,7 +5,6 @@
 #include "VRMenuHandler.h"
 #include "transferfunction/transfer_function_multichannel_widget.h"
 #include "transferfunction/transfer_function_widget.h"
-#include "imfilebrowser.h"
 #include <api/MinVR.h>
 #include "render/FrameBufferObject.h"
 #include "render/Volume.h"

@@ -16,7 +16,7 @@
 #include <fstream> 
 #include <sstream> 
 #include "GLMLoader.h"
-
+#include <locale>
 
 
 #include <glm/gtx/euler_angles.hpp>
@@ -294,6 +294,67 @@ void VRVolumeApp::init_volume_loading(int index, std::vector<std::string> vals)
   std::vector <std::thread*>& ths = m_threads[index - 1];
   std::vector<std::promise<Volume*>*> v2 = m_promises[index - 1];
   ths.emplace_back(new std::thread(&VRVolumeApp::load_volume, this, vals, v2.back()));
+}
+
+void VRVolumeApp::set_character_state(std::string& eventName, int state)
+{
+  size_t pos = eventName.find("Kbd");
+  size_t pos_ = eventName.find("_");
+
+  if (pos != std::string::npos)
+  {
+    std::locale loc;
+    std::string keyStr = eventName.substr(3, pos_ - 3);
+    if (keyStr.size() == 1)
+    {
+      int keyCode = keyStr[0];
+      ImGuiIO& io = ImGui::GetIO();
+      if (state == 1)
+      {
+        io.KeysDown[keyCode] = true;
+      }
+      if (state == 0)
+      {
+        io.KeysDown[keyCode] = false;
+      }
+
+      if (state == 1)
+      {
+        if (m_ui_view)
+        {
+          m_ui_view->set_chracter(keyStr[0]);
+        }
+      }
+      /*   if (std::isalpha(keyStr[0], loc) || isdigit(keyStr[0]))
+         {
+           if (m_ui_view)
+           {
+             m_ui_view->set_chracter(keyStr[0]);
+           }
+         }*/
+    }
+    else
+    {
+      if (state == 1)
+      {
+        if (keyStr == "Backspace" || keyStr == "Del")
+        {
+          m_ui_view->remove_character();
+          //_keyBoardInputText->deleteCharacters(_keyBoardInputText->getTextSize() - 1, 1);
+        }
+        else if (keyStr == "Space")
+        {
+          m_ui_view->set_chracter(32);
+          /*std::string space(" ");
+          addTextToInputField(space);*/
+        }
+      }
+     
+    }
+   
+  }
+
+  
 }
 
 void VRVolumeApp::intialize_ui()

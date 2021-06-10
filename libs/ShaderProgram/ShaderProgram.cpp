@@ -71,8 +71,8 @@ void ShaderProgram::addUniform(const char * name)
 	int uniformLocation = glGetUniformLocation(m_progarm_id, name);
 	if (uniformLocation != -1/*did not find the uniform*/)
 	{
-
-		uniforms[name] = uniformLocation;
+		std::string x(name);
+		uniforms[x] = uniformLocation;
 	}
 	else
 	{
