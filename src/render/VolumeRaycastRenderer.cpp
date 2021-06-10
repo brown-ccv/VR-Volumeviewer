@@ -115,7 +115,9 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4& MV, glm::mat
   bool enableBlend = glIsEnabled(GL_BLEND);
   glEnable(GL_BLEND);
   //todo: we should also undo the blending func later 
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR);
+  glBlendEquation(GL_FUNC_ADD);
 
   if (colormap >= 0)
   {
