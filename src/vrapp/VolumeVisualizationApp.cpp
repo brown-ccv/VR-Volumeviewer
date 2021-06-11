@@ -20,7 +20,7 @@
 
 #include "loader/LoadDescriptionAction.h"
 #include "render/FontHandler.h"
-#include <filesystem>
+
 #include "UI/UIView.h"
 #include "loader/VRDataLoader.h"
 

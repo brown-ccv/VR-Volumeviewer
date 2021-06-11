@@ -1,6 +1,11 @@
 #include "loader/VRDataLoader.h"
 #include <fstream>
-#include <filesystem>
+
+
+//#include <filesystem>
+#include <cppfs/fs.h>
+#include <cppfs/FilePath.h>
+
 #include <sstream>  
 #include "vrapp/VRVolumeApp.h"
 
@@ -39,7 +44,8 @@ void VRDataLoader::load_txt_file(VRVolumeApp& vrVolumeApp, std::string& filename
 
   std::string line;
 
-  std::filesystem::path p_filename(filename);
+  //std::filesystem::path p_filename(filename);
+  cppfs::FilePath p_filename(filename);
 
   while (getline(inFile, line)) {
     if (line[0] != '#') {
@@ -84,9 +90,10 @@ void VRDataLoader::load_txt_file(VRVolumeApp& vrVolumeApp, std::string& filename
           //	std::cerr << "Load Mesh " << vals[1] << std::endl;
           //	std::cerr << "for Volume " << vals[2] << std::endl;
 
-          std::string fullPath = p_filename.parent_path().string() + OS_SLASH_LOCAL + vals[1];
+          //std::string fullPath = p_filename.parent_path().string() + OS_SLASH_LOCAL + vals[1];
+          std::string fullPath = p_filename.directoryPath() + OS_SLASH_LOCAL + vals[1];
           std::cerr << "Load Mesh " << fullPath << std::endl;
-          std::string shaderFilePath = p_filename.parent_path().string() + OS_SLASH_LOCAL + "shaders";
+          std::string shaderFilePath = p_filename.directoryPath() + OS_SLASH_LOCAL + "shaders";
 
           vrVolumeApp.set_mesh(stoi(vals[2]), fullPath, shaderFilePath);
 
@@ -95,7 +102,7 @@ void VRDataLoader::load_txt_file(VRVolumeApp& vrVolumeApp, std::string& filename
         {
 
           //std::cerr << "for Volume " << vals[2] << std::endl;
-          std::string fullPath = p_filename.parent_path().string() + OS_SLASH_LOCAL + vals[1];
+          std::string fullPath = p_filename.directoryPath() + OS_SLASH_LOCAL + vals[1];
           vrVolumeApp.set_texture(fullPath);
 
 
@@ -120,7 +127,7 @@ void VRDataLoader::load_txt_file(VRVolumeApp& vrVolumeApp, std::string& filename
           size_t volumeIndex = std::stoi(strVolumeIndex);
 
 
-          vals[1] = p_filename.parent_path().string() + OS_SLASH_LOCAL + vals[1];
+          vals[1] = p_filename.directoryPath() + OS_SLASH_LOCAL + vals[1];
 
 
 

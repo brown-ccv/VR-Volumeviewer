@@ -108,6 +108,25 @@ FIND_PACKAGE(OpenCV REQUIRED )
 FIND_PACKAGE(FTGL REQUIRED )
 FIND_PACKAGE(Freetype REQUIRED) 
 
+find_library (CPPFSD_LIB cppfsd 
+              /usr/local/lib/
+			  ${CMAKE_PREFIX_PATH}/libs
+			  )
+
+find_path(CPPFSD_INCLUDE 
+           NAMES cpp/cppfs.h cpp/FilePath.h
+            HINTS  /usr/local/include
+	    )
+
+if(${CPPFSD_LIB} STREQUAL "")
+ message( FATAL_ERROR  "CPPFSD_LIB not found" )
+endif()
+
+if(${CPPFSD_INCLUDE} STREQUAL "")
+ message( FATAL_ERROR  "CPPFSD_INCLUDE not found" )
+endif()
+
+
 include_directories(
   ${OPENGL_INCLUDE_DIR}
   ${MINVR_INCLUDE_DIR}
@@ -115,6 +134,7 @@ include_directories(
   ${GLEW_INCLUDE_DIRS}
   ${FTGL_INCLUDE_DIR}
   ${FREETYPE_INCLUDE_DIRS}
+  ${CPPFSD_INCLUDE}
   include/
   libs/
 )
@@ -129,6 +149,7 @@ set(LIBRARIES
 	${OPENGL_LIBRARY}
 	${FTGL_LIBRARIES}
 	${FREETYPE_LIBRARIES}
+	${CPPFSD_LIB}
 	stb_image
 	GLMLoader
 	Model
@@ -136,6 +157,10 @@ set(LIBRARIES
 	ShaderProgram
 	
 )
+
+
+message(STATUS "cppfs_INCLUDE_DIR ${cppfs_INCLUDE_DIRS}")
+message(STATUS "cppfs_LIBRARY ${cppfs_LIBRARIES}")
 
 if (UNIX)
 	set(LIBRARIES
@@ -166,6 +191,7 @@ add_subdirectory(libs/Model)
 add_subdirectory(libs/Texture)
 add_subdirectory(libs/ShaderProgram)
 add_subdirectory(libs/stb_image)
+#add_subdirectory(libs/cppfs)
 # POSSIBLE FIX ON RECURSIVE INCLUDE
 #add_subdirectory(src)
 
