@@ -13,10 +13,13 @@
 
 #include "GL/glew.h"
 
+<<<<<<< HEAD
 #if (!defined(__APPLE__))
 #include <filesystem>
 #endif
 
+=======
+>>>>>>> master
 #include <fstream> 
 #include <sstream> 
 #include "GLMLoader.h"
