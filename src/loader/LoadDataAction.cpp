@@ -37,8 +37,6 @@
 #include <fstream>
 #include <algorithm>    // std::max
 
-#include <filesystem>
-namespace fs = std::filesystem;
 
 LoadDataAction::LoadDataAction(std::string folder, float* res) : m_folder(folder), m_res(res)
 {
