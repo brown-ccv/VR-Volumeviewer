@@ -12,7 +12,11 @@
 #include "interaction/CreateMovieAction.h"
 
 #include "GL/glew.h"
+
+#if (!defined(__APPLE__))
 #include <filesystem>
+#endif
+
 #include <fstream> 
 #include <sstream> 
 #include "GLMLoader.h"
@@ -145,6 +149,7 @@ void VRVolumeApp::update_animation()
   }
 }
 
+#if (!defined(__APPLE__))
 void VRVolumeApp::run_movie()
 {
 #ifndef _MSC_VER
@@ -157,6 +162,7 @@ void VRVolumeApp::run_movie()
   m_frame = 0;
   m_show_menu = false;
 }
+#endif
 
 void VRVolumeApp::set_render_count(unsigned int rendercount)
 {

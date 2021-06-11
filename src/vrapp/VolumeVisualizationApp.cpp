@@ -20,12 +20,9 @@
 
 #include "loader/LoadDescriptionAction.h"
 #include "render/FontHandler.h"
-#include <filesystem>
+
 #include "UI/UIView.h"
 #include "loader/VRDataLoader.h"
-
-
-namespace fs = std::filesystem;
 
 
 
@@ -81,7 +78,8 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
           std::vector<std::promise<Volume*>*> v2= promises.back();
           ths.emplace_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, v2.back()));
           threads.push_back(ths);*/
-        m_vrVolumeApp->load_nrrd_file(std::string(argv_int[i]));
+        std::string nrrdFileName(argv_int[i]);
+        m_vrVolumeApp->load_nrrd_file(nrrdFileName);
         //m_vrVolumeApp->initialize();
       }
     }
@@ -174,7 +172,8 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent& event) {
 
     if (m_vrVolumeApp)
     {
-      m_vrVolumeApp->set_character_state(event.getName(), 1);
+      std::string evName = event.getName();
+      m_vrVolumeApp->set_character_state(evName, 1);
     }
   }
   else
@@ -292,7 +291,8 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent& event) {
 
     if (m_vrVolumeApp)
     {
-      m_vrVolumeApp->set_character_state(event.getName(), 0);
+      std::string evName = event.getName();
+      m_vrVolumeApp->set_character_state(evName, 0);
     }
   }
   else

@@ -1,5 +1,5 @@
 #include "UI/UIView.h"
-#include "UI/UIController.h"
+
 #include "interaction/CreateMovieAction.h"
 #include "interaction/HelperFunctions.h"
 
@@ -369,11 +369,12 @@ void UIView::draw_ui_callback()
         m_stopped = !m_stopped;
       }
 
-
+      #if (!defined(__APPLE__))
       if (ImGui::Button("Write Movie"))
       {
         m_controller_app.run_movie();
       }
+      #endif
     }
     ImGui::EndTabItem();
   }
