@@ -116,10 +116,6 @@ FIND_PACKAGE(OpenCV REQUIRED )
 FIND_PACKAGE(FTGL REQUIRED )
 FIND_PACKAGE(Freetype REQUIRED) 
 
-<<<<<<< HEAD
-message(STATUS "GLEW_INCLUDE_DIRS ${GLEW_INCLUDE_DIRS}")
-message(STATUS "GLEW_LIBRARY ${GLEW_LIBRARY}")
-=======
 find_library (CPPFSD_LIB cppfsd 
               /usr/local/lib/
 			  ${CMAKE_PREFIX_PATH}/libs
@@ -138,13 +134,12 @@ if(${CPPFSD_INCLUDE} STREQUAL "")
  message( FATAL_ERROR  "CPPFSD_INCLUDE not found" )
 endif()
 
->>>>>>> master
 
 include_directories(
   ${OPENGL_INCLUDE_DIR}
   ${MINVR_INCLUDE_DIR}
   ${GLM_INCLUDE_DIRS}
-  ${GLEW_INCLUDE_DIRS}
+  
   ${FTGL_INCLUDE_DIR}
   ${FREETYPE_INCLUDE_DIRS}
   ${CPPFSD_INCLUDE}
@@ -181,12 +176,13 @@ set(LIBRARIES
 message(STATUS "cppfs_INCLUDE_DIR ${cppfs_INCLUDE_DIRS}")
 message(STATUS "cppfs_LIBRARY ${cppfs_LIBRARIES}")
 
-if (UNIX)
-	set(LIBRARIES
-		${LIBRARIES}
-		stdc++fs
-	)
-endif (UNIX)
+#if (UNIX)
+#   if(NOT APPLE)
+#	set(LIBRARIES
+#		${LIBRARIES}
+#		stdc++fs
+#	)
+#endif (UNIX)
 
 if(WITH_TEEM)
 	FIND_PACKAGE(Teem REQUIRED )

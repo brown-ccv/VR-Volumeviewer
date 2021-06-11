@@ -37,10 +37,7 @@
 #include <fstream>
 #include <algorithm>    // std::max
 
-<<<<<<< HEAD
 
-=======
->>>>>>> master
 
 LoadDataAction::LoadDataAction(std::string folder, float* res) : m_folder(folder), m_res(res)
 {

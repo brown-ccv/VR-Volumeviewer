@@ -91,7 +91,10 @@ public:
 
   void update_animation();
 
-  void run_movie();
+#if (!defined(__APPLE__))
+ void run_movie();
+#endif
+ 
 
   void set_render_count(unsigned int);
 
