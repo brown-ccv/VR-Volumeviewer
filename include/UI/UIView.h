@@ -172,6 +172,8 @@ private:
 
   bool m_non_trns_functions_selected_modal;
 
+  bool m_ui_background;
+
 };
 
 #endif

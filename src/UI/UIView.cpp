@@ -17,7 +17,8 @@ m_animated(false), m_ui_frame_controller(0.0f), m_menu_handler(nullptr), m_initi
 m_clip_max(1.0), m_clip_min(0.0), m_clip_ypr(0.0), m_clip_pos(0.0), m_useCustomClipPlane(false), m_rendermethod(1), m_renderchannel(0),
 m_table_selection(-1), m_trn_fct_name_open(false), m_save_trnfct_open(false), m_trnfnct_counter(1), m_file_dialog_open(false),
 m_file_load_trnsf(false), m_file_dialog_save_dir(false), m_save_session_dialog_open(false), m_current_save_modal(SAVE_NONE),
-m_current_load_modal(LOAD_NONE),m_file_extension_filter(".txt"), m_non_trns_functions_selected_modal(false)
+m_current_load_modal(LOAD_NONE),m_file_extension_filter(".txt"), m_non_trns_functions_selected_modal(false),
+m_ui_background(false)
 
 {
   
@@ -36,7 +37,17 @@ void UIView::draw_ui_callback()
     return;
   }
 
-  ImGui::Begin("Volumeviewer");
+  
+  m_ui_background = m_menu_handler->windowIsActive()? true:false;
+  
+
+  int flags = ImGuiWindowFlags_NoResize;
+  if (!m_ui_background)
+  {
+    flags |= ImGuiWindowFlags_NoBackground;
+  }
+
+  ImGui::Begin("Volumeviewer",NULL, flags);
   ImGui::BeginTabBar("##tabs");
   if (ImGui::BeginTabItem("General"))
   {
@@ -311,7 +322,10 @@ void UIView::draw_ui_callback()
 
 
       ImGui::Checkbox("use transferfunction", &m_use_transferfunction);
-      if (m_use_transferfunction) {
+      if (m_use_transferfunction)
+      {
+
+
         bool is_multi_channel = m_controller_app.data_is_multi_channel();
         if (is_multi_channel)
         {
@@ -361,10 +375,11 @@ void UIView::draw_ui_callback()
             tfn_widget[m_selectedVolume].setMinMax(m_volumes[m_selectedVolume][0]->getMin(), m_volumes[m_selectedVolume][0]->getMax());*/
           }
           m_controller_app.set_multi_transfer(false);
-         // tfn_widget[m_selectedTrnFnc].draw_histogram();
+          // tfn_widget[m_selectedTrnFnc].draw_histogram();
           tfn_widget[m_table_selection].draw_ui();
         }
       }
+
 
     }
 
@@ -607,6 +622,7 @@ void UIView::update_ui(int numVolumes)
 {
   tfn_widget_multi.resize(1);
   tfn_widget.resize(1);
+  m_use_transferfunction = true;
  /* m_selected_volume_TrFn.resize(1);
   m_selected_volume_TrFn[0].resize(numVolumes);
   for (int i = 0; i < numVolumes; i++)
