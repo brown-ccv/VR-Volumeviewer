@@ -13,6 +13,9 @@ class VRVolumeApp;
 class CreateMovieAction;
 #define INPUT_TEXT_SIZE 200
 
+enum SAVE_MODAL {SAVE_NONE, SAVE_SESSION, SAVE_TRFR_FNC};
+enum LOAD_MODAL {LOAD_NONE, LOAD_SESSION, LOAD_TRFR_FNC };
+
 class UIView
 {
 public:
@@ -91,17 +94,26 @@ private:
     std::vector<bool> volumes;
   };
 
+  void open_save_modal_dialog(std::string& id, bool& window_state, std::function<void()> save_function);
+
   void add_trans_function();
 
   void save_trans_functions();
 
+  void save_user_session();
+
   void load_trans_functions(std::string filePath);
+
+  void load_user_session(std::string filePath);
 
   VRVolumeApp& m_controller_app;
   VRMenuHandler* m_menu_handler;
   imgui_addons::ImGuiFileBrowser fileDialog;
   bool m_file_dialog_open;
+  bool m_file_dialog_save_dir;
+  std::string m_dir_to_save;
   imgui_addons::ImGuiFileBrowser fileDialogLoadTrnsFnc;
+  imgui_addons::ImGuiFileBrowser saveDialogLoadTrnsFnc;
   bool m_file_load_trnsf;
 
   float m_multiplier;
@@ -140,15 +152,26 @@ private:
 
   bool m_initialized;
 
-  bool m_modal_trnfct_open;
+  bool m_trn_fct_name_open;
 
-  bool m_save_trnfct_open;
+  bool m_save_trnfct_open;  
+
+  bool m_save_session_dialog_open;
+
+  SAVE_MODAL m_current_save_modal;
+
+  LOAD_MODAL m_current_load_modal;
+
+  std::string m_file_extension_filter;
 
   std::string m_copy_trnfnct_name;
 
   std::string m_save_file_name;
 
   unsigned int m_trnfnct_counter;
+
+  bool m_non_trns_functions_selected_modal;
+
 };
 
 #endif
