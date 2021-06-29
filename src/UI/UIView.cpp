@@ -9,7 +9,7 @@
 
 #include "loader/VRDataLoader.h"
 
-#include <fstream>
+
 
 UIView::UIView(VRVolumeApp& controllerApp) :m_controller_app(controllerApp), m_multiplier(1.0f), m_threshold(0.0f),
 m_z_scale(0.16f), m_scale{ 1.0f }, m_slices(256), m_dynamic_slices(false), m_renderVolume(true), m_selectedTrnFnc(0),
@@ -201,7 +201,21 @@ void UIView::draw_ui_callback()
       {
         ImGui::TableSetupColumn(m_dataLabels[column].c_str());
       }
-      ImGui::TableHeadersRow();
+      ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+      for (int column = 1; column < numVolumes+1; column++)
+      {
+        ImGui::TableSetColumnIndex(column);
+        const char* column_name = ImGui::TableGetColumnName(column); 
+        ImGui::PushID(column);
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+        ImGui::RadioButton("", &m_column_selected, column-1); ImGui::SameLine();
+        ImGui::PopStyleVar();
+        ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
+        ImGui::TableHeader(column_name);
+        ImGui::PopID();
+       
+      }
+      
       
       for (int row = 0; row < m_tfns.size(); row++)
       {
@@ -251,9 +265,10 @@ void UIView::draw_ui_callback()
       {
         m_current_save_modal = SAVE_SESSION;
         std::string save_user_session_window_id = "Save User Session";
-        auto save_funtion = std::bind(&UIView::save_user_session, this);
-
-        open_save_modal_dialog(save_user_session_window_id, m_save_session_dialog_open, save_funtion);
+       
+        std::string extension =  ".usr";
+        auto save_funtion = std::bind(&UIView::save_user_session, this, std::placeholders::_1);
+        open_save_modal_dialog(save_user_session_window_id, m_save_session_dialog_open, save_funtion, extension);
    
       }
 
@@ -263,8 +278,9 @@ void UIView::draw_ui_callback()
         std::string save_Trnf_window_id = "Save Transfer Functions";
         if (m_use_transferfunction)
         {
-          auto save_funtion = std::bind(&UIView::save_trans_functions, this);
-          open_save_modal_dialog(save_Trnf_window_id, m_save_trnfct_open, save_funtion);
+          std::string extension = ".fnc";
+          auto save_funtion = std::bind(&UIView::save_trans_functions, this, std::placeholders::_1);
+          open_save_modal_dialog(save_Trnf_window_id, m_save_trnfct_open, save_funtion, extension);
         }
         else
         {
@@ -371,11 +387,11 @@ void UIView::draw_ui_callback()
 
           }
           else if (numVolumes > 0) {
-            /*tfn_widget[m_selectedVolume].setHistogram(m_volumes[m_selectedVolume][0]->getTransferfunction(0));
-            tfn_widget[m_selectedVolume].setMinMax(m_volumes[m_selectedVolume][0]->getMin(), m_volumes[m_selectedVolume][0]->getMax());*/
+            
+            tfn_widget[0].setHistogram(m_controller_app.get_volume(m_column_selected)[0]->getTransferfunction(0));
+            tfn_widget[0].setMinMax(m_controller_app.get_volume(m_column_selected)[0]->getMin(), m_controller_app.get_volume(0)[0]->getMax());
           }
           m_controller_app.set_multi_transfer(false);
-          // tfn_widget[m_selectedTrnFnc].draw_histogram();
           tfn_widget[m_table_selection].draw_ui();
         }
       }
@@ -565,7 +581,9 @@ void UIView::draw_ui_callback()
         tfn_widget.clear();
         tfn_widget_multi.clear();
         m_tfns.clear();
-        load_trans_functions(fileDialogLoadTrnsFnc.selected_path);
+        std::string filePath = fileDialogLoadTrnsFnc.selected_path;
+        std::ifstream fileToLoad(filePath);
+        load_trans_functions(fileToLoad);
         m_table_selection = 0;
         m_current_load_modal = LOAD_NONE;
       }
@@ -874,16 +892,25 @@ void UIView::remove_character()
 {
   if (m_trn_fct_name_open )
   {
-    m_copy_trnfnct_name.pop_back();
+    if (!m_copy_trnfnct_name.empty())
+    {
+      m_copy_trnfnct_name.pop_back();
+    }
+    
   }
   
   if (m_save_trnfct_open || m_save_session_dialog_open)
   {
-    m_save_file_name.pop_back();
+    if (!m_save_file_name.empty())
+    {
+      m_save_file_name.pop_back();
+    }
+    
   }
 }
 
-void UIView::open_save_modal_dialog(std::string& id, bool& window_state, std::function<void()> save_function)
+void UIView::open_save_modal_dialog(std::string& id, bool& window_state, 
+  std::function<void(std::ofstream&)> save_function, std::string& extension)
 {
   ImGui::OpenPopup(id.c_str());
   ImGui::SetNextWindowSize(ImVec2(350, 200), ImGuiCond_FirstUseEver);
@@ -899,13 +926,15 @@ void UIView::open_save_modal_dialog(std::string& id, bool& window_state, std::fu
       m_file_dialog_save_dir = true;
     }
 
-    ImGui::InputText("##text2", writable, IM_ARRAYSIZE(writable));
+    ImGui::InputText("##filename", writable, IM_ARRAYSIZE(writable));
     ImGui::IsItemActive();
 
 
     if (ImGui::Button("Save"))
     {
-      save_function();
+      std::string fileName = m_dir_to_save + helper::get_OS_path_separator() + m_save_file_name + extension;
+      std::ofstream savefile(fileName);
+      save_function(savefile);
       window_state = false;
       ImGui::CloseCurrentPopup();
     }
@@ -924,18 +953,16 @@ void UIView::add_trans_function()
 
 }
 
-void UIView::save_trans_functions()
+void UIView::save_trans_functions(std::ofstream& saveFile)
 {
-  std::string fileName = m_dir_to_save + helper::get_OS_path_separator()+m_save_file_name + ".fnc";
-  std::ofstream savefile(fileName);
   std::string pointsLine;
-  if (savefile.is_open())
+  if (saveFile.is_open())
   {
-    savefile << "numFunction " << std::to_string(m_tfns.size()) << "\n";
+    saveFile << "numFunction " << std::to_string(m_tfns.size()) << "\n";
     for(int i = 0; i < m_tfns.size();i++)
     {
       //savefile << m_tfns[i].ID + ",";
-      savefile << "FuncName " + std::to_string(i+1) + " " + m_tfns[i].Name + " " + std::to_string(tfn_widget[i].get_colormap_gpu()) +"\n";
+      saveFile << "FuncName " + std::to_string(i+1) + " " + m_tfns[i].Name + " " + std::to_string(tfn_widget[i].get_colormap_gpu()) +"\n";
    /*   for (int j = 0; j < tfn_widget_multi[i].alpha_control_pts.size(); j++)
       {
         if (j != tfn_widget_multi[i].alpha_control_pts.size()-1)
@@ -950,30 +977,28 @@ void UIView::save_trans_functions()
         }
         
       }*/
-      savefile << "FuncPoints " << std::to_string(i+1) << " ";
+      saveFile << "FuncPoints " << std::to_string(i+1) << " ";
       for (int j = 0; j < tfn_widget[i].alpha_control_pts.size(); j++)
       {
         if (j != tfn_widget[i].alpha_control_pts.size() - 1)
         {
-          savefile << std::to_string(tfn_widget[i].alpha_control_pts[j].x) + "," + std::to_string(tfn_widget[i].alpha_control_pts[j].y) + ";";
+          saveFile << std::to_string(tfn_widget[i].alpha_control_pts[j].x) + "," + std::to_string(tfn_widget[i].alpha_control_pts[j].y) + ";";
         }
         else
         {
-          savefile << std::to_string(tfn_widget[i].alpha_control_pts[j].x) + "," + std::to_string(tfn_widget[i].alpha_control_pts[j].y) ;
+          saveFile << std::to_string(tfn_widget[i].alpha_control_pts[j].x) + "," + std::to_string(tfn_widget[i].alpha_control_pts[j].y) ;
         }
 
       }
-      savefile << "\n";
+      saveFile << "\n";
     }
-    savefile.close();
+    saveFile.close();
   }
 }
 
-void UIView::save_user_session()
+void UIView::save_user_session(std::ofstream& savefile)
 {
-  std::string fileName = m_dir_to_save + helper::get_OS_path_separator() + m_save_file_name + ".usr";
-  std::ofstream savefile(fileName);
-  
+ 
   if (savefile.is_open())
   {
     if (!m_controller_app.get_loaded_file().empty())
@@ -1000,18 +1025,18 @@ void UIView::save_user_session()
     
     if (m_use_transferfunction)
     {
-      save_trans_functions();
-      savefile << "Trnfnc " << m_dir_to_save + helper::get_OS_path_separator() + m_save_file_name + ".fnc" << "\n";
+      savefile << "Trnfncs" << "\n";
+      save_trans_functions(savefile);
     }
 
     savefile.close();
   }
 }
 
-void UIView::load_trans_functions(std::string filePath)
+void UIView::load_trans_functions(std::ifstream& loadFile)
 {
   std::string line;
-  std::ifstream loadFile(filePath);
+ 
   int numFunctions = 0;
 
   if (loadFile.is_open())
@@ -1163,8 +1188,9 @@ void UIView::load_user_session(std::string filePath)
       else if (tag == "ClipZmax") {
         m_clip_max.z = std::stof(vals[1]);
       }
-      else if (tag == "Trnfnc") {
-        load_trans_functions(vals[1]);
+      else if (tag == "Trnfncs") 
+      {  
+        load_trans_functions(loadFile);
       }
     }
     loadFile.close();

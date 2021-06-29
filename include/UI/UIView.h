@@ -9,9 +9,12 @@
 #include "transferfunction/transfer_function_multichannel_widget.h"
 #include "transferfunction/transfer_function_widget.h"
 
+#include <fstream>
+
 class VRVolumeApp;
 class CreateMovieAction;
 #define INPUT_TEXT_SIZE 200
+#define MAX_COLUMS 50
 
 enum SAVE_MODAL {SAVE_NONE, SAVE_SESSION, SAVE_TRFR_FNC};
 enum LOAD_MODAL {LOAD_NONE, LOAD_SESSION, LOAD_TRFR_FNC };
@@ -94,15 +97,16 @@ private:
     std::vector<bool> volumes;
   };
 
-  void open_save_modal_dialog(std::string& id, bool& window_state, std::function<void()> save_function);
+  void open_save_modal_dialog(std::string& id, bool& window_state, 
+    std::function<void(std::ofstream&)> save_function,  std::string& extension);
 
   void add_trans_function();
 
-  void save_trans_functions();
+  void save_trans_functions(std::ofstream& saveFile);
 
-  void save_user_session();
+  void save_user_session(std::ofstream& saveFile);
 
-  void load_trans_functions(std::string filePath);
+  void load_trans_functions(std::ifstream& loadPath);
 
   void load_user_session(std::string filePath);
 
@@ -174,6 +178,10 @@ private:
 
   bool m_ui_background;
 
+  
+  
+  int m_column_selected = 0;
+  
 };
 
 #endif
