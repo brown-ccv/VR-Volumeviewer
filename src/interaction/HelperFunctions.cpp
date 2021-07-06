@@ -32,8 +32,23 @@
 
 #include "../../include/interaction/HelperFunctions.h"
 
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#include <windows.h>
+#define OS_SLASH_LOCAL "\\"
+#include "../../external/msvc/dirent.h"
+#else
+#define OS_SLASH_LOCAL "//"
+#include <dirent.h>
+#endif
+
 namespace helper
 {
+
+  std::string get_OS_path_separator()
+  {
+    return OS_SLASH_LOCAL;
+  }
 
   bool replace(std::string& str, const std::string& from, const std::string& to) {
     size_t start_pos = str.find(from);

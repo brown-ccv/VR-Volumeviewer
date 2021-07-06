@@ -398,6 +398,26 @@ void VRVolumeApp::set_character_state(std::string& eventName, int state)
   
 }
 
+void VRVolumeApp::set_directory_path(std::string& dir_path)
+{
+   m_directiort_path = dir_path;
+}
+
+std::string& VRVolumeApp::get_directory_path()
+{
+  return m_directiort_path;
+}
+
+void VRVolumeApp::set_loaded_file(std::string& dir_path)
+{
+  m_current_file_loaded = dir_path;
+}
+
+std::string& VRVolumeApp::get_loaded_file()
+{
+  return m_current_file_loaded;
+}
+
 void VRVolumeApp::intialize_ui()
 {
   if (m_ui_view)

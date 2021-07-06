@@ -154,6 +154,8 @@ void VRDataLoader::load_txt_file(VRVolumeApp& vrVolumeApp, std::string& filename
         }
       }
     }
+
   }
   inFile.close();
+  vrVolumeApp.set_loaded_file(filename);
 }

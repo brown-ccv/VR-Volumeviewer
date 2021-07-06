@@ -140,6 +140,14 @@ public:
   void init_volume_loading(int index, std::vector<std::string>);
 
   void set_character_state(std::string& key, int state);
+  
+  void set_directory_path(std::string& dir_path);
+
+  std::string& get_directory_path();
+
+  void set_loaded_file(std::string& dir_path);
+
+  std::string& get_loaded_file();
 
   void set_window_size(glm::vec2& windowSize);
   void set_frame_buffer_size(glm::vec2& windowSize);
@@ -256,5 +264,8 @@ protected:
 
    glm::vec2 m_window_size ;
    glm::vec2 m_frame_buffer_size;
+  std::string m_directiort_path;
+
+  std::string m_current_file_loaded;
 };
 #endif

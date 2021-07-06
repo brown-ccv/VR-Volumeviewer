@@ -8,9 +8,7 @@
 #include "loader/LoadNrrdAction.h"
 #endif
 #include "interaction/HelperFunctions.h"
-//#include <glm/gtc/type_ptr.inl>
-//#include <glm/gtc/matrix_transform.hpp>
-//#define GLM_ENABLE_EXPERIMENTAL
+
 #include <glm/gtx/euler_angles.hpp>
 #include "glm.h"
 
@@ -25,6 +23,13 @@
 #include "loader/VRDataLoader.h"
 
 
+<<<<<<< HEAD
+=======
+#include <cppfs/fs.h>
+#include <cppfs/FilePath.h>
+
+
+>>>>>>> master
 
 VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(argc, argv), m_vrVolumeApp(nullptr)
 {
@@ -32,6 +37,10 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
   char** argv_int = this->getLeftoverArgv();
 
   m_vrVolumeApp = new VRVolumeApp();
+  std::string current_Path = std::string(argv_int[0]);
+  cppfs::FilePath p_filename(current_Path);
+  std::string parent_Path = p_filename.directoryPath();
+  m_vrVolumeApp->set_directory_path(parent_Path);
 
   if (argc_int >= 2) {
     for (int i = 1; i < argc_int; i++) {
