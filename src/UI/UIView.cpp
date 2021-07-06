@@ -46,7 +46,7 @@ void UIView::draw_ui_callback()
   {
     flags |= ImGuiWindowFlags_NoBackground;
   }
-
+  ImGui::SetNextWindowSize(ImVec2(544, 798));
   ImGui::Begin("Volumeviewer",NULL, flags);
   ImGui::BeginTabBar("##tabs");
   if (ImGui::BeginTabItem("General"))
@@ -392,6 +392,7 @@ void UIView::draw_ui_callback()
             tfn_widget[0].setMinMax(m_controller_app.get_volume(m_column_selected)[0]->getMin(), m_controller_app.get_volume(0)[0]->getMax());
           }
           m_controller_app.set_multi_transfer(false);
+          tfn_widget[m_table_selection].draw_histogram();
           tfn_widget[m_table_selection].draw_ui();
         }
       }

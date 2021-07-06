@@ -132,7 +132,7 @@ void TransferFunctionWidget::draw_ui()
     canvas_size.y -= 80;
 
     const float point_radius = 20.f;
-
+    
     ImDrawList *draw_list = ImGui::GetWindowDrawList();
     draw_list->PushClipRect(canvas_pos, canvas_pos + canvas_size);
 
@@ -147,7 +147,7 @@ void TransferFunctionWidget::draw_ui()
         vec2f mouse_pos = (vec2f(io.MousePos) - view_offset) / view_scale;
         mouse_pos.x = clamp(mouse_pos.x, 0.f, 1.f);
         mouse_pos.y = clamp(mouse_pos.y, 0.f, 1.f);
-		//bool requires_sorting = false;
+		
     	
         if (io.MouseDown[0]) {
             if (selected_point != (size_t)-1) {
@@ -232,13 +232,7 @@ void TransferFunctionWidget::draw_ui()
         draw_list->AddCircleFilled(pt_pos, point_radius, 0xFFFFFFFF);
     }
 
-  //Code to Draw histogram in the UI
-	/*for (int i = 0; i < current_histogram.size(); i++) {
-	//	vec2f lp = vec2f( ((float) i) / current_histogram.size(), 0.0f);
-	//	vec2f hp = vec2f( ((float) i + 1.0f) / current_histogram.size(), current_histogram[i]);
-	//	draw_list->AddRectFilled(lp * view_scale + view_offset, hp * view_scale + view_offset, 0x77777777);
-	//}
-	*/
+ 
     draw_list->AddPolyline(polyline_pts.data(), polyline_pts.size(), 0xFFFFFFFF, false, 2.f);
     draw_list->PopClipRect();
 
@@ -419,21 +413,17 @@ void TransferFunctionWidget::drawLegend() {
 
 void TransferFunctionWidget::draw_histogram()
 {
-  //update_gpu_image();
   
-
   const ImGuiIO& io = ImGui::GetIO();
 
   ImGui::Text("Histogram");
-  
+
   vec2f canvas_size = ImGui::GetContentRegionAvail();
   // Note: If you're not using OpenGL for rendering your UI, the setup for
   // displaying the colormap texture in the UI will need to be updated.
-  ImGui::Image(reinterpret_cast<void*>(colormap_img), ImVec2(canvas_size.x, 16));
+ // ImGui::Image(reinterpret_cast<void*>(colormap_img), ImVec2(canvas_size.x, 16));
   vec2f canvas_pos = ImGui::GetCursorScreenPos();
-  canvas_size.y -= 80;
-
-  const float point_radius = 20.f;
+  canvas_size.y -= 250;
 
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   draw_list->PushClipRect(canvas_pos, canvas_pos + canvas_size);
@@ -443,12 +433,12 @@ void TransferFunctionWidget::draw_histogram()
 
   draw_list->AddRect(canvas_pos, canvas_pos + canvas_size, ImColor(180, 180, 180, 255));
 
-  //ImGui::InvisibleButton("tfn_canvas", canvas_size);
-  
+  ImGui::InvisibleButton("hstg_canvas", canvas_size);
+
 
   // Draw the alpha control points, and build the points for the polyline
   // which connects them
-  
+
 
   //Code to Draw histogram in the UI
   for (int i = 0; i < current_histogram.size(); i++) {
@@ -460,9 +450,7 @@ void TransferFunctionWidget::draw_histogram()
 
   draw_list->PopClipRect();
 
-  
-
-  
+ 
 
   
 }

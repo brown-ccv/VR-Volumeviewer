@@ -377,6 +377,11 @@ std::string& VRVolumeApp::get_loaded_file()
   return m_current_file_loaded;
 }
 
+std::vector< Volume* >& VRVolumeApp::get_volume(int volume)
+{
+  return m_volumes[volume];
+}
+
 void VRVolumeApp::intialize_ui()
 {
   if (m_ui_view)
@@ -649,6 +654,7 @@ void VRVolumeApp::render_mesh(const MinVR::VRGraphicsState& renderState)
 void VRVolumeApp::render_volume(const MinVR::VRGraphicsState& renderState)
 {
   //render volumes
+ // renderState->getProjectionMatrix();
   for (auto ren : m_renders) {
     ren->set_multiplier(m_ui_view->get_multiplier());
     ren->set_threshold(m_ui_view->get_threshold());
@@ -701,6 +707,7 @@ void VRVolumeApp::normal_render_volume(int tfn, int vol)
     }
   }
 }
+
 
 void VRVolumeApp::animated_render(int tfn, int vol)
 {
