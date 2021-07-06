@@ -489,6 +489,7 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState& rend
   // load models, or do other operations that you only want to do once per
   // frame when in stereo mode.
 
+
   std::chrono::steady_clock::time_point nowTime = std::chrono::steady_clock::now();
   std::chrono::duration<double> time_span = std::chrono::duration<double>(nowTime - m_lastTime);
   float fps = 1000.0f / std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();

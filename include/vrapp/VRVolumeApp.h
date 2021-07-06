@@ -146,6 +146,10 @@ public:
 
   std::string& get_loaded_file();
 
+  std::vector< Volume* >& get_volume(int volume);
+
+  
+
 protected:
 
   glm::vec4 m_noColor;// (0.0f, 0.0f, 0.0f, 0.0f);
@@ -166,6 +170,8 @@ protected:
 
   void animated_render(int, int);
   void normal_render_volume(int, int);
+
+  
 
   std::vector < std::vector< Volume* >> m_volumes;
   std::vector<std::string> m_description;
