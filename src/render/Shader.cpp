@@ -24,7 +24,26 @@
 ///\author Benjamin Knorlein
 ///\date 11/22/2017
 
-#include <GL/glew.h>
+#ifdef _WIN32
+#include "GL/glew.h"
+#include "GL/wglew.h"
+#elif (!defined(__APPLE__))
+#include "GL/glxew.h"
+#endif
+
+// OpenGL Headers
+#if defined(WIN32)
+#define NOMINMAX
+#include <windows.h>
+#include <GL/gl.h>
+#elif defined(__APPLE__)
+#define GL_GLEXT_PROTOTYPES
+#include <OpenGL/gl3.h>
+#include <OpenGL/glext.h>
+#else
+#define GL_GLEXT_PROTOTYPES
+#include <GL/gl.h>
+#endif
 
 #include "render/Shader.h"
 #include <iostream>
@@ -95,17 +114,19 @@ unsigned Shader::getProgram()
 
 unsigned int Shader::compileShader()
 {
+  //std::cout << "compileShader shader 1" << std::endl;
   if (!m_shader || !m_vertexShader || !m_fragmentShader) {
     std::cerr << "could not create Shader" << std::endl;
     return 0;
   }
 
+ //std::cout << "compileShader shader 1.5" << std::endl;
   GLuint programID = glCreateProgram();
-
+ //std::cout << "compileShader shader 2" << std::endl;
   GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(vertexShader, 1, &m_vertexShader, NULL);
   glCompileShader(vertexShader);
-
+ //std::cout << "compileShader shader 3" << std::endl;
   GLint shaderCompiled = GL_FALSE;
   glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &shaderCompiled);
   if (shaderCompiled != GL_TRUE)
@@ -125,7 +146,7 @@ unsigned int Shader::compileShader()
     glDeleteShader(vertexShader);
     return 0;
   }
-
+// std::cout << "compileShader shader 4" << std::endl;
   glAttachShader(programID, vertexShader);
   glDeleteShader(vertexShader); // the program hangs onto this once it's attached
 
@@ -133,6 +154,7 @@ unsigned int Shader::compileShader()
   glShaderSource(fragmentShader, 1, &m_fragmentShader, NULL);
   glCompileShader(fragmentShader);
 
+ //std::cout << "compileShader shader 5" << std::endl;
   shaderCompiled = GL_FALSE;
   glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &shaderCompiled);
   if (shaderCompiled != GL_TRUE)
@@ -152,7 +174,7 @@ unsigned int Shader::compileShader()
     glDeleteShader(fragmentShader);
     return 0;
   }
-
+ //std::cout << "compileShader shader 6" << std::endl;
   glAttachShader(programID, fragmentShader);
   glDeleteShader(fragmentShader); // the program hangs onto this once it's attached
 
@@ -169,6 +191,6 @@ unsigned int Shader::compileShader()
 
   glUseProgram(programID);
   glUseProgram(0);
-
+// std::cout << "compileShader shader 7" << std::endl;
   return programID;
 }

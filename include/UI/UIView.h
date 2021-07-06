@@ -23,8 +23,10 @@ public:
   void draw_ui_callback();
   void init_ui(bool is2D, bool lookingGlass);
   void update_ui(int numVolumes);
-  void render_2D();
-  void render_3D(glm::mat4& space_matrix);
+  void render_2D( int window_width,int window_height
+                  ,int framebuffer_width,int framebuffer_heigh);
+  void render_3D(glm::mat4& space_matrix, int window_width,int window_height
+                  ,int framebuffer_width,int framebuffer_height);
   void update_3D_ui_frame();
 
   void set_cursor_pos(glm::vec2&);

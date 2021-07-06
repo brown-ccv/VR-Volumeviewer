@@ -25,13 +25,12 @@
 ///\date 05/24/2019
 /// Based on the book : OpenGL Development Cookbook  by Muhammad Mobeen Movania
 
-#pragma once
 
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "../../include/render/VolumeRaycastRenderer.h"
+#include "render/VolumeRaycastRenderer.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 ////for floating point inaccuracy
@@ -52,11 +51,15 @@ VolumeRaycastRenderer::~VolumeRaycastRenderer()
 void VolumeRaycastRenderer::initGL()
 {
   ////Load and init the texture slicing shader
+  //std::cout << "initGL 1" <<std::endl; 
   shader.initGL();
+  //std::cout << "initGL 2" <<std::endl;
 
   glGenVertexArrays(1, &cubeVAOID);
   glGenBuffers(1, &cubeVBOID);
   glGenBuffers(1, &cubeIndicesID);
+
+ // std::cout << "initGL 3" <<std::endl;
 
   //unit cube vertices 
   glm::vec3 vertices[8] = { glm::vec3(-0.5f, -0.5f, -0.5f),//0
@@ -68,6 +71,7 @@ void VolumeRaycastRenderer::initGL()
     glm::vec3(0.5f, 0.5f, 0.5f), //6
     glm::vec3(-0.5f, 0.5f, 0.5f) }; //7
 
+  //std::cout << "initGL 4" <<std::endl;
   //unit cube indices
   GLushort cubeIndices[36] = { 0, 5, 4,
     5, 0, 1,
@@ -86,6 +90,7 @@ void VolumeRaycastRenderer::initGL()
   //pass cube vertices to buffer object memory
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &(vertices[0].x), GL_STATIC_DRAW);
 
+ //std::cout << "initGL 5" <<std::endl;
   //enable vertex attributre array for position
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -95,6 +100,7 @@ void VolumeRaycastRenderer::initGL()
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cubeIndices), &cubeIndices[0], GL_STATIC_DRAW);
 
   glBindVertexArray(0);
+  //std::cout << "initGL 6" << std::endl;
 }
 
 void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4& MV, glm::mat4& P, float z_scale, GLint colormap, int renderChannel)

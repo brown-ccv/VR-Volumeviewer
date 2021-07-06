@@ -25,14 +25,12 @@
 ///\author Benjamin Knorlein
 ///\date 11/30/2017
 
-#pragma once
-
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "render/VolumeRaycastShader.h"
-#include <GL/glew.h>
+
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -290,7 +288,9 @@ void VolumeRaycastShader::render(glm::mat4& MVP, glm::mat4& clipPlane, glm::vec3
 
 void VolumeRaycastShader::initGL()
 {
+ // std::cout << "initGL shader 1" << std::endl;
   bindProgram();
+ // std::cout << "initGL shader 2" << std::endl;
   //add attributes and uniforms
   m_volume_uniform = glGetUniformLocation(m_programID, "volume");
   m_MVP_uniform = glGetUniformLocation(m_programID, "MVP");
@@ -317,6 +317,7 @@ void VolumeRaycastShader::initGL()
   m_clip_min_uniform = glGetUniformLocation(m_programID, "clip_min");
   m_clip_max_uniform = glGetUniformLocation(m_programID, "clip_max");
 
+//std::cout << "initGL shader 3" << std::endl;
   ////pass constant uniforms at initialization
   glUniform1i(m_volume_uniform, 0);
   glUniform1i(m_lut_uniform, 1);
@@ -324,4 +325,5 @@ void VolumeRaycastShader::initGL()
   glUniform1i(m_blendVolume_uniform, 3);
 
   unbindProgram();
+ // std::cout << "initGL shader 4" << std::endl;
 }

@@ -24,8 +24,6 @@
 ///\author Benjamin Knorlein
 ///\date 11/28/2017
 
-#pragma once
-
 #include "../../include/loader/LoadDataAction.h"
 #include "../../include/interaction/HelperFunctions.h"
 
@@ -210,18 +208,27 @@ Volume* LoadDataAction::run(bool convert)
   float minval[2];
   std::vector <cv::Mat> images;
   time_t posix_time;
+   std::cerr << "INIT Load Image 0"  << std::endl;
+   
   if (helper::ends_with_string(m_folder, "desc"))
   {
+     std::cerr << "INIT Load Image 1"  << std::endl;
+   
     FILE* pFile;
     pFile = fopen(m_folder.c_str(), "r");
+     std::cerr << "INIT Load Image 1.2"  << " pFile "<< m_folder.c_str()<<std::endl;
     fscanf(pFile, "%u,%u,%u,%f,%f\n'", &w, &h, &d, &minval[0], &minval[1]);
+     std::cerr << "INIT Load Image 1.25"  << std::endl;
     fscanf(pFile, "%lld\n'", &posix_time);
+     std::cerr << "INIT Load Image 1.3"  << std::endl;
     channels = 1;
     depth = CV_32F;
     helper::replace(m_folder, ".desc", ".raw");
+     std::cerr << "INIT Load Image 1.4"  << std::endl;
   }
   else {
-
+    std::cerr << "INIT Load Image 2"  << std::endl;
+        
     std::vector <std::string> filenames = readTiffs(m_folder);
     std::vector <cv::Mat> image_r;
     std::vector <cv::Mat> image_g;

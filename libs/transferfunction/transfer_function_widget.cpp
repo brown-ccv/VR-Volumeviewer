@@ -331,7 +331,7 @@ void TransferFunctionWidget::get_colormapf(std::vector<float> &color, std::vecto
 }
 
 void TransferFunctionWidget::drawLegend() {
-	GLint viewport[4];
+	/*GLint viewport[4];
 	GLfloat projection[16];
 	GLfloat modelview[16];
 
@@ -413,7 +413,7 @@ void TransferFunctionWidget::drawLegend() {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(modelview);
 
-
+*/
 
 }
 

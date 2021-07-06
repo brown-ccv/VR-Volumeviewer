@@ -141,6 +141,9 @@ public:
 
   void set_character_state(std::string& key, int state);
 
+  void set_window_size(glm::vec2& windowSize);
+  void set_frame_buffer_size(glm::vec2& windowSize);
+
 protected:
 
   glm::vec4 m_noColor;// (0.0f, 0.0f, 0.0f, 0.0f);
@@ -250,5 +253,8 @@ protected:
 
   CreateMovieAction* m_movieAction;
   std::string m_moviename;
+
+   glm::vec2 m_window_size ;
+   glm::vec2 m_frame_buffer_size;
 };
 #endif

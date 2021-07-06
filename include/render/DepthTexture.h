@@ -24,8 +24,6 @@
 ///\author Benjamin Knorlein
 ///\date 6/14/2019
 
-#pragma once
-
 #ifndef DEPTHTEXTURE_H
 #define DEPTHTEXTURE_H
 

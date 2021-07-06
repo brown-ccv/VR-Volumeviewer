@@ -507,14 +507,14 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState& rend
       std::cout << "Error initializing GLEW." << std::endl;
     }
 #endif        
-
+std::cout << "init vizapp " << std::endl;
     if (m_vrVolumeApp)
     {
       m_vrVolumeApp->initialize();
       m_vrVolumeApp->intialize_ui();
       m_vrVolumeApp->load_shaders();
     }
-
+    std::cout << "init vizapp 2" << std::endl;
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glLightfv(GL_LIGHT0, GL_AMBIENT, glm::value_ptr(m_vrVolumeApp->get_ambient()));
@@ -527,8 +527,12 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState& rend
     glClearDepth(1.0f);
     glDepthFunc(GL_LEQUAL);
     glClearColor(0.0, 0.0, 0.0, 1);
+     std::cout << "init vizapp end" << std::endl;
   }
 
+
+
+  
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glLightfv(GL_LIGHT0, GL_POSITION, m_light_pos);
@@ -539,7 +543,17 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState& rend
     {
       m_vrVolumeApp->load_mesh_model();
     }
+    
     m_vrVolumeApp->initialize_textures();
+  float m_window_width  = renderState.index().getValue("WindowWidth");
+  float  m_window_height =  renderState.index().getValue("WindowHeight");
+  float  m_window_framebuffer_width = renderState.index().getValue("FramebufferWidth");
+  float  m_window_framebuffer_height = renderState.index().getValue("FramebufferHeight");;
+   glm::vec2 window_size(m_window_width,m_window_height);
+  glm::vec2 frame_buffer_size(m_window_framebuffer_width,m_window_framebuffer_height);
+
+m_vrVolumeApp->set_frame_buffer_size(frame_buffer_size);
+m_vrVolumeApp->set_window_size(window_size);
     m_vrVolumeApp->update_3D_ui();
     m_vrVolumeApp->update_trackBall_state();
     m_vrVolumeApp->update_animation();
@@ -547,7 +561,7 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState& rend
 
   }
 
-
+  // std::cout << "init vizapp loop" << std::endl;
 }
 
 

@@ -16,7 +16,7 @@ m_z_scale(0.16f), m_scale{ 1.0f }, m_slices(256), m_dynamic_slices(false), m_ren
 m_animated(false), m_ui_frame_controller(0.0f), m_menu_handler(nullptr), m_initialized(false), m_use_transferfunction(false),
 m_clip_max(1.0), m_clip_min(0.0), m_clip_ypr(0.0), m_clip_pos(0.0), m_useCustomClipPlane(false), m_rendermethod(1), m_renderchannel(0),
 m_table_selection(-1), m_modal_trnfct_open(false), m_save_trnfct_open(false), m_trnfnct_counter(1), m_file_dialog_open(false),
-m_file_load_trnsf(false)
+m_file_load_trnsf(false),m_show_menu(true)
 
 {
   
@@ -537,11 +537,16 @@ void UIView::init_ui(bool is2D, bool lookingGlass)
     if (lookingGlass) {
       fontsize = 3.0;
     }
+    std::cout << "is2d: " << (is2D? "true":"false") << std::endl;
     m_menu_handler = new VRMenuHandler(is2D);
+    if(!m_menu_handler)
+    { std::cout << "m_menu_handler: " << "NULL" << std::endl;
+   
+    }
     VRMenu* menu = m_menu_handler->addNewMenu(std::bind(&UIView::draw_ui_callback, this), 1024, 1024, 1, 1, fontsize);
     menu->setMenuPose(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 2, -1, 1));
     m_initialized = true;
-
+    std::cout << "end init ui" << std::endl;
   }
 
 
@@ -571,11 +576,13 @@ void UIView::update_ui(int numVolumes)
   m_table_selection = 0;
 }
 
-void UIView::render_2D()
+void UIView::render_2D( int window_width,int window_height
+                  ,int framebuffer_width,int framebuffer_height)
 {
+     
   if (m_show_menu)
   {
-    m_menu_handler->drawMenu();
+    m_menu_handler->drawMenu(window_width,window_height,framebuffer_width,framebuffer_height);
     if (m_use_transferfunction) {
       tfn_widget[m_selectedTrnFnc].drawLegend();
     }
@@ -583,7 +590,8 @@ void UIView::render_2D()
 
 }
 
-void UIView::render_3D(glm::mat4& space_matrix)
+void UIView::render_3D(glm::mat4& space_matrix, int window_width,int window_height
+                  ,int framebuffer_width,int framebuffer_height)
 {
   //render menu	
 
@@ -591,7 +599,7 @@ void UIView::render_3D(glm::mat4& space_matrix)
   {
     glMatrixMode(GL_MODELVIEW);
     glLoadMatrixf(glm::value_ptr(space_matrix));
-    m_menu_handler->drawMenu();
+    m_menu_handler->drawMenu(window_width,window_height,framebuffer_width,framebuffer_height);
   }
 
 }
