@@ -6,8 +6,9 @@
 #include "imfilebrowser.h"
 #endif
 #include "ImGuiFileBrowser.h"
-#include "transferfunction/transfer_function_multichannel_widget.h"
-#include "transferfunction/transfer_function_widget.h"
+#include "UIHelpers/transfer_function_multichannel_widget.h"
+#include "UIHelpers/transfer_function_widget.h"
+#include "UIHelpers/histogram.h"
 
 #include <fstream>
 
@@ -88,6 +89,8 @@ public:
 
   void remove_character();
 
+  void compute_new_histogram_view();
+
 private:
 
   struct MyTransFerFunctions
@@ -109,6 +112,7 @@ private:
   void load_trans_functions(std::ifstream& loadPath);
 
   void load_user_session(std::string filePath);
+
 
   VRVolumeApp& m_controller_app;
   VRMenuHandler* m_menu_handler;
@@ -156,7 +160,7 @@ private:
 
   bool m_initialized;
 
-  bool m_trn_fct_name_open;
+  bool m_trn_fct_opitions_window;
 
   bool m_save_trnfct_open;  
 
@@ -180,7 +184,15 @@ private:
 
   
   
-  int m_column_selected = 0;
+  bool m_column_selected[MAX_COLUMS];
+
+  unsigned int m_column_selection_state;
+  bool m_compute_new_histogram;
+
+  Histogram m_histogram;
+
+  vec2f m_histogram_point_1;
+  vec2f m_histogram_point_2;
   
 };
 

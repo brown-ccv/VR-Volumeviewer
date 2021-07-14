@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "imgui/imgui.h"
+#include "Vec2.h"
 
 struct Colormap {
     std::string name;
@@ -31,21 +32,7 @@ class TransferFunctionWidget {
 
 public:
 
-  struct vec2f {
-    float x, y;
-
-    vec2f(float c = 0.f);
-    vec2f(float x, float y);
-    vec2f(const ImVec2& v);
-
-    float length() const;
-
-    vec2f operator+(const vec2f& b) const;
-    vec2f operator-(const vec2f& b) const;
-    vec2f operator/(const vec2f& b) const;
-    vec2f operator*(const vec2f& b) const;
-    operator ImVec2() const;
-  };
+  
   size_t selected_colormap = 0;
   std::vector<vec2f> alpha_control_pts = { vec2f(0.f), vec2f(1.f) };
 
@@ -68,6 +55,8 @@ public:
     std::vector<float> get_colormapf();
 
 	void setHistogram(const std::vector<float> &hist);
+
+  std::vector<float>& getHistogram();
 
 	void setMinMax(const float min, const float max);
 

@@ -186,7 +186,7 @@ public:
     return m_texture_initialized;
   }
 
-  const std::vector<float>& getTransferfunction(int channel)
+  std::vector<float>& getHistogram(int channel)
   {
     return m_histogram[channel];
   }

@@ -9,17 +9,17 @@
 
 #include "loader/VRDataLoader.h"
 
-
+#include <limits>
 
 UIView::UIView(VRVolumeApp& controllerApp) :m_controller_app(controllerApp), m_multiplier(1.0f), m_threshold(0.0f),
 m_z_scale(0.16f), m_scale{ 1.0f }, m_slices(256), m_dynamic_slices(false), m_renderVolume(true), m_selectedTrnFnc(0),
 m_animated(false), m_ui_frame_controller(0.0f), m_menu_handler(nullptr), m_initialized(false), m_use_transferfunction(false),
 m_clip_max(1.0), m_clip_min(0.0), m_clip_ypr(0.0), m_clip_pos(0.0), m_useCustomClipPlane(false), m_rendermethod(1), m_renderchannel(0),
-m_table_selection(-1), m_trn_fct_name_open(false), m_save_trnfct_open(false), m_trnfnct_counter(1), m_file_dialog_open(false),
+m_table_selection(-1), m_trn_fct_opitions_window(false), m_save_trnfct_open(false), m_trnfnct_counter(1), m_file_dialog_open(false),
 m_file_load_trnsf(false), m_file_dialog_save_dir(false), m_save_session_dialog_open(false), m_current_save_modal(SAVE_NONE),
 m_current_load_modal(LOAD_NONE),m_file_extension_filter(".txt"), m_non_trns_functions_selected_modal(false),
-m_ui_background(false)
-
+m_ui_background(false), m_column_selection_state(0), m_compute_new_histogram(true), m_histogram_point_1(0.0),
+m_histogram_point_2(1.1)
 {
   
 }
@@ -99,7 +99,7 @@ void UIView::draw_ui_callback()
 
     if (numVolumes > 0)
     {
-      if (ImGui::SmallButton("New Function")) {
+      if (ImGui::SmallButton("Add Function")) {
         tfn_widget.push_back(TransferFunctionWidget());
         tfn_widget_multi.push_back(TransferFunctionMultiChannelWidget());
         int index = m_selected_volume_TrFn.size();
@@ -208,7 +208,8 @@ void UIView::draw_ui_callback()
         const char* column_name = ImGui::TableGetColumnName(column); 
         ImGui::PushID(column);
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-        ImGui::RadioButton("", &m_column_selected, column-1); ImGui::SameLine();
+        //ImGui::RadioButton("", &m_column_selected, column-1); ImGui::SameLine();
+        ImGui::Checkbox("##checkall", &m_column_selected[column-1]); ImGui::SameLine();
         ImGui::PopStyleVar();
         ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
         ImGui::TableHeader(column_name);
@@ -216,7 +217,30 @@ void UIView::draw_ui_callback()
        
       }
       
+       compute_new_histogram_view();
       
+
+      /* check state of check boxes */
+      int colum_select_check_sum = 0;
+      for (int column_select = 1; column_select <= numVolumes ; column_select++)
+      {
+        
+        if (m_column_selected[column_select-1])
+        {
+          colum_select_check_sum |= column_select;
+        }
+      }
+      
+      if (colum_select_check_sum != m_column_selection_state)
+      {
+        m_compute_new_histogram = true;
+        m_column_selection_state = colum_select_check_sum;
+      }
+      else
+      {
+        m_compute_new_histogram = false;
+      }
+
       for (int row = 0; row < m_tfns.size(); row++)
       {
         ImGui::TableNextRow();
@@ -236,7 +260,7 @@ void UIView::draw_ui_callback()
               if (ImGui::IsMouseDoubleClicked(0))
               {
                 m_copy_trnfnct_name = m_tfns[row].Name;
-                m_trn_fct_name_open = true;
+                m_trn_fct_opitions_window = true;
               }
               
               
@@ -251,10 +275,7 @@ void UIView::draw_ui_callback()
             bool b = m_tfns[row].volumes[col - 1];
             ImGui::Checkbox(buf, &b);
             m_tfns[row].volumes[col - 1] = b;
-            if (b)
-            {
-              std::cout << "ddd" << std::endl;
-            }
+          
           }
 
         }
@@ -303,12 +324,13 @@ void UIView::draw_ui_callback()
      
       }
 
-      if (m_trn_fct_name_open)
+      if (m_trn_fct_opitions_window)
       {
-        ImGui::OpenPopup("Change Function Name");
+        ImGui::OpenPopup("Transfer Function Options");
         ImGui::SetNextWindowSize(ImVec2(350, 400), ImGuiCond_FirstUseEver);
-        if (ImGui::BeginPopupModal("Change Function Name", &m_trn_fct_name_open))
+        if (ImGui::BeginPopupModal("Transfer Function Options", &m_trn_fct_opitions_window))
         {
+          ImGui::Text("Change Name");
           char* writable = new char[m_copy_trnfnct_name.size() + 1];
           std::copy(m_copy_trnfnct_name.begin(), m_copy_trnfnct_name.end(), writable);
           writable[m_copy_trnfnct_name.size()] = '\0'; // don't forget the terminating 0
@@ -317,16 +339,41 @@ void UIView::draw_ui_callback()
           ImGui::IsItemActive();
           //ImGui::PopItemWidth();
 
-          if (ImGui::Button("Save"))
+          if (ImGui::Button("Adjust to Histogram"))
+          {
+            tfn_widget[m_table_selection].alpha_control_pts.clear();
+            tfn_widget[m_table_selection].alpha_control_pts.push_back(vec2f(0.0, 0.0));
+            tfn_widget[m_table_selection].alpha_control_pts.push_back(m_histogram_point_1);
+            tfn_widget[m_table_selection].alpha_control_pts.push_back(m_histogram_point_2);
+            tfn_widget[m_table_selection].alpha_control_pts.push_back(vec2f(1.0, 1.0));
+            ImGui::OpenPopup("Confirmation");
+            ImGui::SetNextWindowSize(ImVec2(350, 400), ImGuiCond_FirstUseEver);
+          }
+            
+          bool unused_open = true;
+            if (ImGui::BeginPopupModal("Confirmation", &unused_open))
+            {
+              ImGui::Text("Change Applied");
+              if (ImGui::Button("Close"))
+              {
+                ImGui::CloseCurrentPopup();
+              }
+              ImGui::EndPopup();
+            }
+           
+          
+
+          if (ImGui::Button("Ok"))
           {
             m_tfns[m_table_selection].Name = m_copy_trnfnct_name;
-            m_trn_fct_name_open = false;
+            m_trn_fct_opitions_window = false;
             m_current_save_modal = SAVE_MODAL::SAVE_NONE;
             ImGui::CloseCurrentPopup();
           }
+          ImGui::SameLine();
           if (ImGui::Button("Cancel"))
           {
-            m_trn_fct_name_open = false;
+            m_trn_fct_opitions_window = false;
             m_current_save_modal = SAVE_MODAL::SAVE_NONE;
             ImGui::CloseCurrentPopup();
           }
@@ -387,12 +434,45 @@ void UIView::draw_ui_callback()
 
           }
           else if (numVolumes > 0) {
+            if (m_compute_new_histogram) 
+            {
+             // std::vector<float> histogram = tfn_widget[m_table_selection].getHistogram();
+             // float global_min = std::numeric_limits<float>::max();
+             // float global_max = 0.f;
+             // for (int i = 0; i < numVolumes; i++)
+             // {
+             //   if (m_controller_app.get_volume(i)[0]->getMin() < global_min)
+             //   {
+             //     global_min = m_controller_app.get_volume(i)[0]->getMin();
+             //   }
+             //   if (m_controller_app.get_volume(i)[0]->getMax() > global_max)
+             //   {
+             //     global_max = m_controller_app.get_volume(i)[0]->getMax();
+             //   }
+
+             //   if (m_column_selected[i])
+             //   {
+             //     std::vector<float> current_histogram = m_controller_app.get_volume(i)[0]->getHistogram(0);
+             //     for (int j = 0; j < current_histogram.size(); j++)
+             //     {
+             //       histogram[j] += current_histogram[j];
+             //     }
+             //   }
+             // }
+
+             ////tfn_widget[m_table_selection].setHistogram(m_controller_app.get_volume(m_column_selected)[0]->getHistogram(0));
+             ////tfn_widget[m_table_selection].setMinMax(m_controller_app.get_volume(m_column_selected)[0]->getMin(), m_controller_app.get_volume(0)[0]->getMax());
+             //m_compute_new_histogram = false;
+             
+            }
             
-            tfn_widget[0].setHistogram(m_controller_app.get_volume(m_column_selected)[0]->getTransferfunction(0));
-            tfn_widget[0].setMinMax(m_controller_app.get_volume(m_column_selected)[0]->getMin(), m_controller_app.get_volume(0)[0]->getMax());
+           // tfn_widget[m_table_selection].setHistogram(m_controller_app.get_volume(m_column_selected)[0]->getHistogram(0));
+            //tfn_widget[m_table_selection].setMinMax(m_controller_app.get_volume(m_column_selected)[0]->getMin(), m_controller_app.get_volume(0)[0]->getMax());
+           
           }
           m_controller_app.set_multi_transfer(false);
-          tfn_widget[m_table_selection].draw_histogram();
+          //tfn_widget[m_table_selection].draw_histogram();
+          m_histogram.draw_histogram();
           tfn_widget[m_table_selection].draw_ui();
         }
       }
@@ -498,33 +578,7 @@ void UIView::draw_ui_callback()
   }
 
   
-  
-  //fileDialog.Display();
 
-//  if (fileDialog.HasSelected())
-//  {
-//    if (helper::ends_with_string(fileDialog.GetSelected().string(), ".txt"))
-//    {
-//      VRDataLoader::get_instance()->load_txt_file(m_controller_app, fileDialog.GetSelected().string());
-//      // m_controller_app.load_txt_file(fileDialog.GetSelected().string());
-//    }
-//#ifdef WITH_TEEM
-//    else if (helper::ends_with_string(fileDialog.GetSelected().string(), ".nrrd")) {
-//      std::vector<std::string> vals;
-//      /*	vals.push_back(fileDialog.GetSelected().string());
-//        promises.push_back(new std::promise<Volume*>);
-//        futures.push_back(promises.back()->get_future());
-//        threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));*/
-//    }
-//#endif
-//    fileDialog.ClearSelected();
-//  }
-
-  //if (m_save_trnfct_open)
-  //{
-  //  //ImGui::OpenPopup("Save File");
-  //  m_save_trnfct_open = false;
-  //}
 
   if (m_file_dialog_save_dir)
   {
@@ -630,6 +684,12 @@ void UIView::init_ui(bool is2D, bool lookingGlass)
     VRMenu* menu = m_menu_handler->addNewMenu(std::bind(&UIView::draw_ui_callback, this), 1024, 1024, 1, 1, fontsize);
     menu->setMenuPose(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 2, -1, 1));
     m_dir_to_save = m_controller_app.get_directory_path().c_str();
+
+    for (int i  = 0; i < MAX_COLUMS;++i)
+    {
+      m_column_selected[i] = false;
+    }
+
     m_initialized = true;
 
   }
@@ -660,6 +720,7 @@ void UIView::update_ui(int numVolumes)
   }
   m_tfns.push_back(trfntc);
   m_table_selection = 0;
+  
 }
 
 void UIView::render_2D()
@@ -879,7 +940,7 @@ glm::vec3 UIView::get_clip_max()
 
 void UIView::set_chracter(char c)
 {
-  if (m_trn_fct_name_open)
+  if (m_trn_fct_opitions_window)
   {
     m_copy_trnfnct_name += c;
   }
@@ -891,7 +952,7 @@ void UIView::set_chracter(char c)
 
 void UIView::remove_character()
 {
-  if (m_trn_fct_name_open )
+  if (m_trn_fct_opitions_window )
   {
     if (!m_copy_trnfnct_name.empty())
     {
@@ -1095,8 +1156,8 @@ void UIView::load_trans_functions(std::ifstream& loadFile)
             int comaPos = point.find(",");
             float pointX = std::stof(point.substr(0, comaPos));
             float pointY = std::stof(point.substr(comaPos+1));
-            tfn_widget[index].alpha_control_pts.push_back(TransferFunctionWidget::vec2f(pointX, pointY));
-            std::cout << point << std::endl;
+            tfn_widget[index].alpha_control_pts.push_back(vec2f(pointX, pointY));
+           
 
             last = next + 1;
             poinCounter++;
@@ -1105,7 +1166,7 @@ void UIView::load_trans_functions(std::ifstream& loadFile)
           int comaPos = point.find(",");
           float pointX = std::stof(point.substr(0, comaPos));
           float pointY = std::stof(point.substr(comaPos + 1));
-          tfn_widget[index].alpha_control_pts.push_back(TransferFunctionWidget::vec2f(pointX, pointY));
+          tfn_widget[index].alpha_control_pts.push_back(vec2f(pointX, pointY));
           std::cout << points.substr(last) << std::endl;
           
         }
@@ -1197,5 +1258,92 @@ void UIView::load_user_session(std::string filePath)
     loadFile.close();
 
   }
+}
+
+void UIView::compute_new_histogram_view()
+{
+  if (!m_compute_new_histogram)
+  {
+    return;
+  }
+
+  std::vector<float> histogram(256, 0.f);
+  float global_min = std::numeric_limits<float>::max();
+  float global_max = 0.f;
+  for (int i = 0; i < m_controller_app.get_num_volumes(); i++)
+  {
+   
+
+    if (m_column_selected[i])
+    {
+      if (m_controller_app.get_volume(i)[0]->getMin() < global_min)
+      {
+        global_min = m_controller_app.get_volume(i)[0]->getMin();
+      }
+      if (m_controller_app.get_volume(i)[0]->getMax() > global_max)
+      {
+        global_max = m_controller_app.get_volume(i)[0]->getMax();
+      }
+
+      m_histogram.setMinMax(global_min, global_max);
+      std::vector<float> current_histogram = m_controller_app.get_volume(i)[0]->getHistogram(0);
+      for (int j = 0; j < current_histogram.size(); j++)
+      {
+        histogram[j] += current_histogram[j];
+      }
+      
+    }
+    
+
+   
+  }
+
+
+  std::vector<float> vect2;
+
+  for (int j = 0; j < histogram.size(); j++)
+  {
+    if (histogram[j] > 0.0005)
+    {
+      vect2.push_back(histogram[j]);
+    }
+  }
+ 
+   const std::size_t pos1 = 0.05 * std::distance(vect2.begin(), vect2.end());
+   const std::size_t pos2 = 0.95 * std::distance(vect2.begin(), vect2.end());
+   if (vect2.size() > pos1 && vect2.size() > pos2)
+   {
+     std::nth_element(vect2.begin(), vect2.begin() + pos1, vect2.end());
+
+     
+     std::vector<float>::iterator it1 = std::find(histogram.begin(), histogram.end(), vect2[pos1]);
+     float index1 = std::distance(histogram.begin(), it1)/256.f;
+     
+
+   
+     
+     m_histogram_point_1.x = index1;
+     m_histogram_point_1.y = 0.0f;
+     std::cout << "0.05 : " << vect2[pos1] << std::endl;
+
+     std::nth_element(vect2.begin(), vect2.begin() + pos2, vect2.end());
+
+     std::vector<float>::iterator it2 = std::find(histogram.begin(), histogram.end(), vect2[pos2]);
+     float index2 = std::distance(histogram.begin(), it2)/256.f;
+     
+
+
+     m_histogram_point_2.x = index2;
+     m_histogram_point_2.y = 1.0f;
+     std::cout << "0.95 : " << vect2[pos2] << std::endl;
+
+
+   }
+   
+   
+
+  m_histogram.setHistogram(histogram);
+  
+  m_compute_new_histogram = false;
 }
 

@@ -742,7 +742,7 @@ void VRVolumeApp::animated_render(int tfn, int vol)
           }
         }
 
-        std::cout << "render" << std::endl;
+        
         m_renders[renderMethod]->render(m_volumes[vol][active_volume], m_volumes[vol][active_volume]->get_volume_mv(), m_projection_mtrx, m_volumes[vol][active_volume]->get_volume_scale().x / m_volumes[vol][active_volume]->get_volume_scale().z,
           lut, m_ui_view->get_render_channel());
       }
@@ -849,9 +849,12 @@ void VRVolumeApp::add_lodaded_textures()
 
 
     }
+    
+
     m_threads.clear();
     m_promises.clear();
     m_futures.clear();
+  //  m_ui_view->compute_new_histogram();
   }
 }
 

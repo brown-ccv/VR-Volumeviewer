@@ -7,6 +7,7 @@
 #include "embedded_colormaps.h"
 #include "../../include/render/FontHandler.h"
 
+
 #ifndef TFN_WIDGET_NO_STB_IMAGE_IMPL
 #define STB_IMAGE_IMPLEMENTATION
 #endif
@@ -30,45 +31,7 @@ Colormap::Colormap(const std::string &name, const std::vector<uint8_t> &img)
 {
 }
 
-TransferFunctionWidget::vec2f::vec2f(float c) : x(c), y(c) {}
 
-TransferFunctionWidget::vec2f::vec2f(float x, float y) : x(x), y(y) {}
-
-TransferFunctionWidget::vec2f::vec2f(const ImVec2 &v) : x(v.x), y(v.y) {}
-
-float TransferFunctionWidget::vec2f::length() const
-{
-    return std::sqrt(x * x + y * y);
-}
-
-TransferFunctionWidget::vec2f TransferFunctionWidget::vec2f::operator+(
-    const TransferFunctionWidget::vec2f &b) const
-{
-    return vec2f(x + b.x, y + b.y);
-}
-
-TransferFunctionWidget::vec2f TransferFunctionWidget::vec2f::operator-(
-    const TransferFunctionWidget::vec2f &b) const
-{
-    return vec2f(x - b.x, y - b.y);
-}
-
-TransferFunctionWidget::vec2f TransferFunctionWidget::vec2f::operator/(
-    const TransferFunctionWidget::vec2f &b) const
-{
-    return vec2f(x / b.x, y / b.y);
-}
-
-TransferFunctionWidget::vec2f TransferFunctionWidget::vec2f::operator*(
-    const TransferFunctionWidget::vec2f &b) const
-{
-    return vec2f(x * b.x, y * b.y);
-}
-
-TransferFunctionWidget::vec2f::operator ImVec2() const
-{
-    return ImVec2(x, y);
-}
 
 TransferFunctionWidget::TransferFunctionWidget()
 {
@@ -89,8 +52,12 @@ TransferFunctionWidget::TransferFunctionWidget()
     // Initialize the colormap alpha channel w/ a linear ramp
     update_colormap();
 
-	for (int i = 0; i < 255; i++)
-		current_histogram.push_back(static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
+    for (int i = 0; i < 256; i++)
+    {
+      //current_histogram.push_back(static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
+      current_histogram.push_back(0);
+    }
+		
 
 
 	m_min_max_val[0] = 0.0f;
@@ -293,6 +260,11 @@ std::vector<float> TransferFunctionWidget::get_colormapf()
 void TransferFunctionWidget::setHistogram(const std::vector<float> &hist)
 {
 	current_histogram = hist;
+}
+
+std::vector<float>& TransferFunctionWidget::getHistogram()
+{
+  return current_histogram;
 }
 
 void TransferFunctionWidget::setMinMax(const float min, const float max) {
