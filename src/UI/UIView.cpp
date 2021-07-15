@@ -433,45 +433,9 @@ void UIView::draw_ui_callback()
                 tfn_widget[m_selectedVolume].setBlendedHistogram(m_volumes[m_selectedVolume][active_volume]->getTransferfunction(0), m_volumes[m_selectedVolume][active_volume2]->getTransferfunction(0), alpha);*/
 
           }
-          else if (numVolumes > 0) {
-            if (m_compute_new_histogram) 
-            {
-             // std::vector<float> histogram = tfn_widget[m_table_selection].getHistogram();
-             // float global_min = std::numeric_limits<float>::max();
-             // float global_max = 0.f;
-             // for (int i = 0; i < numVolumes; i++)
-             // {
-             //   if (m_controller_app.get_volume(i)[0]->getMin() < global_min)
-             //   {
-             //     global_min = m_controller_app.get_volume(i)[0]->getMin();
-             //   }
-             //   if (m_controller_app.get_volume(i)[0]->getMax() > global_max)
-             //   {
-             //     global_max = m_controller_app.get_volume(i)[0]->getMax();
-             //   }
 
-             //   if (m_column_selected[i])
-             //   {
-             //     std::vector<float> current_histogram = m_controller_app.get_volume(i)[0]->getHistogram(0);
-             //     for (int j = 0; j < current_histogram.size(); j++)
-             //     {
-             //       histogram[j] += current_histogram[j];
-             //     }
-             //   }
-             // }
-
-             ////tfn_widget[m_table_selection].setHistogram(m_controller_app.get_volume(m_column_selected)[0]->getHistogram(0));
-             ////tfn_widget[m_table_selection].setMinMax(m_controller_app.get_volume(m_column_selected)[0]->getMin(), m_controller_app.get_volume(0)[0]->getMax());
-             //m_compute_new_histogram = false;
-             
-            }
-            
-           // tfn_widget[m_table_selection].setHistogram(m_controller_app.get_volume(m_column_selected)[0]->getHistogram(0));
-            //tfn_widget[m_table_selection].setMinMax(m_controller_app.get_volume(m_column_selected)[0]->getMin(), m_controller_app.get_volume(0)[0]->getMax());
-           
-          }
           m_controller_app.set_multi_transfer(false);
-          //tfn_widget[m_table_selection].draw_histogram();
+          
           m_histogram.draw_histogram();
           tfn_widget[m_table_selection].draw_ui();
         }
