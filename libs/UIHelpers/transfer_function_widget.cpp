@@ -48,6 +48,7 @@ TransferFunctionWidget::TransferFunctionWidget()
   load_embedded_preset(blue_gold, sizeof(blue_gold), "Blue Gold");
   load_embedded_preset(ice_fire, sizeof(ice_fire), "Ice Fire");
   load_embedded_preset(nic_edge, sizeof(nic_edge), "nic Edge");
+  //load_embedded_preset(Algae, sizeof(Algae), "Algae");
 
   // Initialize the colormap alpha channel w/ a linear ramp
   update_colormap();
@@ -62,6 +63,9 @@ TransferFunctionWidget::TransferFunctionWidget()
 
   m_min_max_val[0] = 0.0f;
   m_min_max_val[1] = 1.0f;
+
+  m_quantiles[0] = 0.05f;
+  m_quantiles[1] = 0.95f;
 }
 
 void TransferFunctionWidget::add_colormap(const Colormap& map)
@@ -483,6 +487,19 @@ void TransferFunctionWidget::update_colormap()
     float alpha = (1.f - t) * a_it->y + t * high->y;
     current_colormap[i * 4 + 3] = static_cast<uint8_t>(clamp(alpha * 255.f, 0.f, 255.f));
   }
+}
+
+void TransferFunctionWidget::set_Quantiles(float min, float max)
+{
+  m_quantiles[0] = min;
+  m_quantiles[1] = max;
+}
+
+
+void TransferFunctionWidget::get_Quantiles(float& min, float& max)
+{
+  min = m_quantiles[0];
+  max = m_quantiles[1];
 }
 
 void TransferFunctionWidget::load_embedded_preset(const uint8_t* buf,

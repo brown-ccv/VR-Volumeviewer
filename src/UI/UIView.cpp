@@ -9,6 +9,8 @@
 
 #include "loader/VRDataLoader.h"
 
+#include "UIHelpers/stb_image.h"
+
 #include <limits>
 
 UIView::UIView(VRVolumeApp& controllerApp) :m_controller_app(controllerApp), m_multiplier(1.0f), m_threshold(0.0f),
@@ -21,7 +23,10 @@ m_current_load_modal(LOAD_NONE),m_file_extension_filter(".txt"), m_non_trns_func
 m_ui_background(false), m_column_selection_state(0), m_compute_new_histogram(true), m_histogram_point_1(0.0),
 m_histogram_point_2(1.1)
 {
-  
+
+ m_histogram_quantiles[0] = 0.05;
+ m_histogram_quantiles[1] = 0.95;
+
 }
 
 UIView::~UIView()
@@ -260,6 +265,11 @@ void UIView::draw_ui_callback()
               if (ImGui::IsMouseDoubleClicked(0))
               {
                 m_copy_trnfnct_name = m_tfns[row].Name;
+                float q_min = 0;
+                float q_max = 0;
+                tfn_widget[m_table_selection].get_Quantiles(q_min, q_max);
+                m_histogram_quantiles[0] = q_min;
+                m_histogram_quantiles[1] = q_max;
                 m_trn_fct_opitions_window = true;
               }
               
@@ -338,14 +348,26 @@ void UIView::draw_ui_callback()
           ImGui::InputText("##text1", writable, IM_ARRAYSIZE(writable));
           ImGui::IsItemActive();
           //ImGui::PopItemWidth();
+          
+          ImGui::Separator();
+          /*float q_min = 0;
+          float q_max = 0;
+          tfn_widget[m_table_selection].get_Quantiles(q_min, q_max);
+          m_histogram_quantiles[0] = q_min;
+          m_histogram_quantiles[1] = q_max;*/
+
+          ImGui::Text("Quantiles");
+          ImGui::SliderFloat2("##Quantiles", m_histogram_quantiles, 0.05f, 0.95f);
 
           if (ImGui::Button("Adjust to Histogram"))
           {
+            adjust_transfer_function_to_histogram();
             tfn_widget[m_table_selection].alpha_control_pts.clear();
             tfn_widget[m_table_selection].alpha_control_pts.push_back(vec2f(0.0, 0.0));
             tfn_widget[m_table_selection].alpha_control_pts.push_back(m_histogram_point_1);
             tfn_widget[m_table_selection].alpha_control_pts.push_back(m_histogram_point_2);
             tfn_widget[m_table_selection].alpha_control_pts.push_back(vec2f(1.0, 1.0));
+            tfn_widget[m_table_selection].set_Quantiles(m_histogram_quantiles[0], m_histogram_quantiles[1]);
             ImGui::OpenPopup("Confirmation");
             ImGui::SetNextWindowSize(ImVec2(350, 400), ImGuiCond_FirstUseEver);
           }
@@ -655,7 +677,8 @@ void UIView::init_ui(bool is2D, bool lookingGlass)
     }
 
     m_initialized = true;
-
+    
+    
   }
 
 
@@ -683,8 +706,9 @@ void UIView::update_ui(int numVolumes)
     trfntc.volumes.push_back(false);
   }
   m_tfns.push_back(trfntc);
-  m_table_selection = 0;
+  m_table_selection = 0; 
   
+
 }
 
 void UIView::render_2D()
@@ -1224,6 +1248,44 @@ void UIView::load_user_session(std::string filePath)
   }
 }
 
+void UIView::adjust_transfer_function_to_histogram()
+{
+  
+  std::vector<float> histogram_copy;
+
+  for (int j = 0; j < m_histogram.getHistogram().size(); j++)
+  {
+    if (m_histogram.getHistogram()[j] > 0.0005)
+    {
+      histogram_copy.push_back(m_histogram.getHistogram()[j]);
+    }
+  }
+
+  const std::size_t pos1 = std::floor(m_histogram_quantiles[0] * std::distance(histogram_copy.begin(), histogram_copy.end()));
+  const std::size_t pos2 = std::floor(m_histogram_quantiles[1] * std::distance(histogram_copy.begin(), histogram_copy.end()));
+  if (histogram_copy.size() > pos1 && histogram_copy.size() > pos2)
+  {
+    std::nth_element(histogram_copy.begin(), histogram_copy.begin() + pos1, histogram_copy.end());
+
+    std::vector<float>::iterator it1 = std::find(m_histogram.getHistogram().begin(), m_histogram.getHistogram().end(), histogram_copy[pos1]);
+    float index1 = std::distance(m_histogram.getHistogram().begin(), it1) / 256.f;
+
+    m_histogram_point_1.x = index1;
+    m_histogram_point_1.y = 0.0f;
+    
+
+    std::nth_element(histogram_copy.begin(), histogram_copy.begin() + pos2, histogram_copy.end());
+
+    std::vector<float>::iterator it2 = std::find(m_histogram.getHistogram().begin(), m_histogram.getHistogram().end(), histogram_copy[pos2]);
+    float index2 = std::distance(m_histogram.getHistogram().begin(), it2) / 256.f;
+
+    m_histogram_point_2.x = index2;
+    m_histogram_point_2.y = 1.0f;
+    
+  }
+}
+
+
 void UIView::compute_new_histogram_view()
 {
   if (!m_compute_new_histogram)
@@ -1258,53 +1320,7 @@ void UIView::compute_new_histogram_view()
       
     }
     
-
-   
   }
-
-
-  std::vector<float> vect2;
-
-  for (int j = 0; j < histogram.size(); j++)
-  {
-    if (histogram[j] > 0.0005)
-    {
-      vect2.push_back(histogram[j]);
-    }
-  }
- 
-   const std::size_t pos1 = 0.05 * std::distance(vect2.begin(), vect2.end());
-   const std::size_t pos2 = 0.95 * std::distance(vect2.begin(), vect2.end());
-   if (vect2.size() > pos1 && vect2.size() > pos2)
-   {
-     std::nth_element(vect2.begin(), vect2.begin() + pos1, vect2.end());
-
-     
-     std::vector<float>::iterator it1 = std::find(histogram.begin(), histogram.end(), vect2[pos1]);
-     float index1 = std::distance(histogram.begin(), it1)/256.f;
-     
-
-   
-     
-     m_histogram_point_1.x = index1;
-     m_histogram_point_1.y = 0.0f;
-     std::cout << "0.05 : " << vect2[pos1] << std::endl;
-
-     std::nth_element(vect2.begin(), vect2.begin() + pos2, vect2.end());
-
-     std::vector<float>::iterator it2 = std::find(histogram.begin(), histogram.end(), vect2[pos2]);
-     float index2 = std::distance(histogram.begin(), it2)/256.f;
-     
-
-
-     m_histogram_point_2.x = index2;
-     m_histogram_point_2.y = 1.0f;
-     std::cout << "0.95 : " << vect2[pos2] << std::endl;
-
-
-   }
-   
-   
 
   m_histogram.setHistogram(histogram);
   

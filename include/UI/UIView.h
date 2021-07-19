@@ -9,7 +9,7 @@
 #include "UIHelpers/transfer_function_multichannel_widget.h"
 #include "UIHelpers/transfer_function_widget.h"
 #include "UIHelpers/histogram.h"
-
+#include <stdint.h>
 #include <fstream>
 
 class VRVolumeApp;
@@ -191,9 +191,15 @@ private:
 
   Histogram m_histogram;
 
+  void adjust_transfer_function_to_histogram();
+
   vec2f m_histogram_point_1;
   vec2f m_histogram_point_2;
+  float m_histogram_quantiles[2]; 
+
   
+
 };
 
+ 
 #endif

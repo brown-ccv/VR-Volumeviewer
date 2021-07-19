@@ -82,11 +82,18 @@ public:
 
   void update_colormap();
 
+  void set_Quantiles(float min, float max);
+
+  void get_Quantiles(float& min, float& max);
+
 private:
     void update_gpu_image();
 
     
 
     void load_embedded_preset(const uint8_t *buf, size_t size, const std::string &name);
+    
+    float m_quantiles[2];
+    
 };
 
