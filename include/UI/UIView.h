@@ -194,6 +194,12 @@ private:
   vec2f m_histogram_point_1;
   vec2f m_histogram_point_2;
   
+  void load_ocean_color_maps();
+
+  std::vector<std::string> m_ocean_color_maps_names;
+
+  std::string m_color_map_directory;
+
 };
 
 #endif

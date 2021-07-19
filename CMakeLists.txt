@@ -70,6 +70,7 @@ set(source_files
 set(header_files
   include/vrapp/VolumeVisualizationApp.h
   include/vrapp/VRVolumeApp.h
+  include/common/common.h
   include/loader/LoadDataAction.h
   include/render/Shader.h
   include/render/Volume.h
@@ -214,3 +215,4 @@ foreach(_source IN ITEMS ${_source_list})
 endforeach()
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/shaders DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/colormaps DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

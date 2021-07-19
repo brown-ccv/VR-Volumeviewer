@@ -9,6 +9,10 @@
 
 #include "loader/VRDataLoader.h"
 
+
+#include "UIHelpers/stb_image.h"
+#include "common/common.h"
+
 #include <limits>
 
 UIView::UIView(VRVolumeApp& controllerApp) :m_controller_app(controllerApp), m_multiplier(1.0f), m_threshold(0.0f),
@@ -19,9 +23,11 @@ m_table_selection(-1), m_trn_fct_opitions_window(false), m_save_trnfct_open(fals
 m_file_load_trnsf(false), m_file_dialog_save_dir(false), m_save_session_dialog_open(false), m_current_save_modal(SAVE_NONE),
 m_current_load_modal(LOAD_NONE),m_file_extension_filter(".txt"), m_non_trns_functions_selected_modal(false),
 m_ui_background(false), m_column_selection_state(0), m_compute_new_histogram(true), m_histogram_point_1(0.0),
-m_histogram_point_2(1.1)
+m_histogram_point_2(1.1), m_color_map_directory("colormaps")
 {
-  
+  m_ocean_color_maps_names = { "algae.png","amp.png","balance.png","curl.png","deep.png","delta.png","dense.png",
+"diff.png","gray.png","haline.png","ice.png","matter.png","oxy.png","phase.png","rain.png","solar.png","speed.png","tarn.png","tempo.png",
+"thermal.png","topo.png","turbid.png" };
 }
 
 UIView::~UIView()
@@ -685,6 +691,7 @@ void UIView::update_ui(int numVolumes)
   m_tfns.push_back(trfntc);
   m_table_selection = 0;
   
+  load_ocean_color_maps();
 }
 
 void UIView::render_2D()
@@ -1309,5 +1316,28 @@ void UIView::compute_new_histogram_view()
   m_histogram.setHistogram(histogram);
   
   m_compute_new_histogram = false;
+}
+
+void UIView::load_ocean_color_maps()
+{
+  int w, h, n;
+  int comp;
+
+  for (std::string color_map_name : m_ocean_color_maps_names)
+  {
+    std::string file_name_path = m_color_map_directory + OS_SLASH + color_map_name;
+    uint8_t* img_data = stbi_load(file_name_path.c_str(), &w, &h, &comp, 4);
+    auto img = std::vector<uint8_t>(img_data, img_data + w * 1 * 4);
+    stbi_image_free(img_data);
+
+    //set name
+
+    std::string name = color_map_name.substr(0, color_map_name.find_first_of("."));
+
+    Colormap color_map(name, img);
+    tfn_widget[0].add_colormap(color_map);
+  }
+
+
 }
 
