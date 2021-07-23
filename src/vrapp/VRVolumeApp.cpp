@@ -212,9 +212,10 @@ bool VRVolumeApp::is_show_menu()
   return m_show_menu;
 }
 
-void VRVolumeApp::set_is_animated(bool aniamted)
+void VRVolumeApp::set_is_animated(bool animated)
 {
-  m_animated = aniamted;
+  m_animated = animated;
+  m_ui_view->set_is_animated(m_animated);
 }
 
 void VRVolumeApp::set_threshold(float threshold)
@@ -779,7 +780,7 @@ void VRVolumeApp::update_frame_state()
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glLightfv(GL_LIGHT0, GL_POSITION, m_light_pos);
-  if (m_animated && !m_stopped)
+  if (m_animated && !m_ui_view->is_stopped())
   {
     m_frame += m_speed;
     if (m_frame > m_volumes[m_selectedVolume].size() - 1) m_frame = 0.0;

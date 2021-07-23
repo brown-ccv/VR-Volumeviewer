@@ -202,7 +202,7 @@ protected:
   bool m_animated;
   float m_threshold;
   int m_descriptionHeight;
-  float m_stopped;
+  
   float m_frame;
   float m_speed;
   unsigned int m_rendercount;

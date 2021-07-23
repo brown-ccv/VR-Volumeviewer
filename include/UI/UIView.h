@@ -60,6 +60,8 @@ public:
 
   bool is_animated();
 
+  void set_is_animated(bool animated);
+
   bool is_stopped();
 
   void update_animation(float speed, int numFrames);

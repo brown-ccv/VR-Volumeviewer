@@ -544,6 +544,7 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState& rend
       m_vrVolumeApp->load_mesh_model();
     }
     m_vrVolumeApp->initialize_textures();
+    m_vrVolumeApp->update_frame_state();
     m_vrVolumeApp->update_3D_ui();
     m_vrVolumeApp->update_trackBall_state();
     m_vrVolumeApp->update_animation();
