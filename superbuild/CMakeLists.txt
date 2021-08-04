@@ -7,7 +7,7 @@ include(GNUInstallDirs)
 
 
 # Using 3.9 to get a modern version of FindOpenGL.cmake
-cmake_minimum_required (VERSION 3.9) 
+cmake_minimum_required (VERSION 3.15) 
 
 # Dependencies that are auto-downloaded, built, and installed for you will go here.  So, you 
 # may use this even if not planning to install this particular project on your system.
@@ -88,10 +88,10 @@ build_glew_subproject(
   URL "https://sourceforge.net/projects/glew/files/glew/snapshots/glew-20190928.zip"
 )
 
-#build_glfw_subproject(
-#  NAME glfw
-#  URL "https://github.com/ivlab/glfw.git"
-#)
+build_glfw_subproject(
+  NAME glfw
+  URL "https://github.com/ivlab/glfw.git"
+)
 
 #build_openvr_subproject(
 #  NAME openvr
@@ -100,43 +100,55 @@ build_glew_subproject(
 #)
 
 
-#build_git_subproject(
-#  NAME minvr
-#  URL "https://github.com/MinVR/MinVR.git"
-#  BUILD_ARGS
-#   -DWITH_PLUGIN_OPENGL=ON
-#   -DWITH_PLUGIN_GLFW=ON
-#   #-DWITH_PLUGIN_OPENVR=ON 
-#   -DAUTOBUILD_DEPENDENCIES=OFF
-#  #DEPENDS_ON glew glfw openvr
-#  DEPENDS_ON glew glfw
-#  
-#)
+build_git_subproject(
+  NAME minvr
+  URL "https://github.com/MinVR/MinVR.git"
+  BUILD_ARGS
+   -DWITH_PLUGIN_OPENGL=ON
+   -DWITH_PLUGIN_GLFW=ON
+   #-DWITH_PLUGIN_OPENVR=ON 
+   -DAUTOBUILD_DEPENDENCIES=OFF
+  #DEPENDS_ON glew glfw openvr
+  DEPENDS_ON glew glfw  
+)
 
-#build_git_subproject(
-#  NAME vr-imgui 
-#  URL https://github.com/brown-ccv/VR-imgui.git
-#  BUILD_ARGS
-#   -DBUILD_WITH_VIRTUALKEYBOARD=OFF 
-#   -DBUILD_WITH_FILEBROWSER=ON 
-#   -DBUILD_WITH_EXAMPLE=ON
-#   DEPENDS_ON glew minvr
-#)
+build_git_subproject(
+  NAME vr-imgui 
+  URL https://github.com/brown-ccv/VR-imgui.git
+  BUILD_ARGS
+   -DBUILD_WITH_VIRTUALKEYBOARD=OFF 
+   -DBUILD_WITH_FILEBROWSER=ON 
+   -DBUILD_WITH_EXAMPLE=ON
+   -DGLEW_SHARED_LIBRARY_DEBUG=${CMAKE_INSTALL_PREFIX}/lib/glew32${CMAKE_STATIC_LIBRARY_SUFFIX}
+   DEPENDS_ON glew minvr
+)
 
-#build_git_subproject(
-#   NAME freetype
-#   URL https://gitlab.freedesktop.org/freetype/freetype.git
-#   DEPENDS_ON zlib
-#)
+build_git_subproject(
+   NAME freetype
+   URL https://gitlab.freedesktop.org/freetype/freetype.git
+   DEPENDS_ON zlib
+)
 
-#build_git_subproject(
-#   NAME CPPFSD
-#   URL https://github.com/cginternals/cppfs.git
-#)
+build_git_subproject(
+   NAME CPPFSD
+   URL https://github.com/cginternals/cppfs.git
+)
+
+build_git_subproject(
+   NAME FTGL
+   URL https://github.com/ulrichard/ftgl.git
+   BUILD_ARGS
+    -DBUILD_SHARED_LIBS=OFF
+	-DFREETYPE_INCLUDE_DIR_ft2build=${CMAKE_INSTALL_PREFIX}/include/freetype2
+   DEPENDS_ON freetype
+   
+)
 
 
 message(STATUS "==== BUILDING ${PROJECT_NAME}")
 message(STATUS "Using install prefix: ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "Using prefix path: ${CMAKE_PREFIX_PATH}")
+
 
 #option(WITH_TEEM "Adds support of nrrd files through teem" OFF)
 
@@ -208,27 +220,49 @@ set(header_files
 ADD_DEFINITIONS(-D FTGL_LIBRARY_STATIC)
 
 # MinVR (linked with an imported cmake target so no need to specify include dirs)
-#find_package(MinVR REQUIRED)
-#find_package(ImguiVR REQUIRED)
-#find_package(OpenGL REQUIRED)
-#find_package(GLEW REQUIRED)
-#FIND_PACKAGE(glm REQUIRED )
+find_package(MinVR REQUIRED)
+find_package(ImguiVR REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(GLEW REQUIRED)
+#find_package(glew REQUIRED)
+FIND_PACKAGE(glm REQUIRED )
 #FIND_PACKAGE(OpenCV REQUIRED )
-#FIND_PACKAGE(FTGL REQUIRED )
-#FIND_PACKAGE(Freetype REQUIRED) 
+FIND_PACKAGE(FTGL REQUIRED )
+FIND_PACKAGE(Freetype REQUIRED) 
 find_package(ZLIB REQUIRED)
 #FIND_PACKAGE(CPPFSD REQUIRED)
+
+message(STATUS "GLEW_DIR ${GLEW_DIR}")
+
+
+if(GLEW_FOUND)
+ message(STATUS "glew found")
+ message(STATUS "GLEW_INCLUDE_DIR ${glew_INCLUDE_DIR}")
+else()
+ message(STATUS "glew NOT found" )
+endif()
+
+if(MinVR_FOUND)
+ message(STATUS "MinVR found")
+ message(STATUS "MINVR_INCLUDE_DIR ${MINVR_INCLUDE_DIR}")
+else()
+ message(STATUS "MinVR NOT found" )
+endif()
+
+
 
 include_directories(
   ${OPENGL_INCLUDE_DIR}
   ${MINVR_INCLUDE_DIR}
   ${GLM_INCLUDE_DIRS}
-  ${GLEW_INCLUDE_DIRS}
+  ${glew_INCLUDE_DIR}
   ${FTGL_INCLUDE_DIR}
   ${FREETYPE_INCLUDE_DIRS}
   ${ZLIB_INCLUDE_DIRS}
   ${Freetype_INCLUDE_DIRS}
   ${CPPFSD_INCLUDE_DIRS}
+  ${CMAKE_CURRENT_SOURCE_DIR}/../libs/
+  ${CMAKE_CURRENT_SOURCE_DIR}/../include/
 )
 
 
@@ -244,6 +278,11 @@ set(LIBRARIES
 	${ZLIB_LIBRARIES}
 	${Freetype_LIBRARIES}
 	${CPPFSD_LIBRARIES}
+	stb_image
+	GLMLoader
+	Model
+	Texture
+	ShaderProgram
 )
 
 #if (UNIX)
@@ -270,14 +309,21 @@ set(LIBRARIES
 #	)
 #endif()
 
+message(STATUS "SUPERBUILD GLEW INCLUDE: ${GLEW_INCLUDE_DIRS}")
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libs/GLMLoader ${CMAKE_CURRENT_BINARY_DIR}/GLMLoader)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libs/Model ${CMAKE_CURRENT_BINARY_DIR}/Model)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libs/Texture ${CMAKE_CURRENT_BINARY_DIR}/Texture)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libs/ShaderProgram ${CMAKE_CURRENT_BINARY_DIR}/ShaderProgram)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libs/stb_image ${CMAKE_CURRENT_BINARY_DIR}/stb_image)
 
 #---------------------- Define the Target ----------------------
 
 
 add_executable(${PROJECT_NAME} ${source_files} ${header_files})
-add_dependencies(${PROJECT_NAME} zlib teem opencv)
+add_dependencies(${PROJECT_NAME} zlib teem opencv glew glfw minvr vr-imgui freetype FTGL CPPFSD)
 
-target_link_libraries(${PROJECT_NAME}  ${ZLIB_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} )
 
 
 
