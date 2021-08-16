@@ -1,5 +1,5 @@
 include_directories(
-  ${glew_INCLUDE_DIR}
+  ${GLEW_INCLUDE_DIR}
 )
 add_library( 
 ShaderProgram

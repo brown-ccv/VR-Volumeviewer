@@ -1,28 +1,28 @@
-message("FINDGLEW CMAKE")
+message("FindImguiVR CMAKE")
 message("CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}")
 
-find_path(GLEW_INCLUDE_DIR
+find_path(IMGUIVR_INCLUDE_DIR
         NAMES
-		GL/glew.h
+		VRMenuHandler.h
 		HINTS
         ${CMAKE_INSTALL_PREFIX}/include/
 )
 
-message(STATUS "GLEW_INCLUDE_DIR  ${GLEW_INCLUDE_DIR}")
+message(STATUS "IMGUIVR_INCLUDE_DIR  ${IMGUIVR_INCLUDE_DIR}")
 
 
-find_library(GLEW_LIBRARY
+find_library(IMGUIVR_LIBRARY
        NAMES
-	   glew32
+	   ImguiVR
 	   HINTS
         ${CMAKE_INSTALL_PREFIX}/lib/
 )  
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(GLEW
+find_package_handle_standard_args(IMGUIVR
 	DEFAULT_MSG
-	GLEW_INCLUDE_DIR
-	GLEW_LIBRARY
+	IMGUIVR_INCLUDE_DIR
+	IMGUIVR_LIBRARY
 )
 
 

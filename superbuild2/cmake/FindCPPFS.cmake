@@ -1,28 +1,28 @@
-message("FINDGLEW CMAKE")
+message("FindCPPFS CMAKE")
 message("CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}")
 
-find_path(GLEW_INCLUDE_DIR
+find_path(CPPFS_INCLUDE_DIR
         NAMES
-		GL/glew.h
+		cppfs/cppfs.h
 		HINTS
         ${CMAKE_INSTALL_PREFIX}/include/
 )
 
-message(STATUS "GLEW_INCLUDE_DIR  ${GLEW_INCLUDE_DIR}")
+message(STATUS "CPPFS_INCLUDE_DIR  ${CPPFS_INCLUDE_DIR}")
 
 
-find_library(GLEW_LIBRARY
+find_library(CPPFS_LIBRARY
        NAMES
-	   glew32
+	   cppfs
 	   HINTS
         ${CMAKE_INSTALL_PREFIX}/lib/
 )  
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(GLEW
+find_package_handle_standard_args(CPPFS
 	DEFAULT_MSG
-	GLEW_INCLUDE_DIR
-	GLEW_LIBRARY
+	CPPFS_INCLUDE_DIR
+	CPPFS_LIBRARY
 )
 
 

@@ -1,28 +1,28 @@
-message("FINDGLEW CMAKE")
+message("FindFTGL CMAKE")
 message("CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}")
 
-find_path(GLEW_INCLUDE_DIR
+find_path(FTGL_INCLUDE_DIR
         NAMES
-		GL/glew.h
+		FTGL/ftgl.h
 		HINTS
         ${CMAKE_INSTALL_PREFIX}/include/
 )
 
-message(STATUS "GLEW_INCLUDE_DIR  ${GLEW_INCLUDE_DIR}")
+message(STATUS "FTGL_INCLUDE_DIR  ${FTGL_INCLUDE_DIR}")
 
 
-find_library(GLEW_LIBRARY
+find_library(FTGL_LIBRARY
        NAMES
-	   glew32
+	   ftgl
 	   HINTS
         ${CMAKE_INSTALL_PREFIX}/lib/
 )  
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(GLEW
+find_package_handle_standard_args(FTGL
 	DEFAULT_MSG
-	GLEW_INCLUDE_DIR
-	GLEW_LIBRARY
+	FTGL_INCLUDE_DIR
+	FTGL_LIBRARY
 )
 
 
