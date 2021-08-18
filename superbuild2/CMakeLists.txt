@@ -40,18 +40,21 @@ get_filename_component(INSTALL_DIR_ABSOLUTE
   
 message("MAIN INSTALL_DIR_ABSOLUTE ${INSTALL_DIR_ABSOLUTE}")
 
+set(SUPERBUILD_ROOT_PATH ${CMAKE_SOURCE_DIR})
 
 ### ZLIB
 # Configure external project
 IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/zlib/zlib)
  execute_process(
-    COMMAND ${CMAKE_COMMAND} -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} ${CMAKE_SOURCE_DIR}/zlib
+    COMMAND ${CMAKE_COMMAND} -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} 
+    -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} 
+    ${CMAKE_SOURCE_DIR}/zlib
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/zlib
  )
 
  # Build external project
  execute_process(
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/zlib
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_SOURCE_DIR}/zlib
  )
 ENDIF()
 
@@ -282,11 +285,71 @@ message("FTGL_LIBRARY ${FTGL_LIBRARY}")
 
 set(CMAKE_BUILD_TYPE Release)
 
- add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libs/GLMLoader ${CMAKE_CURRENT_BINARY_DIR}/GLMLoader)
- add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libs/Model ${CMAKE_CURRENT_BINARY_DIR}/Model)
- add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libs/Texture ${CMAKE_CURRENT_BINARY_DIR}/Texture)
- add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libs/ShaderProgram ${CMAKE_CURRENT_BINARY_DIR}/ShaderProgram)
- add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libs/stb_image ${CMAKE_CURRENT_BINARY_DIR}/stb_image)
+execute_process(
+    COMMAND ${CMAKE_COMMAND} 
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
+    -DGLEW_INCLUDE_DIR=${GLEW_INCLUDE_DIR} 
+    -DGLM_INCLUDE_DIR=${GLM_INCLUDE_DIR}
+    -S ${CMAKE_CURRENT_SOURCE_DIR}/../libs/GLMLoader -B ${CMAKE_CURRENT_BINARY_DIR}/GLMLoader -G Ninja
+)
+execute_process(
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/GLMLoader 
+)
+
+execute_process(
+    COMMAND ${CMAKE_COMMAND} 
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
+    -DGLEW_INCLUDE_DIR=${GLEW_INCLUDE_DIR} 
+    -DGLM_INCLUDE_DIR=${GLM_INCLUDE_DIR}
+    -S ${CMAKE_CURRENT_SOURCE_DIR}/../libs/Model -B ${CMAKE_CURRENT_BINARY_DIR}/Model -G Ninja
+)
+execute_process(
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/Model 
+)
+
+execute_process(
+    COMMAND ${CMAKE_COMMAND} 
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
+    -DGLEW_INCLUDE_DIR=${GLEW_INCLUDE_DIR} 
+    -DGLM_INCLUDE_DIR=${GLM_INCLUDE_DIR}
+    -S ${CMAKE_CURRENT_SOURCE_DIR}/../libs/Texture -B ${CMAKE_CURRENT_BINARY_DIR}/Texture -G Ninja
+)
+execute_process(
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/Texture 
+)
+
+execute_process(
+    COMMAND ${CMAKE_COMMAND} 
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
+    -DGLEW_INCLUDE_DIR=${GLEW_INCLUDE_DIR} 
+    -DGLM_INCLUDE_DIR=${GLM_INCLUDE_DIR}
+    -S ${CMAKE_CURRENT_SOURCE_DIR}/../libs/ShaderProgram -B ${CMAKE_CURRENT_BINARY_DIR}/ShaderProgram -G Ninja
+)
+execute_process(
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/ShaderProgram 
+)
+
+execute_process(
+    COMMAND ${CMAKE_COMMAND} 
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
+    -DGLEW_INCLUDE_DIR=${GLEW_INCLUDE_DIR} 
+    -DGLM_INCLUDE_DIR=${GLM_INCLUDE_DIR}
+    -S ${CMAKE_CURRENT_SOURCE_DIR}/../libs/stb_image -B ${CMAKE_CURRENT_BINARY_DIR}/stb_image -G Ninja
+)
+execute_process(
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/stb_image 
+)
+
+ #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libs/GLMLoader ${CMAKE_CURRENT_BINARY_DIR}/GLMLoader)
+ #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libs/Model ${CMAKE_CURRENT_BINARY_DIR}/Model)
+ #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libs/Texture ${CMAKE_CURRENT_BINARY_DIR}/Texture)
+ #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libs/ShaderProgram ${CMAKE_CURRENT_BINARY_DIR}/ShaderProgram)
+ #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libs/stb_image ${CMAKE_CURRENT_BINARY_DIR}/stb_image)
 
  find_package(GLMLoader REQUIRED)
  if(GLMLoader_FOUND)
@@ -441,6 +504,6 @@ message(STATUS "header_files ${header_files}")
  
 target_link_libraries(${PROJECT_NAME}  ${LIBRARIES})
 
-# # #add_dependencies(${PROJECT_NAME} zlib teem opencv glew glfw minvr vr-imgui freetype FTGL CPPFSD)
+# #add_dependencies(${PROJECT_NAME} zlib teem opencv glew glfw minvr vr-imgui freetype FTGL CPPFSD)
 
-# # target_link_libraries(${PROJECT_NAME} )
+# target_link_libraries(${PROJECT_NAME} )
