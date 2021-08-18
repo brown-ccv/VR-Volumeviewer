@@ -1,10 +1,10 @@
-message(STATUS "GLMLOADER GLEW INCLUDE: ${glew_INCLUDE_DIR}")
+message(STATUS "GLMLOADER GLEW INCLUDE: ${GLEW_INCLUDE_DIR}")
 
 include_directories(
   ../Model
    ../Texture
   ../ShaderProgram
-  ${glew_INCLUDE_DIR}
+  ${GLEW_INCLUDE_DIR}
 )
 
 add_library( 
