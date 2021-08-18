@@ -134,13 +134,15 @@ ENDIF()
 IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/CPPFSD/CPPFSD)
 execute_process(
     COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} ${CMAKE_SOURCE_DIR}/CPPFSD
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/CPPFSD
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/CPPFSD  
 )
 
 # Build external project
 execute_process(
     COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/CPPFSD
 )
+
+
 ENDIF()
 
 
@@ -157,6 +159,7 @@ execute_process(
     COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/opencv
 )
 ENDIF()
+
 
 
 #glm
@@ -279,6 +282,14 @@ endif()
 
 find_package(OpenGL REQUIRED)
 find_package(OpenCV CONFIG REQUIRED)
+if(OpenCV_FOUND)
+  message(STATUS "OpenCV found ${_OpenCV_LIB_PATH}")
+  file(COPY ${_OpenCV_LIB_PATH}/opencv_videoio453${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION ${CMAKE_PREFIX_PATH}/bin )
+  #file(COPY ${_OpenCV_LIB_PATH}/opencv_imgcodecs453${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION ${CMAKE_PREFIX_PATH}/bin/opencv_imgcodecs453${CMAKE_SHARED_LIBRARY_SUFFIX} )
+  #file(COPY ${_OpenCV_LIB_PATH}/opencv_imgproc453${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION ${CMAKE_PREFIX_PATH}/bin/opencv_imgproc453${CMAKE_SHARED_LIBRARY_SUFFIX}  )
+  #file(COPY ${_OpenCV_LIB_PATH}/opencv_core453${CMAKE_SHARED_LIBRARY_SUFFIX} DESTINATION ${CMAKE_PREFIX_PATH}/bin/opencv_core453${CMAKE_SHARED_LIBRARY_SUFFIX} )
+endif()
+
 
 message("OpenCV_LIBRARIES ${OpenCV_LIBRARIES}")
 message("FTGL_LIBRARY ${FTGL_LIBRARY}")
@@ -509,10 +520,14 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/install/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/install/bin)
 
 
- add_executable(${PROJECT_NAME} ${source_files} ${header_files})
+add_executable(${PROJECT_NAME} ${source_files} ${header_files})
  
 target_link_libraries(${PROJECT_NAME}  ${LIBRARIES})
 
-# #add_dependencies(${PROJECT_NAME} zlib teem opencv glew glfw minvr vr-imgui freetype FTGL CPPFSD)
+enable_testing()
 
-# target_link_libraries(${PROJECT_NAME} )
+add_test(NAME ExistsTest COMMAND ${CMAKE_BINARY_DIR}/install/bin/${PROJECT_NAME} -t)
+set_tests_properties(
+	ExistsTest
+	PROPERTIES PASS_REGULAR_EXPRESSION "VR-Volumeviewer exists"
+)
