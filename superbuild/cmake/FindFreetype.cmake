@@ -24,10 +24,3 @@ find_package_handle_standard_args(Freetype
 	Freetype_INCLUDE_DIR
 	Freetype_LIBRARY
 )
-
-
-#if(glew_FOUND)
-#	set(glew_INCLUDE_DIR "${GAINPUT_INCLUDE_DIR}" ${_deps_includes})
-#	set(glew_LIBRARY "${GAINPUT_LIBRARY}" ${_deps_libs})
-#
-#endif()
