@@ -18,11 +18,14 @@ jobs:
     - uses: actions/checkout@v2
     - uses: microsoft/setup-msbuild@v1.0.2
     - uses: seanmiddleditch/gha-setup-ninja@master
+    
+    - name: Open superbuild folder
+      run: cd superbuild
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -S ${{github.workspace}}/superbuild-B ${{github.workspace}}/superbuild -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G Ninja
+      run: cmake -S . -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G Ninja
 
     - name: Build
       # Build your program with the given configuration
