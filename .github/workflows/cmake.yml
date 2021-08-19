@@ -19,6 +19,9 @@ jobs:
     - uses: microsoft/setup-msbuild@v1.0.2
     - uses: seanmiddleditch/gha-setup-ninja@master
     
+    - name: Clean superbuild folder
+      run: superbuild/clean/clean.bat
+      
     - name: Open superbuild folder
       run: cd superbuild
 
