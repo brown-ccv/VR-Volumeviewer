@@ -356,11 +356,6 @@ execute_process(
     COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/stb_image 
 )
 
- #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libs/GLMLoader ${CMAKE_CURRENT_BINARY_DIR}/GLMLoader)
- #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libs/Model ${CMAKE_CURRENT_BINARY_DIR}/Model)
- #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libs/Texture ${CMAKE_CURRENT_BINARY_DIR}/Texture)
- #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libs/ShaderProgram ${CMAKE_CURRENT_BINARY_DIR}/ShaderProgram)
- #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libs/stb_image ${CMAKE_CURRENT_BINARY_DIR}/stb_image)
 
  find_package(GLMLoader REQUIRED)
  if(GLMLoader_FOUND)
