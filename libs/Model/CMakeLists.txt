@@ -3,6 +3,7 @@ include_directories(
   ../GLMLoader
   ../Texture
   ../ShaderProgram
+  ${GLEW_INCLUDE_DIR}
 )
 
 add_library( 

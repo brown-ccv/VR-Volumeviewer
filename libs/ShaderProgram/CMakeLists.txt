@@ -1,3 +1,6 @@
+include_directories(
+  ${GLEW_INCLUDE_DIR}
+)
 add_library( 
 ShaderProgram
 ShaderProgram.cpp
