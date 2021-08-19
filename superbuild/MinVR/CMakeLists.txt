@@ -15,8 +15,5 @@ build_git_subproject(
    BUILD_ARGS
     -DWITH_PLUGIN_OPENGL=ON
     -DWITH_PLUGIN_GLFW=ON
-    #-DWITH_PLUGIN_OPENVR=ON 
     -DAUTOBUILD_DEPENDENCIES=OFF
-   #DEPENDS_ON glew glfw openvr
-   #DEPENDS_ON glew glfw  
  )
