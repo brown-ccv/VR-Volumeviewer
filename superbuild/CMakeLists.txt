@@ -42,7 +42,7 @@ message("MAIN INSTALL_DIR_ABSOLUTE ${INSTALL_DIR_ABSOLUTE}")
 
 set(SUPERBUILD_ROOT_PATH ${CMAKE_SOURCE_DIR})
 message("==== CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/zlib/zlib")
-message("xxxxxx CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/zlib/zlib")
+message("xxxxxx CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}")
 ### ZLIB
 message("==== ZLIB CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/zlib/zlib")
 # Configure external project
