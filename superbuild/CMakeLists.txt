@@ -32,7 +32,7 @@ endif (UNIX)
 
 project(VR-Volumeviewer)
 
-set(DEFAULT_BUILD_COMMAND cmake -G "${CMAKE_GENERATOR}" --build . )
+set(DEFAULT_BUILD_COMMAND cmake -G "${CMAKE_GENERATOR}" . )
 
 
 get_filename_component(INSTALL_DIR_ABSOLUTE
