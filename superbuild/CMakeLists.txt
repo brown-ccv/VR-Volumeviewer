@@ -186,6 +186,11 @@ execute_process(
 )
 ENDIF()
 
+if (WIN32)
+# some windows systems are no sure they are win32, forced it to be aware of
+ message("====== MINVR IS WIN 32")
+endif (WIN32)
+
 #MinVR
 # Configure external project
 IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/MinVR/MinVR)
