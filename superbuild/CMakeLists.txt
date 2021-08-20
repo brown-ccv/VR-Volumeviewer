@@ -76,6 +76,8 @@ ENDIF()
 if (WIN32)
 # some windows systems are no sure they are win32, forced it to be aware of
  message("====== MINVR IS WIN 32")
+else()
+ message("====== MINVR IS NOT WIN 32")
 endif (WIN32)
 
 #MinVR
