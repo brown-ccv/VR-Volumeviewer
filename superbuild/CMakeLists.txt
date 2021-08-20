@@ -48,6 +48,7 @@ message("==== ZLIB CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/zlib/zlib")
 # Configure external project
 IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/zlib/zlib)
 
+message("++++ ZLIB CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/zlib/zlib")
 
  execute_process(
     COMMAND ${CMAKE_COMMAND} -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} 
