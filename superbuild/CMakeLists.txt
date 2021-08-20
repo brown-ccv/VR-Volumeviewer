@@ -58,7 +58,9 @@ message("++++ ZLIB CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/zlib/zlib")
     ${CMAKE_SOURCE_DIR}/zlib
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/zlib
  )
-
+ 
+ message("++++ COMMAND ${CMAKE_COMMAND} --build ${CMAKE_SOURCE_DIR}/zlib")
+ 
  # Build external project
  execute_process(
     COMMAND ${CMAKE_COMMAND} --build ${CMAKE_SOURCE_DIR}/zlib
