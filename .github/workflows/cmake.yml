@@ -1,4 +1,4 @@
-name: VR-Volumeviewer Superbuild CI
+name: Winodws VR-Volumeviewer Superbuild CI
 
 on:  workflow_dispatch
 
