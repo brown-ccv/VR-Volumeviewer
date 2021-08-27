@@ -1,0 +1,161 @@
+diff --git a/plugins/GLFW/src/VRGLFWWindowToolkit.cpp b/plugins/GLFW/src/VRGLFWWindowToolkit.cpp
+index 1bc60b3..7fde23d 100644
+--- a/plugins/GLFW/src/VRGLFWWindowToolkit.cpp
++++ b/plugins/GLFW/src/VRGLFWWindowToolkit.cpp
+@@ -143,16 +143,37 @@ VRGLFWWindowToolkit::createWindow(VRWindowSettings settings) {
+ 
+ 	/* GLFW says: If you wish to set an initial window position, you should create a hidden window, set its position, then show it*/
+ 	glfwWindowHint(GLFW_VISIBLE, false);
++
++	std::cout << "settings.height " << settings.height << std::endl;
+ 	GLFWwindow* window = glfwCreateWindow(settings.width, settings.height, settings.caption.c_str(), NULL, sharedContext);
++	
+ 	if (!window) {
+ 		std::cout << "Error creating window." << std::endl;
+ 	}
++	
++
+ 	glfwSetWindowPos(window, settings.xpos, settings.ypos);
++	
++
++
+ 	if (settings.visible) {
+ 		glfwShowWindow(window);
+ 	}
+ 
+ 
++ std::cout << "window settings  " << settings.width << " " <<   settings.height << std::endl;
++
++  
++
++	int fb_w,fb_h;
++	  
++        glfwGetFramebufferSize(window, &fb_w, &fb_h);
++      
++           std::cout << "buffer size  " << fb_w << " " <<   fb_h << std::endl;
++     
++     std::cout << glfwGetVersionString () << std::endl;
++  
++
+ 	if (settings.sharedContextGroupID >= 0 || !foundSharedContextGroup) {
+ 		_sharedContextGroups[settings.sharedContextGroupID] = window;
+ 	}
+@@ -162,6 +183,7 @@ VRGLFWWindowToolkit::createWindow(VRWindowSettings settings) {
+     glfwSwapInterval(1);
+     glfwMakeContextCurrent(NULL);
+ 
++
+ 	_inputDev->addWindow(window);
+ 	if (_windows.size() == 0) {
+ 		// if this is the first window created, then register the virtual input device
+@@ -194,6 +216,12 @@ VRGLFWWindowToolkit::getFramebufferSize(int windowID, int& width, int& height) {
+ 	glfwGetFramebufferSize(_windows[windowID], &width, &height);
+ }
+ 
++void
++VRGLFWWindowToolkit::getWindowSize(int windowID, int& width, int& height)
++{
++	 glfwGetWindowSize(_windows[windowID], &width, &height);
++}
++
+ void 
+ VRGLFWWindowToolkit::swapBuffers(int windowID) {
+     glfwMakeContextCurrent(_windows[windowID]);
+diff --git a/plugins/GLFW/src/VRGLFWWindowToolkit.h b/plugins/GLFW/src/VRGLFWWindowToolkit.h
+index 745f1ba..d930be5 100644
+--- a/plugins/GLFW/src/VRGLFWWindowToolkit.h
++++ b/plugins/GLFW/src/VRGLFWWindowToolkit.h
+@@ -50,6 +50,8 @@ public:
+ 
+ 	PLUGIN_API void swapBuffers(int windowID);
+ 
++	PLUGIN_API void getWindowSize(int windowID, int& width, int& height);
++
+ 	PLUGIN_API void getFramebufferSize(int windowID, int& width, int& height);
+ 
+ 	PLUGIN_API VRglproc getProcAddress(const char *name);
+diff --git a/src/display/VRGraphicsWindowNode.cpp b/src/display/VRGraphicsWindowNode.cpp
+index 7445cb2..999f32f 100644
+--- a/src/display/VRGraphicsWindowNode.cpp
++++ b/src/display/VRGraphicsWindowNode.cpp
+@@ -14,6 +14,7 @@ VRGraphicsWindowNode::VRGraphicsWindowNode(const std::string &name, VRGraphicsTo
+   VRDisplayNode(name), _gfxToolkit(gfxToolkit), _winToolkit(winToolkit), _settings(settings)
+ {
+   _windowID = _winToolkit->createWindow(_settings);
++  _winToolkit->getWindowSize(_windowID,_windowSizeWidth,_windowSizeHeight);
+   _winToolkit->getFramebufferSize(_windowID, _framebufferWidth, _framebufferHeight);
+   _valuesAdded.push_back("WindowX");
+   _valuesAdded.push_back("WindowY");
+@@ -37,8 +38,8 @@ void VRGraphicsWindowNode::render(VRDataIndex *renderState, VRRenderHandler *ren
+   renderState->addData("IsGraphics", 1);
+   renderState->addData("WindowX", _settings.xpos);
+   renderState->addData("WindowY", _settings.ypos);
+-  renderState->addData("WindowWidth", _settings.width);
+-  renderState->addData("WindowHeight", _settings.height);
++  renderState->addData("WindowWidth", _windowSizeWidth);
++  renderState->addData("WindowHeight", _windowSizeHeight);
+   renderState->addData("FramebufferWidth", _framebufferWidth);
+   renderState->addData("FramebufferHeight", _framebufferHeight);
+   renderState->addData("SharedContextId", _settings.sharedContextGroupID);
+diff --git a/src/display/VRGraphicsWindowNode.h b/src/display/VRGraphicsWindowNode.h
+index 9ad9ddc..1e6a6c8 100644
+--- a/src/display/VRGraphicsWindowNode.h
++++ b/src/display/VRGraphicsWindowNode.h
+@@ -43,6 +43,8 @@ protected:
+ 	VRWindowSettings   _settings;
+ 	int _framebufferWidth;
+ 	int _framebufferHeight;
++	int _windowSizeWidth;
++	int _windowSizeHeight;
+ };
+ 
+ 
+diff --git a/src/display/VRWindowToolkit.h b/src/display/VRWindowToolkit.h
+index 2e99c0b..0be28c1 100644
+--- a/src/display/VRWindowToolkit.h
++++ b/src/display/VRWindowToolkit.h
+@@ -82,6 +82,10 @@ public:
+ 		std::cerr << "makeWindowCurrent() not enabled in this VRWindowToolkit." << std::endl;
+ 	}
+ 
++    virtual void getWindowSize(int windowID, int& width, int& height){
++		std::cerr << "getWindowSize() not enabled in this VRWindowToolkit." << std::endl;
++	}
++
+ 	virtual void swapBuffers(int windowID) {
+ 		std::cerr << "swapBuffers() not enabled in this VRWindowToolkit." << std::endl;
+ 	}
+diff --git a/tests-interactive/opengl-shaderpipeline-with-api/main.cpp b/tests-interactive/opengl-shaderpipeline-with-api/main.cpp
+index 6a4f3a3..d53e47b 100644
+--- a/tests-interactive/opengl-shaderpipeline-with-api/main.cpp
++++ b/tests-interactive/opengl-shaderpipeline-with-api/main.cpp
+@@ -239,6 +239,21 @@ public:
+     loc = glGetUniformLocation(shaderProgram, "ModelMatrix");
+     glUniformMatrix4fv(loc, 1, GL_FALSE, model);
+ 
++
++    int window_w  =state.index().getValue("WindowWidth");
++		int window_h  =state.index().getValue("WindowHeight");
++		int framebuffer_w  =state.index().getValue("FramebufferWidth");
++		int framebuffer_h  =state.index().getValue("FramebufferHeight");
++    
++    if(!printDebug)
++    {
++
++      	 std::cout<< "TEST "  << window_w << " " << window_h << std::endl;
++		 std::cout << "TEST " << framebuffer_w << " " << framebuffer_h << std::endl;
++	 printDebug = !printDebug;
++    }
++	 
++
+     // Draw cube
+     glBindVertexArray(vao);
+     glDrawArrays(GL_TRIANGLES, 0, 36);
+@@ -294,6 +309,7 @@ public:
+ private:
+   GLuint vbo, vao, vshader, fshader, shaderProgram;
+   float model[16];
++  bool printDebug = false;
+ };
+ 
+ 
