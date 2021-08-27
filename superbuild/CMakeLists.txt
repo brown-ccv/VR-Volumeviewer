@@ -1,5 +1,5 @@
 
-# Using 3.9 to get a modern version of FindOpenGL.cmake
+#Using 3.9 to get a modern version of FindOpenGL.cmake
 cmake_minimum_required (VERSION 3.15) 
 
 
@@ -45,6 +45,10 @@ message("==== CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/zlib/zlib")
 message("xxxxxx CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}")
 message("xxxxxx CMAKE_VERSION ${CMAKE_VERSION}")
 
+
+set(MINVR_PATCH_PATH ${CMAKE_SOURCE_DIR}/../)
+message("MINVR_PATCH_PATH ${MINVR_PATCH_PATH}")
+
 #GLEW
 # Configure external project
 IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/glew/glew)
@@ -83,15 +87,17 @@ endif (WIN32)
 #MinVR
 # Configure external project
 IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/MinVR/MinVR)
-execute_process(
-    COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} ${CMAKE_SOURCE_DIR}/MinVR
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/MinVR
-)
+ execute_process(
+     COMMAND ${CMAKE_COMMAND} -DMINVR_PATCH_PATH=${MINVR_PATCH_PATH} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} ${CMAKE_SOURCE_DIR}/MinVR
+     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/MinVR
+ )
 
-# Build external project
+#Build external project
 execute_process(
     COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/MinVR
 )
+
+
 ENDIF()
 
 

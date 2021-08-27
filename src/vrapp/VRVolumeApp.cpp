@@ -476,6 +476,11 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
     m_depthTextures.push_back(new DepthTexture);
   }
 
+  int window_w  =renderState.index().getValue("WindowWidth");
+  int window_h  =renderState.index().getValue("WindowHeight");
+  int framebuffer_w  =renderState.index().getValue("FramebufferWidth");
+  int framebuffer_h  =renderState.index().getValue("FramebufferHeight");
+
   //setup projection
   m_projection_mtrx = glm::make_mat4(renderState.getProjectionMatrix());
   m_model_view = glm::make_mat4(renderState.getViewMatrix());
