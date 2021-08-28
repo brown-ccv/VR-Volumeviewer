@@ -45,6 +45,56 @@ message("==== CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/zlib/zlib")
 message("xxxxxx CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}")
 message("xxxxxx CMAKE_VERSION ${CMAKE_VERSION}")
 
+#GLEW
+# Configure external project
+IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/glew/glew)
+execute_process(
+    COMMAND ${CMAKE_COMMAND} -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} ${CMAKE_SOURCE_DIR}/glew
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/glew
+)
+
+# Build external project
+execute_process(
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/glew
+)
+ENDIF()
+
+#glfw
+# Configure external project
+IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/glfw/glfw)
+execute_process(
+    COMMAND ${CMAKE_COMMAND} -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} ${CMAKE_SOURCE_DIR}/glfw
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/glfw
+)
+
+# Build external project
+execute_process(
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/glfw
+)
+ENDIF()
+
+if (WIN32)
+# some windows systems are no sure they are win32, forced it to be aware of
+ message("====== MINVR IS WIN 32")
+else()
+ message("====== MINVR IS NOT WIN 32")
+endif (WIN32)
+
+#MinVR
+# Configure external project
+IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/MinVR/MinVR)
+execute_process(
+    COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} ${CMAKE_SOURCE_DIR}/MinVR
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/MinVR
+)
+
+# Build external project
+execute_process(
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/MinVR
+)
+ENDIF()
+
+
 ### ZLIB
 message("==== ZLIB CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/zlib/zlib")
 # Configure external project
@@ -68,20 +118,6 @@ message("++++ ${CMAKE_COMMAND} -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} -D
  )
 ENDIF()
 
-#GLEW
-# Configure external project
-IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/glew/glew)
-execute_process(
-    COMMAND ${CMAKE_COMMAND} -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} ${CMAKE_SOURCE_DIR}/glew
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/glew
-)
-
-# Build external project
-execute_process(
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/glew
-)
-ENDIF()
-
 #TEEM
 # Configure external project
 IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/teem/teem)
@@ -93,20 +129,6 @@ execute_process(
 # Build external project
 execute_process(
     COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/teem
-)
-ENDIF()
-
-#glfw
-# Configure external project
-IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/glfw/glfw)
-execute_process(
-    COMMAND ${CMAKE_COMMAND} -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} ${CMAKE_SOURCE_DIR}/glfw
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/glfw
-)
-
-# Build external project
-execute_process(
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/glfw
 )
 ENDIF()
 
@@ -183,20 +205,6 @@ execute_process(
 # Build external project
 execute_process(
     COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/glm
-)
-ENDIF()
-
-#MinVR
-# Configure external project
-IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/MinVR/MinVR)
-execute_process(
-    COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} ${CMAKE_SOURCE_DIR}/MinVR
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/MinVR
-)
-
-# Build external project
-execute_process(
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/MinVR
 )
 ENDIF()
 
