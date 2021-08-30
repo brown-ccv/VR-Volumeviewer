@@ -14,6 +14,7 @@ message(STATUS "ZLIB_INCLUDE_DIR  ${ZLIB_INCLUDE_DIR}")
 find_library(ZLIB_LIBRARY
        NAMES
 	   zlib
+	   zlibd
 	   HINTS
         ${CMAKE_INSTALL_PREFIX}/lib/
 )  

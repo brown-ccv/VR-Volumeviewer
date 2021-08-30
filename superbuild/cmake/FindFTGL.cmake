@@ -14,6 +14,7 @@ message(STATUS "FTGL_INCLUDE_DIR  ${FTGL_INCLUDE_DIR}")
 find_library(FTGL_LIBRARY
        NAMES
 	   ftgl
+	   ftgld
 	   HINTS
         ${CMAKE_INSTALL_PREFIX}/lib/
 )  

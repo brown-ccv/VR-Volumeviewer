@@ -14,6 +14,7 @@ message(STATUS "GLEW_INCLUDE_DIR  ${GLEW_INCLUDE_DIR}")
 find_library(GLEW_LIBRARY
        NAMES
 	   glew32
+	   glew32d
 	   HINTS
         ${CMAKE_INSTALL_PREFIX}/lib/
 )  

@@ -16,7 +16,9 @@ find_library(Model_LIBRARY
        NAMES
 	   Model
 	   HINTS
-        ${CMAKE_CURRENT_SOURCE_DIR}/Model
+       ${CMAKE_CURRENT_SOURCE_DIR}/Model
+	   ${CMAKE_CURRENT_SOURCE_DIR}/Model/Debug
+	   ${CMAKE_CURRENT_SOURCE_DIR}/Model/Release
 )  
 
 include(FindPackageHandleStandardArgs)

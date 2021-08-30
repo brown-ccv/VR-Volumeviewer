@@ -12,4 +12,6 @@ set(EXTERNAL_DIR_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/../install/)
 build_glm_subproject(
   NAME glm
   URL "https://github.com/g-truc/glm"
+  BUILD_ARGS
+  -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 )

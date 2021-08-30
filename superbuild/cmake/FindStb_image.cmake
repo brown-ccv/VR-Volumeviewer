@@ -7,6 +7,8 @@ find_library(Stb_image_LIBRARY
 	   stb_image
 	   HINTS
         ${CMAKE_CURRENT_SOURCE_DIR}/stb_image
+		${CMAKE_CURRENT_SOURCE_DIR}/stb_image/Debug
+		${CMAKE_CURRENT_SOURCE_DIR}/stb_image/Release
 )  
 
 include(FindPackageHandleStandardArgs)

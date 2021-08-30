@@ -20,6 +20,27 @@ class CreateMovieAction;
 enum SAVE_MODAL {SAVE_NONE, SAVE_SESSION, SAVE_TRFR_FNC};
 enum LOAD_MODAL {LOAD_NONE, LOAD_SESSION, LOAD_TRFR_FNC };
 
+struct Window_Properties
+{
+  
+  int window_w = 0;
+  int window_h = 0;
+  int framebuffer_w = 0;
+  int framebuffer_h = 0;
+
+  bool operator==(Window_Properties& other)
+  {
+    if (other.window_w == window_w &&
+      other.window_h == window_h &&
+      other.framebuffer_w == framebuffer_w &&
+      other.framebuffer_h == framebuffer_h)
+    {
+      return true;
+    }
+    return false;
+  }
+};
+
 class UIView
 {
 public:
@@ -30,8 +51,8 @@ public:
   void draw_ui_callback();
   void init_ui(bool is2D, bool lookingGlass);
   void update_ui(int numVolumes);
-  void render_2D();
-  void render_3D(glm::mat4& space_matrix);
+  void render_2D(Window_Properties& window_properties);
+  void render_3D(glm::mat4& space_matrix, Window_Properties& window_properties);
   void update_3D_ui_frame();
 
   void set_cursor_pos(glm::vec2&);

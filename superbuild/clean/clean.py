@@ -19,6 +19,7 @@ current_dir = pathlib.Path(__file__).parent.resolve()
 parent_dir = dirname(dirname(abspath(__file__)))
 print("working directory " + parent_dir)
 folders_to_operate = ["CPPFSD","freetype","FTGL","glew","glfw","glm","MinVR","opencv","teem","vr-imgui","zlib"]
+files_to_exclude = ["CMakeLists.txt","macros.cmake","minvr_patch_082021.patch"]
 
 for filename in os.listdir(parent_dir):
     file_path=os.path.join(parent_dir, filename)
@@ -36,7 +37,7 @@ for filename in os.listdir(parent_dir):
     elif os.path.isdir(file_path) and not file_path.endswith("cmake") and not file_path.endswith("clean"):
         shutil.rmtree(file_path)
     else:
-        if not os.path.isdir(file_path) and not file_path.endswith("CMakeLists.txt") and not file_path.endswith("macros.cmake"):
+        if not os.path.isdir(file_path) and filename not in files_to_exclude:
              print("to delete file"+file_path)
              os.remove(file_path)
 

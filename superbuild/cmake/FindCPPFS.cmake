@@ -14,6 +14,7 @@ message(STATUS "CPPFS_INCLUDE_DIR  ${CPPFS_INCLUDE_DIR}")
 find_library(CPPFS_LIBRARY
        NAMES
 	   cppfs
+	   cppfsd
 	   HINTS
         ${CMAKE_INSTALL_PREFIX}/lib/
 )  
