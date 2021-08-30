@@ -17,7 +17,9 @@ find_library(GLMLoader_LIBRARY
        NAMES
 	   GLMLoader
 	   HINTS
-        ${CMAKE_CURRENT_SOURCE_DIR}/GLMLoader
+       ${CMAKE_CURRENT_SOURCE_DIR}/GLMLoader
+	   ${CMAKE_CURRENT_SOURCE_DIR}/GLMLoader/Debug
+	   ${CMAKE_CURRENT_SOURCE_DIR}/GLMLoader/Release
 )  
 
 

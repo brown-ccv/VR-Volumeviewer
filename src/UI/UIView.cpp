@@ -711,11 +711,13 @@ void UIView::update_ui(int numVolumes)
 
 }
 
-void UIView::render_2D()
+void UIView::render_2D(Window_Properties& window_properties)
 {
   if (m_show_menu)
   {
-    m_menu_handler->drawMenu();
+    m_menu_handler->drawMenu(window_properties.window_w, window_properties.window_h,
+      window_properties.framebuffer_w, window_properties.framebuffer_h);
+
     if (m_use_transferfunction) {
       tfn_widget[m_selectedTrnFnc].drawLegend();
     }
@@ -723,7 +725,7 @@ void UIView::render_2D()
 
 }
 
-void UIView::render_3D(glm::mat4& space_matrix)
+void UIView::render_3D(glm::mat4& space_matrix, Window_Properties& window_properties)
 {
   //render menu	
 
@@ -731,7 +733,8 @@ void UIView::render_3D(glm::mat4& space_matrix)
   {
     glMatrixMode(GL_MODELVIEW);
     glLoadMatrixf(glm::value_ptr(space_matrix));
-    m_menu_handler->drawMenu();
+    m_menu_handler->drawMenu(window_properties.window_w, window_properties.window_h,
+      window_properties.framebuffer_w, window_properties.framebuffer_h);
   }
 
 }

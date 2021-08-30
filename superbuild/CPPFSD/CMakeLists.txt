@@ -12,4 +12,6 @@ set(EXTERNAL_DIR_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/../install/bin)
 build_CPPFSD_subproject(
    NAME CPPFSD
    URL https://github.com/cginternals/cppfs.git
+   BUILD_ARGS
+   -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 )

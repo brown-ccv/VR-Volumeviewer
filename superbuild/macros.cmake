@@ -26,7 +26,7 @@ endmacro()
 macro(build_git_subproject)
   # See cmake_parse_arguments docs to see how args get parsed here:
   #    https://cmake.org/cmake/help/latest/command/cmake_parse_arguments.html
-  set(oneValueArgs NAME URL)
+  set(oneValueArgs NAME URL )
   set(multiValueArgs BUILD_ARGS DEPENDS_ON)
   cmake_parse_arguments(BUILD_SUBPROJECT "" "${oneValueArgs}"
                         "${multiValueArgs}" ${ARGN})
@@ -44,7 +44,7 @@ macro(build_git_subproject)
     GIT_REPOSITORY  ${BUILD_SUBPROJECT_URL}
     LIST_SEPARATOR | # Use the alternate list separator
     CMAKE_ARGS
-      -DCMAKE_BUILD_TYPE=Release
+     
       -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
       -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
       -DCMAKE_INSTALL_PREFIX:PATH=${SUBPROJECT_INSTALL_PATH}
@@ -91,7 +91,7 @@ macro(build_minvr_subproject)
     GIT_REPOSITORY  ${BUILD_SUBPROJECT_URL}
     LIST_SEPARATOR | # Use the alternate list separator
     CMAKE_ARGS
-      -DCMAKE_BUILD_TYPE=Release
+      
       -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
       -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
       -DCMAKE_INSTALL_PREFIX:PATH=${SUBPROJECT_INSTALL_PATH}
@@ -138,7 +138,7 @@ macro(build_CPPFSD_subproject)
     GIT_REPOSITORY  ${BUILD_SUBPROJECT_URL}
     LIST_SEPARATOR | # Use the alternate list separator
     CMAKE_ARGS
-      -DCMAKE_BUILD_TYPE=Release
+     
       -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
       -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
       -DCMAKE_INSTALL_PREFIX:PATH=${SUBPROJECT_INSTALL_PATH}
@@ -186,7 +186,7 @@ macro(build_svn_subproject)
     SVN_REPOSITORY   ${BUILD_SUBPROJECT_URL}
     LIST_SEPARATOR | # Use the alternate list separator
     CMAKE_ARGS
-      -DCMAKE_BUILD_TYPE=Release
+     
       -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
       -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
       -DCMAKE_INSTALL_PREFIX:PATH=${SUBPROJECT_INSTALL_PATH}
@@ -234,7 +234,7 @@ macro(build_glew_subproject)
     LIST_SEPARATOR | # Use the alternate list separator
     CMAKE_ARGS
 	  -S ${CMAKE_CURRENT_SOURCE_DIR}/glew/source/build/cmake
-      -DCMAKE_BUILD_TYPE=Release
+    
       -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
       -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
       -DCMAKE_INSTALL_PREFIX:PATH=${SUBPROJECT_INSTALL_PATH}
@@ -279,7 +279,7 @@ macro(build_glfw_subproject)
 	GIT_TAG gpu-affinity
     LIST_SEPARATOR | # Use the alternate list separator
     CMAKE_ARGS
-      -DCMAKE_BUILD_TYPE=Release
+
       -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
       -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
       -DCMAKE_INSTALL_PREFIX:PATH=${SUBPROJECT_INSTALL_PATH}
@@ -329,7 +329,7 @@ macro(build_glm_subproject)
 	  GIT_TAG 0.9.9.0
     LIST_SEPARATOR | # Use the alternate list separator
     CMAKE_ARGS
-      -DCMAKE_BUILD_TYPE=Release
+
       -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
       -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
       -DCMAKE_INSTALL_PREFIX:PATH=${SUBPROJECT_INSTALL_PATH}

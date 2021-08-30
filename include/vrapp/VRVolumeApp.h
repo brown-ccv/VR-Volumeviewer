@@ -16,6 +16,7 @@ class UIView;
 class CreateMovieAction;
 class VolumeRenderer;
 class DepthTexture;
+class Window_Properties;
 
 class VRVolumeApp
 {
@@ -265,5 +266,7 @@ protected:
   std::string m_directiort_path;
 
   std::string m_current_file_loaded;
+
+  Window_Properties* m_window_properties;
 };
 #endif

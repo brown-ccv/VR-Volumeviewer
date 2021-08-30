@@ -15,5 +15,5 @@ build_git_subproject(
    BUILD_ARGS
     -DBUILD_SHARED_LIBS=OFF
 	-DFREETYPE_INCLUDE_DIR_ft2build=${CMAKE_INSTALL_PREFIX}/include/freetype2
-   
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 )

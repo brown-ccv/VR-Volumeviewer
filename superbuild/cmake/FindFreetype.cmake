@@ -14,6 +14,7 @@ message(STATUS "Freetype_INCLUDE_DIR  ${Freetype_INCLUDE_DIR}")
 find_library(Freetype_LIBRARY
        NAMES
 	   freetype
+	   freetyped
 	   HINTS
         ${CMAKE_INSTALL_PREFIX}/lib/
 )  

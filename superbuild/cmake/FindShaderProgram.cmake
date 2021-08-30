@@ -16,6 +16,8 @@ find_library(ShaderProgram_LIBRARY
 	   ShaderProgram
 	   HINTS
         ${CMAKE_CURRENT_SOURCE_DIR}/ShaderProgram
+		${CMAKE_CURRENT_SOURCE_DIR}/ShaderProgram/Debug
+	   ${CMAKE_CURRENT_SOURCE_DIR}/ShaderProgram/Release
 )  
 
 include(FindPackageHandleStandardArgs)
