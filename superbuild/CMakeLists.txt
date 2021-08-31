@@ -36,12 +36,15 @@ set(DEFAULT_BUILD_COMMAND cmake -G "${CMAKE_GENERATOR}" . )
 
 if(NOT CMAKE_BUILD_TYPE )
  set(CMAKE_BUILD_TYPE Debug)
- set(DEBUG_SUFFIX "d") 
 endif()
 
- 
 
 message("CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
+
+if(NOT DEBUG_SUFFIX AND CMAKE_BUILD_TYPE MATCHES "Debug")
+ set(DEBUG_SUFFIX "d")
+endif()
+
 message("DEBUG_SUFFIX ${DEBUG_SUFFIX}")
 
 get_filename_component(INSTALL_DIR_ABSOLUTE
@@ -65,21 +68,22 @@ execute_process(
     COMMAND ${CMAKE_COMMAND} 
     -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} 
     -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} 
-    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} 
     ${CMAKE_SOURCE_DIR}/glew
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/glew 
 )
 
-# Build external project
 execute_process( COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/glew  --config Debug )
-execute_process( COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/glew  --config Release )
+execute_process( COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/glew  --config Release ) 
+
 ENDIF()
 
+
 #glfw
-# Configure external project
+#Configure external project
 IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/glfw/glfw)
 execute_process(
-    COMMAND ${CMAKE_COMMAND} 
+    COMMAND ${CMAKE_COMMAND}
     -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} 
     -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} 
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}

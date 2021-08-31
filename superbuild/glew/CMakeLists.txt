@@ -15,7 +15,6 @@ set(EXTERNAL_DIR_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/../install/)
 build_glew_subproject(
   NAME glew
   URL "https://sourceforge.net/projects/glew/files/glew/snapshots/glew-20190928.zip"
-  BUILD_ARGS
-  -DCMAKE_BUILD_TYPE="Release"
-  -DCMAKE_INSTALL_CONFIG_NAME="Release"
+ 
+ 
 )
