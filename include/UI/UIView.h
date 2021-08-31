@@ -6,9 +6,10 @@
 #include "imfilebrowser.h"
 #endif
 #include "ImGuiFileBrowser.h"
-#include "transferfunction/transfer_function_multichannel_widget.h"
-#include "transferfunction/transfer_function_widget.h"
-
+#include "UIHelpers/transfer_function_multichannel_widget.h"
+#include "UIHelpers/transfer_function_widget.h"
+#include "UIHelpers/histogram.h"
+#include <stdint.h>
 #include <fstream>
 
 class VRVolumeApp;
@@ -18,6 +19,27 @@ class CreateMovieAction;
 
 enum SAVE_MODAL {SAVE_NONE, SAVE_SESSION, SAVE_TRFR_FNC};
 enum LOAD_MODAL {LOAD_NONE, LOAD_SESSION, LOAD_TRFR_FNC };
+
+struct Window_Properties
+{
+  
+  int window_w = 0;
+  int window_h = 0;
+  int framebuffer_w = 0;
+  int framebuffer_h = 0;
+
+  bool operator==(Window_Properties& other)
+  {
+    if (other.window_w == window_w &&
+      other.window_h == window_h &&
+      other.framebuffer_w == framebuffer_w &&
+      other.framebuffer_h == framebuffer_h)
+    {
+      return true;
+    }
+    return false;
+  }
+};
 
 class UIView
 {
@@ -29,10 +51,8 @@ public:
   void draw_ui_callback();
   void init_ui(bool is2D, bool lookingGlass);
   void update_ui(int numVolumes);
-  void render_2D( int window_width,int window_height
-                  ,int framebuffer_width,int framebuffer_heigh);
-  void render_3D(glm::mat4& space_matrix, int window_width,int window_height
-                  ,int framebuffer_width,int framebuffer_height);
+  void render_2D(Window_Properties& window_properties);
+  void render_3D(glm::mat4& space_matrix, Window_Properties& window_properties);
   void update_3D_ui_frame();
 
   void set_cursor_pos(glm::vec2&);
@@ -60,6 +80,8 @@ public:
   void update_slices(float fps);
 
   bool is_animated();
+
+  void set_is_animated(bool animated);
 
   bool is_stopped();
 
@@ -90,6 +112,8 @@ public:
 
   void remove_character();
 
+  void compute_new_histogram_view();
+
 private:
 
   struct MyTransFerFunctions
@@ -111,6 +135,7 @@ private:
   void load_trans_functions(std::ifstream& loadPath);
 
   void load_user_session(std::string filePath);
+
 
   VRVolumeApp& m_controller_app;
   VRMenuHandler* m_menu_handler;
@@ -158,7 +183,7 @@ private:
 
   bool m_initialized;
 
-  bool m_trn_fct_name_open;
+  bool m_trn_fct_opitions_window;
 
   bool m_save_trnfct_open;  
 
@@ -182,8 +207,22 @@ private:
 
   
   
-  int m_column_selected = 0;
+  bool m_column_selected[MAX_COLUMS];
+
+  unsigned int m_column_selection_state;
+  bool m_compute_new_histogram;
+
+  Histogram m_histogram;
+
+  void adjust_transfer_function_to_histogram();
+
+  vec2f m_histogram_point_1;
+  vec2f m_histogram_point_2;
+  float m_histogram_quantiles[2]; 
+
   
+
 };
 
+ 
 #endif

@@ -23,13 +23,10 @@
 #include "loader/VRDataLoader.h"
 
 
-<<<<<<< HEAD
-=======
 #include <cppfs/fs.h>
 #include <cppfs/FilePath.h>
 
 
->>>>>>> master
 
 VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(argc, argv), m_vrVolumeApp(nullptr)
 {
@@ -554,15 +551,6 @@ std::cout << "init vizapp " << std::endl;
     }
     
     m_vrVolumeApp->initialize_textures();
-  float m_window_width  = renderState.index().getValue("WindowWidth");
-  float  m_window_height =  renderState.index().getValue("WindowHeight");
-  float  m_window_framebuffer_width = renderState.index().getValue("FramebufferWidth");
-  float  m_window_framebuffer_height = renderState.index().getValue("FramebufferHeight");;
-   glm::vec2 window_size(m_window_width,m_window_height);
-  glm::vec2 frame_buffer_size(m_window_framebuffer_width,m_window_framebuffer_height);
-
-m_vrVolumeApp->set_frame_buffer_size(frame_buffer_size);
-m_vrVolumeApp->set_window_size(window_size);
     m_vrVolumeApp->update_3D_ui();
     m_vrVolumeApp->update_trackBall_state();
     m_vrVolumeApp->update_animation();

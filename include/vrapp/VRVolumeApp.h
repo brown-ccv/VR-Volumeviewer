@@ -16,6 +16,7 @@ class UIView;
 class CreateMovieAction;
 class VolumeRenderer;
 class DepthTexture;
+class Window_Properties;
 
 class VRVolumeApp
 {
@@ -149,8 +150,9 @@ public:
 
   std::string& get_loaded_file();
 
-  void set_window_size(glm::vec2& windowSize);
-  void set_frame_buffer_size(glm::vec2& windowSize);
+  std::vector< Volume* >& get_volume(int volume);
+
+  
 
 protected:
 
@@ -172,6 +174,8 @@ protected:
 
   void animated_render(int, int);
   void normal_render_volume(int, int);
+
+  
 
   std::vector < std::vector< Volume* >> m_volumes;
   std::vector<std::string> m_description;
@@ -202,7 +206,7 @@ protected:
   bool m_animated;
   float m_threshold;
   int m_descriptionHeight;
-  float m_stopped;
+  
   float m_frame;
   float m_speed;
   unsigned int m_rendercount;
@@ -267,5 +271,7 @@ protected:
   std::string m_directiort_path;
 
   std::string m_current_file_loaded;
+
+  Window_Properties* m_window_properties;
 };
 #endif

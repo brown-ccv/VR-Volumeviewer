@@ -56,8 +56,10 @@ set(source_files
   src/render/DepthTexture.cpp
   src/interaction/Labels.cpp
   src/render/FontHandler.cpp
-  libs/transferfunction/transfer_function_widget.cpp
-  libs/transferfunction/transfer_function_multichannel_widget.cpp
+  libs/UIHelpers/transfer_function_widget.cpp
+  libs/UIHelpers/transfer_function_multichannel_widget.cpp
+  libs/UIHelpers/histogram.cpp
+  libs/UIHelpers/Vec2.cpp
   src/interaction/ArcBall.cpp
   src/interaction/HelperFunctions.cpp
   src/interaction/CreateMovieAction.cpp
@@ -81,9 +83,11 @@ set(header_files
   include/render/DepthTexture.h
   include/interaction/Labels.h
   include/render/FontHandler.h
-  libs/transferfunction/transfer_function_widget.h
-  libs/transferfunction/transfer_function_multichannel_widget.h
-  libs/transferfunction/embedded_colormaps.h
+  libs/UIHelpers/transfer_function_widget.h
+  libs/UIHelpers/transfer_function_multichannel_widget.h
+  libs/UIHelpers/embedded_colormaps.h
+  libs/UIHelpers/histogram.h
+  libs/UIHelpers/Vec2.h
   include/interaction/ArcBall.h
   include/interaction/HelperFunctions.h
   include/interaction/CreateMovieAction.h

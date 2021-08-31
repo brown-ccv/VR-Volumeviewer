@@ -1,7 +1,10 @@
+message(STATUS "GLMLOADER GLEW INCLUDE: ${GLEW_INCLUDE_DIR}")
+set(CMAKE_CXX_STANDARD 11)
 include_directories(
   ../Model
    ../Texture
   ../ShaderProgram
+  ${GLEW_INCLUDE_DIR}
 )
 
 add_library( 
@@ -12,7 +15,7 @@ VertexBuffer.cpp
 VertexBuffer.h
 )
 
-target_include_directories(GLMLoader PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(GLMLoader PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" )
 
 
 install(FILES GLMLoader.h VertexBuffer.h   DESTINATION ${CMAKE_INSTALL_PREFIX}/GLMLoader/include)

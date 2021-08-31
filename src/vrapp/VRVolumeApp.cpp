@@ -48,8 +48,8 @@
 VRVolumeApp::VRVolumeApp() :m_mesh_model(nullptr), m_clip_max{ 1.0f }, m_clip_min{ 0.0f }, m_clip_ypr{ 0.0f }, m_clip_pos{ 0.0 }, m_wasd_pressed(0),
 m_lookingGlass(false), m_isInitailized(false), m_speed(0.01f), m_movieAction(nullptr), m_moviename("movie.mp4"), m_noColor(0.0f),
 m_ambient(0.2f, 0.2f, 0.2f, 1.0f), m_diffuse(0.5f, 0.5f, 0.5f, 1.0f), m_ui_view(nullptr), m_animated(false), m_numVolumes(0), m_selectedVolume(0),
-m_multiplier(1.0f), m_threshold(0.0f), m_frame(0.0f), m_use_multi_transfer(false), m_clipping(false), m_show_menu(true),
-m_is2d(true)
+m_multiplier(1.0f), m_threshold(0.0f), m_frame(0.0f), m_use_multi_transfer(false), m_clipping(false), m_show_menu(true), 
+m_window_properties(nullptr)
 {
   m_renders.push_back(new VolumeSliceRenderer());
   m_renders.push_back(new VolumeRaycastRenderer());
@@ -61,6 +61,8 @@ VRVolumeApp::~VRVolumeApp()
   {
     delete m_ui_view;
   }
+
+  delete m_window_properties;
 }
 
 
@@ -80,6 +82,7 @@ void VRVolumeApp::initialize()
       m_ui_view = new  UIView(*this);
       m_ui_view->init_ui(m_is2d, m_lookingGlass);
     }
+    m_window_properties = new Window_Properties();
     m_isInitailized = true;
     m_rendercount = 0;
     std::cout << "initialize end" << std::endl;
@@ -247,9 +250,10 @@ bool VRVolumeApp::is_show_menu()
   return m_show_menu;
 }
 
-void VRVolumeApp::set_is_animated(bool aniamted)
+void VRVolumeApp::set_is_animated(bool animated)
 {
-  m_animated = aniamted;
+  m_animated = animated;
+  m_ui_view->set_is_animated(m_animated);
 }
 
 void VRVolumeApp::set_threshold(float threshold)
@@ -418,6 +422,11 @@ std::string& VRVolumeApp::get_loaded_file()
   return m_current_file_loaded;
 }
 
+std::vector< Volume* >& VRVolumeApp::get_volume(int volume)
+{
+  return m_volumes[volume];
+}
+
 void VRVolumeApp::intialize_ui()
 {
   if (m_ui_view)
@@ -511,6 +520,11 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
     m_depthTextures.push_back(new DepthTexture);
   }
 
+  int window_w  =renderState.index().getValue("WindowWidth");
+  int window_h  =renderState.index().getValue("WindowHeight");
+  int framebuffer_w  =renderState.index().getValue("FramebufferWidth");
+  int framebuffer_h  =renderState.index().getValue("FramebufferHeight");
+
   //setup projection
   m_projection_mtrx = glm::make_mat4(renderState.getProjectionMatrix());
   m_model_view = glm::make_mat4(renderState.getViewMatrix());
@@ -600,18 +614,12 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
   //render labels
   render_labels(renderState);
 
-  if (m_ui_view && !m_is2d)
+  /*if (m_ui_view && !m_is2d)
   {
 
     glm::mat4 viewMatrix = glm::make_mat4(renderState.getViewMatrix());
-    int width = renderState.index().getValue("FramebufferWidth");
-          int height = renderState.index().getValue("FramebufferHeight");
-           int wwidth = renderState.index().getValue("WindowWidth");
-          int wheigth = renderState.index().getValue("WindowHeight");
-
-
-    m_ui_view->render_3D(viewMatrix,wwidth,wheigth,width,height);
-  }
+    m_ui_view->render_3D(viewMatrix);
+  }*/
 
 
   m_depthTextures[m_rendercount]->copyDepthbuffer();
@@ -619,15 +627,13 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
 
   render_volume(renderState);
 
-  if (m_ui_view && m_is2d)
-  {
-    int width = renderState.index().getValue("FramebufferWidth");
-    int height = renderState.index().getValue("FramebufferHeight");
-    int wwidth = renderState.index().getValue("WindowWidth");
-    int wheigth = renderState.index().getValue("WindowHeight");
 
-    m_ui_view->render_2D(wwidth,wheigth,width,height);
-  }
+  render_ui(renderState);
+
+  /*if (m_ui_view && m_is2d)
+  {
+    m_ui_view->render_2D();
+  }*/
 
   //drawTime
   if (m_is2d && m_animated) {
@@ -701,6 +707,7 @@ void VRVolumeApp::render_mesh(const MinVR::VRGraphicsState& renderState)
 void VRVolumeApp::render_volume(const MinVR::VRGraphicsState& renderState)
 {
   //render volumes
+ // renderState->getProjectionMatrix();
   for (auto ren : m_renders) {
     ren->set_multiplier(m_ui_view->get_multiplier());
     ren->set_threshold(m_ui_view->get_threshold());
@@ -754,6 +761,7 @@ void VRVolumeApp::normal_render_volume(int tfn, int vol)
   }
 }
 
+
 void VRVolumeApp::animated_render(int tfn, int vol)
 {
   unsigned int active_volume = floor(m_frame);
@@ -787,7 +795,7 @@ void VRVolumeApp::animated_render(int tfn, int vol)
           }
         }
 
-        std::cout << "render" << std::endl;
+        
         m_renders[renderMethod]->render(m_volumes[vol][active_volume], m_volumes[vol][active_volume]->get_volume_mv(), m_projection_mtrx, m_volumes[vol][active_volume]->get_volume_scale().x / m_volumes[vol][active_volume]->get_volume_scale().z,
           lut, m_ui_view->get_render_channel());
       }
@@ -801,23 +809,24 @@ void VRVolumeApp::render_ui(const MinVR::VRGraphicsState& renderState)
   //render menu	
   glm::mat4 mvMatrix = glm::make_mat4(renderState.getViewMatrix());
 
-  if (m_ui_view)
-  {
+  if (m_ui_view && m_window_properties)
+  { 
+    m_window_properties->window_w = renderState.index().getValue("WindowWidth");
+    m_window_properties->window_h = renderState.index().getValue("WindowHeight");
+    m_window_properties->framebuffer_w = renderState.index().getValue("FramebufferWidth");
+    m_window_properties->framebuffer_h = renderState.index().getValue("FramebufferHeight");
+  
+
     if (!m_is2d)
-    {
-      m_ui_view->render_3D(mvMatrix,m_window_size.x,m_window_size.y,m_frame_buffer_size.x,
-      m_frame_buffer_size.y);
+    { 
+      m_ui_view->render_3D(mvMatrix,*m_window_properties);
     }
     else
     {
-      m_ui_view->render_2D(m_window_size.x,m_window_size.y,m_frame_buffer_size.x,
-      m_frame_buffer_size.y);
+      m_ui_view->render_2D(*m_window_properties);
     }
   }
 
-
-  m_depthTextures[m_rendercount]->copyDepthbuffer();
-  (static_cast <VolumeRaycastRenderer*> (m_renders[1]))->setDepthTexture(m_depthTextures[m_rendercount]);
 }
 
 
@@ -826,7 +835,7 @@ void VRVolumeApp::update_frame_state()
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glLightfv(GL_LIGHT0, GL_POSITION, m_light_pos);
-  if (m_animated && !m_stopped)
+  if (m_animated && !m_ui_view->is_stopped())
   {
     m_frame += m_speed;
     if (m_frame > m_volumes[m_selectedVolume].size() - 1) m_frame = 0.0;
@@ -853,9 +862,9 @@ void VRVolumeApp::update_2D_ui()
 {
   if (m_show_menu && m_ui_view)
   {
-    if (m_is2d)
+    if (m_is2d && m_window_properties)
     {
-      m_ui_view->render_2D(m_window_size.x,m_window_size.y,m_frame_buffer_size.x,m_frame_buffer_size.y);
+      m_ui_view->render_2D(*m_window_properties);
     }
   }
 }
@@ -896,10 +905,12 @@ void VRVolumeApp::add_lodaded_textures()
   
 
     }
-       std::cerr << "VRVolumeApp::add_lodaded_textures END" << std::endl;
+    
+
     m_threads.clear();
     m_promises.clear();
     m_futures.clear();
+  //  m_ui_view->compute_new_histogram();
   }
 }
 
@@ -1095,12 +1106,4 @@ void VRVolumeApp::do_grab(glm::mat4& newPose)
   }
   m_controller_pose = newPose;
 }
-void VRVolumeApp::set_window_size(glm::vec2& windowSize)
-{
-m_window_size = windowSize;
-}
-  
-void VRVolumeApp::set_frame_buffer_size(glm::vec2& frameBSize)
-{
-m_frame_buffer_size = frameBSize;
-}
+
