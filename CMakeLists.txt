@@ -180,13 +180,6 @@ set(LIBRARIES
 message(STATUS "cppfs_INCLUDE_DIR ${cppfs_INCLUDE_DIRS}")
 message(STATUS "cppfs_LIBRARY ${cppfs_LIBRARIES}")
 
-#if (UNIX)
-#   if(NOT APPLE)
-#	set(LIBRARIES
-#		${LIBRARIES}
-#		stdc++fs
-#	)
-#endif (UNIX)
 
 if(WITH_TEEM)
 	FIND_PACKAGE(Teem REQUIRED )
