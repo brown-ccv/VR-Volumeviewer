@@ -1,16 +1,21 @@
 
-#Using 3.9 to get a modern version of FindOpenGL.cmake
-cmake_minimum_required (VERSION 3.15) 
+#Using 3.19 to get a modern version of FindOpenGL.cmake
+cmake_minimum_required (VERSION 3.19) 
 
+project(VR-Volumeviewer)
 
-set(CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR}/install)
+set(CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR}/install_${CMAKE_SYSTEM_NAME})
 
 include(ExternalProject)
 include(GNUInstallDirs)
 
+message("CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
+
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT OR "${CMAKE_INSTALL_PREFIX}" STREQUAL "")
-    set (CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "default install path" FORCE )
+    set (CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install_${CMAKE_SYSTEM_NAME}" CACHE PATH "default install path" FORCE )
 endif()
+
+message("CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}")
 
 list(INSERT CMAKE_PREFIX_PATH 0 ${CMAKE_INSTALL_PREFIX})
 list(APPEND CMAKE_MODULE_PATH  ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_INSTALL_PREFIX})
@@ -29,8 +34,6 @@ if (UNIX)
 endif (UNIX)
 
 #add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-
-project(VR-Volumeviewer)
 
 set(DEFAULT_BUILD_COMMAND cmake -G "${CMAKE_GENERATOR}" . )
 
@@ -384,7 +387,7 @@ if(OpenCV_FOUND)
    set(OPENCV_PATH ${_OpenCV_LIB_PATH} )
    set(OPENCV_SUFIX "453" )
   elseif(APPLE)
-   set(OPENCV_PATH "${CMAKE_BINARY_DIR}/install/lib")
+   set(OPENCV_PATH "${CMAKE_BINARY_DIR}/install_${CMAKE_SYSTEM_NAME}/lib")
    set(OPENCV_PREFIX "lib" )
    unset(DEBUG_SUFFIX)
    #set(OPENCV_SUFIX "4.5.3" )
@@ -618,9 +621,9 @@ message(STATUS "header_files ${header_files}")
  ADD_DEFINITIONS(-DWIN32 -D_WINDOWS)
 endif (WIN32)
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/install/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/install/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/install/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/install_${CMAKE_SYSTEM_NAME}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/install_${CMAKE_SYSTEM_NAME}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/install_${CMAKE_SYSTEM_NAME}/bin)
 
 
 add_executable(${PROJECT_NAME} ${source_files} ${header_files})
@@ -632,7 +635,7 @@ file(COPY "${CMAKE_SOURCE_DIR}/../shaders" DESTINATION "${INSTALL_DIR_ABSOLUTE}/
 
 enable_testing()
 
-add_test(NAME ExistsTest COMMAND ${CMAKE_BINARY_DIR}/install/bin/${PROJECT_NAME} -t)
+add_test(NAME ExistsTest COMMAND ${CMAKE_BINARY_DIR}/install_${CMAKE_SYSTEM_NAME}/bin/${PROJECT_NAME} -t)
 set_tests_properties(
 	ExistsTest
 	PROPERTIES PASS_REGULAR_EXPRESSION "VR-Volumeviewer exists"
