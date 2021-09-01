@@ -1,27 +1,20 @@
-name: Winodws VR-Volumeviewer Superbuild CI
+name: superbuild-and-test
 
 on:  workflow_dispatch
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Release
+  BUILD_TYPE: Debug
 
 jobs:
-  build:
+  build_windows:
     # The CMake configure and build commands are platform agnostic and should work equally
     # well on Windows or Mac.  You can convert this to a matrix build if you need
     # cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-    strategy:
-      # O.S matrix
-      matrix:
-        config:
-          - os: windows-2019
-          - os: macos-latest
     
-    runs-on: ${{ matrix.config.os }} 
+    runs-on: windows-2019
 
-    if: ${{  matrix.config.os=="windows-2019" }}
     steps:
     - uses: actions/checkout@v2
     - uses: ilammy/msvc-dev-cmd@v1
@@ -51,8 +44,15 @@ jobs:
       # Execute tests defined by the CMake configuration.  
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run:  ctest
+      
+  build_mac:
+    # The CMake configure and build commands are platform agnostic and should work equally
+    # well on Windows or Mac.  You can convert this to a matrix build if you need
+    # cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     
-    if: ${{  matrix.config.os=="mac-latest" }}
+    runs-on: macos-latest
+
     steps:
     - uses: actions/checkout@v2
     
@@ -76,7 +76,10 @@ jobs:
            make
 
     - name: Test
-      working-directory: ${{github.workspace}}/superbuild/install_Darwin/bin
+      working-directory: ${{github.workspace}}/superbuild/install/bin
       # Execute tests defined by the CMake configuration.  
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run:  ctest
+   
+  
+  
