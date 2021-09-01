@@ -36,12 +36,15 @@ set(DEFAULT_BUILD_COMMAND cmake -G "${CMAKE_GENERATOR}" . )
 
 if(NOT CMAKE_BUILD_TYPE )
  set(CMAKE_BUILD_TYPE Debug)
- set(DEBUG_SUFFIX "d") 
 endif()
 
- 
 
 message("CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
+
+if(NOT DEBUG_SUFFIX AND CMAKE_BUILD_TYPE MATCHES "Debug")
+ set(DEBUG_SUFFIX "d")
+endif()
+
 message("DEBUG_SUFFIX ${DEBUG_SUFFIX}")
 
 get_filename_component(INSTALL_DIR_ABSOLUTE
@@ -65,21 +68,22 @@ execute_process(
     COMMAND ${CMAKE_COMMAND} 
     -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} 
     -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} 
-    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} 
     ${CMAKE_SOURCE_DIR}/glew
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/glew 
 )
 
-# Build external project
 execute_process( COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/glew  --config Debug )
-execute_process( COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/glew  --config Release )
+execute_process( COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/glew  --config Release ) 
+
 ENDIF()
 
+
 #glfw
-# Configure external project
+#Configure external project
 IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/glfw/glfw)
 execute_process(
-    COMMAND ${CMAKE_COMMAND} 
+    COMMAND ${CMAKE_COMMAND}
     -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} 
     -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} 
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
@@ -121,16 +125,26 @@ execute_process( COMMAND ${CMAKE_COMMAND}
 
 ENDIF()
 
+find_package(GLEW REQUIRED)
+if(GLEW_FOUND)
+  message(STATUS "glew found")
+  message(STATUS "GLEW_INCLUDE_DIR ${GLEW_INCLUDE_DIR}")
+  message(STATUS "GLEW_LIBRARY ${GLEW_LIBRARY}")
+ else()
+  message(STATUS "glew NOT found" )
+endif()
 
 #vr-imgui
 # Configure external project
-IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/vr-imgui/vr-imgui)
+#IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/vr-imgui/vr-imgui)
 execute_process(
     COMMAND ${CMAKE_COMMAND} 
     -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
     -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE}
     -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} 
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    -DGLEW_SHARED_LIBRARY_DEBUG=${GLEW_LIBRARY}
+    -DGLEW_SHARED_LIBRARY_RELEASE=${GLEW_LIBRARY}
     ${CMAKE_SOURCE_DIR}/vr-imgui
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/vr-imgui
 )
@@ -141,7 +155,7 @@ execute_process(
     --build ${CMAKE_BINARY_DIR}/vr-imgui
     --config ${CMAKE_BUILD_TYPE}
 )
-ENDIF()
+#ENDIF()
 
 
 ### ZLIB
@@ -289,16 +303,10 @@ execute_process(
 execute_process(
     COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/opencv --config ${CMAKE_BUILD_TYPE}
 )
+
 ENDIF()
 
 
-find_package(GLEW REQUIRED)
-if(GLEW_FOUND)
-  message(STATUS "glew found")
-  message(STATUS "GLEW_INCLUDE_DIR ${GLEW_INCLUDE_DIR}")
- else()
-  message(STATUS "glew NOT found" )
-endif()
 
 find_package(GLM REQUIRED)
 if(GLM_FOUND)
@@ -371,10 +379,22 @@ find_package(OpenGL REQUIRED)
 find_package(OpenCV CONFIG REQUIRED)
 if(OpenCV_FOUND)
   message(STATUS "OpenCV found ${_OpenCV_LIB_PATH}")
-  file(COPY "${_OpenCV_LIB_PATH}/opencv_videoio453${DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
-  file(COPY "${_OpenCV_LIB_PATH}/opencv_imgcodecs453${DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
-  file(COPY "${_OpenCV_LIB_PATH}/opencv_imgproc453${DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
-  file(COPY "${_OpenCV_LIB_PATH}/opencv_core453${DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
+  message(STATUS "OpenCV found ${OpenCV_INSTALL_PATH}")
+  if(WIN32)
+   set(OPENCV_PATH ${_OpenCV_LIB_PATH} )
+   set(OPENCV_SUFIX "453" )
+  elseif(APPLE)
+   set(OPENCV_PATH "${CMAKE_BINARY_DIR}/install/lib")
+   set(OPENCV_PREFIX "lib" )
+   unset(DEBUG_SUFFIX)
+   #set(OPENCV_SUFIX "4.5.3" )
+  endif()
+
+  file(COPY "${OPENCV_PATH}/${OPENCV_PREFIX}opencv_videoio${OPENCV_SUFIX}${DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
+  file(COPY "${OPENCV_PATH}/${OPENCV_PREFIX}opencv_imgcodecs${OPENCV_SUFIX}${DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
+  file(COPY "${OPENCV_PATH}/${OPENCV_PREFIX}opencv_imgproc${OPENCV_SUFIX}${DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
+  file(COPY "${OPENCV_PATH}/${OPENCV_PREFIX}opencv_core${OPENCV_SUFIX}${DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
+  
 endif()
 
 

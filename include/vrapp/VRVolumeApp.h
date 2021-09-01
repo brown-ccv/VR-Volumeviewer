@@ -92,7 +92,10 @@ public:
 
   void update_animation();
 
-  void run_movie();
+#if (!defined(__APPLE__))
+ void run_movie();
+#endif
+ 
 
   void set_render_count(unsigned int);
 
@@ -263,6 +266,8 @@ protected:
   CreateMovieAction* m_movieAction;
   std::string m_moviename;
 
+   glm::vec2 m_window_size ;
+   glm::vec2 m_frame_buffer_size;
   std::string m_directiort_path;
 
   std::string m_current_file_loaded;

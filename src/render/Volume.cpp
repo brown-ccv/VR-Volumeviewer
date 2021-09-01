@@ -24,8 +24,6 @@
 ///\author Benjamin Knorlein
 ///\date 11/6/2017
 
-#pragma once
-
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
 #endif

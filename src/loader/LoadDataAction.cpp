@@ -24,8 +24,6 @@
 ///\author Benjamin Knorlein
 ///\date 11/28/2017
 
-#pragma once
-
 #include "../../include/loader/LoadDataAction.h"
 #include "../../include/interaction/HelperFunctions.h"
 
@@ -36,6 +34,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>    // std::max
+
 
 
 LoadDataAction::LoadDataAction(std::string folder, float* res) : m_folder(folder), m_res(res)
@@ -209,18 +208,22 @@ Volume* LoadDataAction::run(bool convert)
   float minval[2];
   std::vector <cv::Mat> images;
   time_t posix_time;
+   
   if (helper::ends_with_string(m_folder, "desc"))
   {
+   
     FILE* pFile;
     pFile = fopen(m_folder.c_str(), "r");
     fscanf(pFile, "%u,%u,%u,%f,%f\n'", &w, &h, &d, &minval[0], &minval[1]);
     fscanf(pFile, "%lld\n'", &posix_time);
+     
     channels = 1;
     depth = CV_32F;
     helper::replace(m_folder, ".desc", ".raw");
+     
   }
   else {
-
+        
     std::vector <std::string> filenames = readTiffs(m_folder);
     std::vector <cv::Mat> image_r;
     std::vector <cv::Mat> image_g;

@@ -1,6 +1,6 @@
 #include "ShaderProgram.h"
 #include <fstream>
-#include <string>
+#include <vector>
 
 ShaderProgram::ShaderProgram() :m_progarm_id(0)
 {

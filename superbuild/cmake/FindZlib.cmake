@@ -15,6 +15,7 @@ find_library(ZLIB_LIBRARY
        NAMES
 	   zlib
 	   zlibd
+	   z
 	   HINTS
         ${CMAKE_INSTALL_PREFIX}/lib/
 )  

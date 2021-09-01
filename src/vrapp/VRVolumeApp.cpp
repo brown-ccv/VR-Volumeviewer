@@ -11,7 +11,30 @@
 #include "render/FontHandler.h"
 #include "interaction/CreateMovieAction.h"
 
+#ifdef _WIN32
 #include "GL/glew.h"
+#include "GL/wglew.h"
+#elif (!defined(__APPLE__))
+#include "GL/glxew.h"
+#endif
+
+// OpenGL Headers
+#if defined(WIN32)
+#define NOMINMAX
+#include <windows.h>
+#include <GL/gl.h>
+#elif defined(__APPLE__)
+#define GL_GLEXT_PROTOTYPES
+#include <OpenGL/gl3.h>
+#include <OpenGL/glext.h>
+#else
+#define GL_GLEXT_PROTOTYPES
+#include <GL/gl.h>
+#endif
+
+#if (!defined(__APPLE__))
+#include <filesystem>
+#endif
 
 #include <fstream> 
 #include <sstream> 
@@ -45,18 +68,24 @@ VRVolumeApp::~VRVolumeApp()
 
 void VRVolumeApp::initialize()
 {
+  
+
   if (!m_isInitailized)
   {
+   // std::cout << "initialize  1" << std::endl;
     m_object_pose = glm::mat4(1.0f);
     initialize_GL();
+ //   std::cout << "initialize  2" << std::endl;
     if (!m_ui_view)
     {
+      std::cout << "initialize UI " << std::endl;
       m_ui_view = new  UIView(*this);
       m_ui_view->init_ui(m_is2d, m_lookingGlass);
     }
     m_window_properties = new Window_Properties();
     m_isInitailized = true;
     m_rendercount = 0;
+    std::cout << "initialize end" << std::endl;
   }
 
 }
@@ -64,7 +93,10 @@ void VRVolumeApp::initialize()
 void VRVolumeApp::initialize_GL()
 {
   for (auto ren : m_renders)
+  { 
     ren->initGL();
+  }
+   
 
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
@@ -149,6 +181,7 @@ void VRVolumeApp::update_animation()
   }
 }
 
+#if (!defined(__APPLE__))
 void VRVolumeApp::run_movie()
 {
 #ifndef _MSC_VER
@@ -161,6 +194,7 @@ void VRVolumeApp::run_movie()
   m_frame = 0;
   m_show_menu = false;
 }
+#endif
 
 void VRVolumeApp::set_render_count(unsigned int rendercount)
 {
@@ -264,7 +298,13 @@ void VRVolumeApp::init_num_volumes(int nVolumes)
   m_promises.resize(m_numVolumes);
   m_futures.resize(m_numVolumes);
   m_threads.resize(m_numVolumes);
-  m_ui_view->update_ui(m_numVolumes);
+  if(!m_ui_view)
+  {
+m_ui_view = new UIView(*this);
+m_ui_view->init_ui(m_is2d,m_lookingGlass);
+ m_ui_view->update_ui(m_numVolumes);
+  }
+ 
 
 }
 
@@ -862,7 +902,7 @@ void VRVolumeApp::add_lodaded_textures()
         delete m_promises[i][counter];
         counter++;
       }
-
+  
 
     }
     
@@ -1066,3 +1106,4 @@ void VRVolumeApp::do_grab(glm::mat4& newPose)
   }
   m_controller_pose = newPose;
 }
+

@@ -1,5 +1,7 @@
 #pragma once
-#include "GL/glew.h"
+#if WIN32
+  #include "GL/glew.h"
+#endif  
 #include <cstdint>
 #include <string>
 #include <vector>

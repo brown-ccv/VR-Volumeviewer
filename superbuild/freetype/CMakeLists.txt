@@ -14,4 +14,9 @@ build_git_subproject(
    URL https://gitlab.freedesktop.org/freetype/freetype.git
    BUILD_ARGS
    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+   -DFT_DISABLE_ZLIB=TRUE
+   -DFT_DISABLE_BZIP2=TRUE
+   -DFT_DISABLE_PNG=TRUE
+   -DFT_DISABLE_HARFBUZZ=TRUE
+   -DFT_DISABLE_BROTLI=TRUE
 )

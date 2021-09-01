@@ -106,8 +106,16 @@ ADD_DEFINITIONS(-D FTGL_LIBRARY_STATIC)
 find_package(MinVR REQUIRED)
 find_package(ImguiVR REQUIRED)
 find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED)
-FIND_PACKAGE(glm REQUIRED )
+
+FIND_PACKAGE(GLM REQUIRED )
+if (GLM_FOUND)
+    message(STATUS "GLM_INCLUDE_DIR ${GLM_INCLUDE_DIR}")
+    include_directories(${GLM_INCLUDE_DIR})
+else ()
+    message(FATAL_ERROR "GLM not found")
+endif ()
+
+
 FIND_PACKAGE(OpenCV REQUIRED )
 FIND_PACKAGE(FTGL REQUIRED )
 FIND_PACKAGE(Freetype REQUIRED) 
@@ -135,7 +143,7 @@ include_directories(
   ${OPENGL_INCLUDE_DIR}
   ${MINVR_INCLUDE_DIR}
   ${GLM_INCLUDE_DIRS}
-  ${GLEW_INCLUDE_DIRS}
+  
   ${FTGL_INCLUDE_DIR}
   ${FREETYPE_INCLUDE_DIRS}
   ${CPPFSD_INCLUDE}
@@ -143,13 +151,19 @@ include_directories(
   libs/
 )
 
+if (NOT APPLE)
+FIND_PACKAGE(GLEW REQUIRED)
+include_directories(${GLEW_INCLUDE_DIRS})
+
+endif()
+
 
 
 set(LIBRARIES
 	ImguiVR
 	${OpenCV_LIBS}
 	${GLM_LIBRARIES}
-	${GLEW_LIBRARY}
+	
 	${OPENGL_LIBRARY}
 	${FTGL_LIBRARIES}
 	${FREETYPE_LIBRARIES}
@@ -166,12 +180,6 @@ set(LIBRARIES
 message(STATUS "cppfs_INCLUDE_DIR ${cppfs_INCLUDE_DIRS}")
 message(STATUS "cppfs_LIBRARY ${cppfs_LIBRARIES}")
 
-if (UNIX)
-	set(LIBRARIES
-		${LIBRARIES}
-		stdc++fs
-	)
-endif (UNIX)
 
 if(WITH_TEEM)
 	FIND_PACKAGE(Teem REQUIRED )
@@ -203,7 +211,13 @@ add_subdirectory(libs/stb_image)
 
 add_executable(${PROJECT_NAME} ${source_files} ${header_files})
 
-target_link_libraries(${PROJECT_NAME} PUBLIC MinVR::MinVR GLEW::GLEW ${LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC MinVR::MinVR ${LIBRARIES})
+
+if (NOT APPLE)
+
+target_link_libraries(${PROJECT_NAME} GLEW::GLEW ${GLEW_LIBRARY})
+
+endif()
 
 file(GLOB_RECURSE _source_list *.cpp* *.h* *.hpp*)
 foreach(_source IN ITEMS ${_source_list})

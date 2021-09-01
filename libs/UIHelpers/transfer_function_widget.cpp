@@ -1,3 +1,25 @@
+
+#ifdef _WIN32
+#include "GL/glew.h"
+#include "GL/wglew.h"
+#elif (!defined(__APPLE__))
+#include "GL/glxew.h"
+#endif
+
+// OpenGL Headers
+#if defined(WIN32)
+#define NOMINMAX
+#include <windows.h>
+#include <GL/gl.h>
+#elif defined(__APPLE__)
+#define GL_GLEXT_PROTOTYPES
+#include <OpenGL/OpenGL.h>
+#include <OpenGL/glu.h>
+#else
+#define GL_GLEXT_PROTOTYPES
+#include <GL/gl.h>
+#endif
+
 #include "transfer_function_widget.h"
 #include <algorithm>
 #include <cmath>

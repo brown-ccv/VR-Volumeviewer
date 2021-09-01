@@ -1,5 +1,5 @@
 message(STATUS "GLMLOADER GLEW INCLUDE: ${GLEW_INCLUDE_DIR}")
-
+set(CMAKE_CXX_STANDARD 11)
 include_directories(
   ../Model
    ../Texture

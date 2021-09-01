@@ -25,7 +25,7 @@
 ///\date 11/29/2017
 /// Based on the book : OpenGL Development Cookbook  by Muhammad Mobeen Movania
 
-#pragma once
+
 
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
