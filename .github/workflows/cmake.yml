@@ -12,8 +12,16 @@ jobs:
     # well on Windows or Mac.  You can convert this to a matrix build if you need
     # cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-    runs-on: windows-2019
+    strategy:
+      # O.S matrix
+      matrix:
+        config:
+          - os: windows-2019
+          - os: macos-latest
+    
+    runs-on: ${{ matrix.config.os }} 
 
+    if: ${{  matrix.config.os=="windows-2019" }}
     steps:
     - uses: actions/checkout@v2
     - uses: ilammy/msvc-dev-cmd@v1
