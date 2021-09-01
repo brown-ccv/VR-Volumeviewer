@@ -137,6 +137,35 @@ if(GLEW_FOUND)
   message(STATUS "glew NOT found" )
 endif()
 
+
+#glm
+# Configure external project
+IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/glm/glm)
+execute_process(
+    COMMAND ${CMAKE_COMMAND} 
+    -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
+    -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} 
+    -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} 
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    ${CMAKE_SOURCE_DIR}/glm
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/glm
+)
+
+# Build external project
+execute_process(
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/glm --config ${CMAKE_BUILD_TYPE}
+)
+ENDIF()
+
+
+find_package(GLM REQUIRED)
+if(GLM_FOUND)
+  message(STATUS "GLM found")
+  message(STATUS "GLM_INCLUDE_DIR ${GLM_INCLUDE_DIR}")
+ else()
+  message(STATUS "GLM NOT found" )
+endif()
+
 #vr-imgui
 # Configure external project
 #IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/vr-imgui/vr-imgui)
@@ -269,26 +298,6 @@ execute_process(
 ENDIF()
 
 
-#glm
-# Configure external project
-IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/glm/glm)
-execute_process(
-    COMMAND ${CMAKE_COMMAND} 
-    -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
-    -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} 
-    -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} 
-    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-    ${CMAKE_SOURCE_DIR}/glm
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/glm
-)
-
-# Build external project
-execute_process(
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/glm --config ${CMAKE_BUILD_TYPE}
-)
-ENDIF()
-
-
 #opencv
 # Configure external project
 IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/opencv/opencv)
@@ -309,15 +318,6 @@ execute_process(
 
 ENDIF()
 
-
-
-find_package(GLM REQUIRED)
-if(GLM_FOUND)
-  message(STATUS "GLM found")
-  message(STATUS "GLM_INCLUDE_DIR ${GLM_INCLUDE_DIR}")
- else()
-  message(STATUS "GLM NOT found" )
-endif()
 
 find_package(ZLIB REQUIRED)
 if(ZLIB_FOUND)
