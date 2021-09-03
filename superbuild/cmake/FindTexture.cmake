@@ -16,6 +16,8 @@ find_library(Texture_LIBRARY
 	   Texture
 	   HINTS
         ${CMAKE_CURRENT_SOURCE_DIR}/Texture
+		${CMAKE_CURRENT_SOURCE_DIR}/Texture/Debug
+		${CMAKE_CURRENT_SOURCE_DIR}/Texture/Release
 )  
 
 include(FindPackageHandleStandardArgs)

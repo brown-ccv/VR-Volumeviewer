@@ -24,7 +24,6 @@
 ///\author Benjamin Knorlein
 ///\date 01/20/2021
 
-#pragma once
 
 #ifndef LOADDESCRIPTIONACTION_H
 #define LOADDESCRIPTIONACTION_H

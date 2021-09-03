@@ -15,4 +15,5 @@ build_svn_subproject(
    BUILD_ARGS
     -DTeem_ZLIB=ON 
 	-DBUILD_TESTING=OFF
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 )

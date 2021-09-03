@@ -14,6 +14,7 @@ message(STATUS "MinVR_INCLUDE_DIR  ${MinVR_INCLUDE_DIR}")
 find_library(MinVR_LIBRARY
        NAMES
 	   MinVR
+	   MinVRd
 	   HINTS
         ${CMAKE_INSTALL_PREFIX}/lib/MinVR-2.0/
 )  

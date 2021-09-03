@@ -483,11 +483,12 @@ void UIView::draw_ui_callback()
         m_stopped = !m_stopped;
       }
 
-
+      #if (!defined(__APPLE__))
       if (ImGui::Button("Write Movie"))
       {
         m_controller_app.run_movie();
       }
+      #endif
     }
     ImGui::EndTabItem();
   }
@@ -666,7 +667,12 @@ void UIView::init_ui(bool is2D, bool lookingGlass)
     if (lookingGlass) {
       fontsize = 3.0;
     }
+    std::cout << "is2d: " << (is2D? "true":"false") << std::endl;
     m_menu_handler = new VRMenuHandler(is2D);
+    if(!m_menu_handler)
+    { std::cout << "m_menu_handler: " << "NULL" << std::endl;
+   
+    }
     VRMenu* menu = m_menu_handler->addNewMenu(std::bind(&UIView::draw_ui_callback, this), 1024, 1024, 1, 1, fontsize);
     menu->setMenuPose(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 2, -1, 1));
     m_dir_to_save = m_controller_app.get_directory_path().c_str();
@@ -711,11 +717,14 @@ void UIView::update_ui(int numVolumes)
 
 }
 
-void UIView::render_2D()
+void UIView::render_2D(Window_Properties& window_properties)
 {
+     
   if (m_show_menu)
   {
-    m_menu_handler->drawMenu();
+    m_menu_handler->drawMenu(window_properties.window_w, window_properties.window_h,
+      window_properties.framebuffer_w, window_properties.framebuffer_h);
+
     if (m_use_transferfunction) {
       tfn_widget[m_selectedTrnFnc].drawLegend();
     }
@@ -723,7 +732,7 @@ void UIView::render_2D()
 
 }
 
-void UIView::render_3D(glm::mat4& space_matrix)
+void UIView::render_3D(glm::mat4& space_matrix, Window_Properties& window_properties)
 {
   //render menu	
 
@@ -731,7 +740,8 @@ void UIView::render_3D(glm::mat4& space_matrix)
   {
     glMatrixMode(GL_MODELVIEW);
     glLoadMatrixf(glm::value_ptr(space_matrix));
-    m_menu_handler->drawMenu();
+    m_menu_handler->drawMenu(window_properties.window_w, window_properties.window_h,
+      window_properties.framebuffer_w, window_properties.framebuffer_h);
   }
 
 }
