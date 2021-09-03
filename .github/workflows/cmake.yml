@@ -39,6 +39,21 @@ jobs:
            cd superbuild
            ninja
 
+    - name: clone bat2exe
+      run: |
+           cd superbuild
+           git clone https://github.com/islamadel/bat2exe.git
+      
+    - name: Copy bat2exec script
+      run: |
+           cd superbuild\executables
+           copy run_executable.bat ..\install_Windows\bin
+
+    - name: run bat2exec and create vr-volumeviewer executable 
+      run: |
+           cd superbuild\bat2exe\upload 
+           bat2exe.exe superbuild\install_Windows\bin superbuild\install_Windows\bin
+
     - name: Test
       working-directory: ${{github.workspace}}/superbuild/install_Windows/bin
       # Execute tests defined by the CMake configuration.  
