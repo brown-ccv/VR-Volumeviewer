@@ -52,49 +52,48 @@ jobs:
     - name: run bat2exec and create vr-volumeviewer executable 
       run: |
            cd superbuild\bat2exe\upload 
-           bat2exe.exe superbuild\install_Windows\bin superbuild\install_Windows\bin
-
+           bat2exe.exe bat2exe.exe  /source:C:\Users\Kmilo\Documents\VR-Volumeviewer\superbuild\install_Windows /target:C:\Users\Kmilo\Documents\VR-Volumeviewer\superbuild\install_Windows /s /y
     - name: Test
       working-directory: ${{github.workspace}}/superbuild/install_Windows/bin
       # Execute tests defined by the CMake configuration.  
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run:  ctest
       
-  build_mac:
-    # The CMake configure and build commands are platform agnostic and should work equally
-    # well on Windows or Mac.  You can convert this to a matrix build if you need
-    # cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+  # build_mac:
+  #   The CMake configure and build commands are platform agnostic and should work equally
+  #   well on Windows or Mac.  You can convert this to a matrix build if you need
+  #   cross-platform coverage.
+  #   See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     
-    runs-on: macos-11
+  #   runs-on: macos-11
 
-    steps:
-    - uses: actions/checkout@v2
+  #   steps:
+  #   - uses: actions/checkout@v2
     
-    - name: Clean superbuild folder
-      run: python3 superbuild/clean/clean.py
+  #   - name: Clean superbuild folder
+  #     run: python3 superbuild/clean/clean.py
       
-    - name: Open superbuild folder
-      run: cd superbuild
+  #   - name: Open superbuild folder
+  #     run: cd superbuild
 
-    - name: Configure CMake
-      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: |
-           cd superbuild 
-           cmake -S . -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+  #   - name: Configure CMake
+  #     Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+  #     See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+  #     run: |
+  #          cd superbuild 
+  #          cmake -S . -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
-    - name: Build
-      # Build your program with the given configuration
-      run: |
-           cd superbuild
-           make
+  #   - name: Build
+  #     Build your program with the given configuration
+  #     run: |
+  #          cd superbuild
+  #          make
 
-    - name: Test
-      working-directory: ${{github.workspace}}/superbuild/install_Darwin/bin
-      # Execute tests defined by the CMake configuration.  
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run:  ctest
+  #   - name: Test
+  #     working-directory: ${{github.workspace}}/superbuild/install_Darwin/bin
+  #     Execute tests defined by the CMake configuration.  
+  #     See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+  #     run:  ctest
    
   
   
