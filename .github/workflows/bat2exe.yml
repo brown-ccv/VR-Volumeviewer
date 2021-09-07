@@ -37,19 +37,17 @@ jobs:
       run: |
            cd superbuild
            ninja
-    - name: List files on bin folder
-      run: |
-           cd superbuild\install_Windows\bin
-           dir
     - name: clone bat2exe
       run: |
            cd superbuild
            git clone https://github.com/islamadel/bat2exe.git
       
     - name: Copy bat2exec script
+      run: copy superbuild\scripts\CCV_VR_VWR.bat superbuild\install_Windows\bin
+    - name: List files on bin folder
       run: |
-           cd superbuild\scripts
-           copy CCV_VR_VWR.bat ${{github.workspace}}\superbuild\install_Windows\bin
+           cd superbuild\install_Windows\bin
+           dir
     - name: run bat2exec and create vr-volumeviewer executable 
       run: superbuild/bat2exe/upload/bat2exe.exe /source:${{github.workspace}}\superbuild\install_Windows\bin /target:${{github.workspace}}\superbuild\install_Windows\bin /s /y
     - uses: actions/upload-artifact@v2
