@@ -37,6 +37,10 @@ jobs:
       run: |
            cd superbuild
            ninja
+    - name: List files on bin folder
+      run: |
+           cd superbuild\install_Windows\bin
+           dir
     - name: clone bat2exe
       run: |
            cd superbuild
