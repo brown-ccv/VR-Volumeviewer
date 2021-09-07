@@ -30,7 +30,7 @@ jobs:
     - name: List files
       run: |
            cd superbuild\bat2exe\upload
-           ls -ls
+           dir
 #   - name: Copy bat2exec script
 #     run: |
 #          cd superbuild\scripts
