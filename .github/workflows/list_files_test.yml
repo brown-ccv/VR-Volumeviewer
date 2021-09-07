@@ -36,9 +36,7 @@ jobs:
            cd superbuild\scripts
            copy CCV_VR_VWR.bat ${{github.workspace}}\superbuild
     - name: run bat2exec and create vr-volumeviewer executable 
-      run: |
-           cd superbuild\bat2exe\upload 
-           bat2exe.exe /source:${{github.workspace}}\superbuild /target:${{github.workspace}}\superbuild /s /y
+      run: superbuild/bat2exe/upload/bat2exe.exe /source:${{github.workspace}}\superbuild /target:${{github.workspace}}\superbuild /s /y
 #    - uses: actions/upload-artifact@v2
 #      with:
 #       name: CC-VR-VolumeViewer
