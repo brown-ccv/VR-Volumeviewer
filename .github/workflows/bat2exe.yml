@@ -49,7 +49,7 @@ jobs:
     - name: run bat2exec and create vr-volumeviewer executable 
       run: |
            cd superbuild\bat2exe\upload 
-           bat2exe.exe bat2exe.exe  /source:${{github.workspace}}\superbuild\install_Windows\bin /target:${{github.workspace}}\superbuild\install_Windows\bin /s /y
+           bat2exe.exe  /source:${{github.workspace}}\superbuild\install_Windows\bin /target:${{github.workspace}}\superbuild\install_Windows\bin /s /y
     - uses: actions/upload-artifact@v2
       with:
        name: CC-VR-VolumeViewer
