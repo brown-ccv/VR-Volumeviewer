@@ -49,7 +49,8 @@ jobs:
            cd superbuild\install_Windows\bin
            dir
     - name: run bat2exec and create vr-volumeviewer executable 
-      run: superbuild/bat2exe/upload/bat2exe.exe /source:${{github.workspace}}\superbuild\install_Windows\bin /target:${{github.workspace}}\superbuild\install_Windows\bin /s /y
+      shell: cmd
+      run: .\mybat.bat ${{github.workspace}}
     - name: wait 12 seconds
       shell: cmd
       run: timeout 12
