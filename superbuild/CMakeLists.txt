@@ -119,10 +119,12 @@ IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/MinVR/MinVR)
      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/MinVR
  )
 
+ 
 #Build external project
 execute_process( COMMAND ${CMAKE_COMMAND} 
   --build ${CMAKE_BINARY_DIR}/MinVR 
   --config ${CMAKE_BUILD_TYPE} 
+  
   )
 
 

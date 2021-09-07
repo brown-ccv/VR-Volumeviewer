@@ -8,3 +8,4 @@ Executable/
 share/datasets/
 external/
 CMakeFiles/
+superbuild/bat2exe

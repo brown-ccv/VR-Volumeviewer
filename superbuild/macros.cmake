@@ -310,7 +310,7 @@ endmacro()
 macro(build_glm_subproject)
   # See cmake_parse_arguments docs to see how args get parsed here:
   #    https://cmake.org/cmake/help/latest/command/cmake_parse_arguments.html
-  set(oneValueArgs NAME URL)
+  set(oneValueArgs NAME URL TAG)
   set(multiValueArgs BUILD_ARGS DEPENDS_ON)
   cmake_parse_arguments(BUILD_SUBPROJECT "" "${oneValueArgs}"
                         "${multiValueArgs}" ${ARGN})
@@ -326,7 +326,7 @@ macro(build_glm_subproject)
     SOURCE_DIR ${SUBPROJECT_SOURCE_PATH}
     BINARY_DIR ${SUBPROJECT_BUILD_PATH}
     GIT_REPOSITORY  ${BUILD_SUBPROJECT_URL}
-	  GIT_TAG 0.9.9.1
+	  GIT_TAG ${BUILD_SUBPROJECT_TAG}
     LIST_SEPARATOR | # Use the alternate list separator
     CMAKE_ARGS
 
