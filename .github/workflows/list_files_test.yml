@@ -1,4 +1,4 @@
-name: superbuild-and-bat3exe-test
+name: list-files-bat3-folder-test
 
 on:  workflow_dispatch
 
