@@ -44,7 +44,7 @@ jobs:
       
     - name: Copy bat2exec script
       run: |
-           cd superbuild\executables
+           cd superbuild\scripts
            copy CCV_VR_VWR.bat ${{github.workspace}}\superbuild\install_Windows\bin
     - name: run bat2exec and create vr-volumeviewer executable 
       run: |
