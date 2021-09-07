@@ -1,1 +1,2 @@
-superbuild\bat2exe\upload\bat2exe.exe superbuild/bat2exe/upload/bat2exe.exe /source:${{github.workspace}}\superbuild\install_Windows\bin /target:${{github.workspace}}\superbuild\install_Windows\bin /s /y
+echo %1
+superbuild\bat2exe\upload\bat2exe.exe superbuild/bat2exe/upload/bat2exe.exe /source:%1\superbuild\install_Windows\bin /target:%1\superbuild\install_Windows\bin /s /y
