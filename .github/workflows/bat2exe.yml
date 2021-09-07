@@ -51,9 +51,6 @@ jobs:
     - name: run bat2exec and create vr-volumeviewer executable 
       shell: cmd
       run: .\mybat.bat ${{github.workspace}}
-    - name: wait 12 seconds
-      shell: cmd
-      run: timeout 12
     - uses: actions/upload-artifact@v2
       with:
        name: CC-VR-VolumeViewer
