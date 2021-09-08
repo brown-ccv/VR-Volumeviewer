@@ -42,15 +42,15 @@ jobs:
            cd superbuild
            git clone https://github.com/islamadel/bat2exe.git
       
-    - name: Copy bat2exec script
+    - name: Copy bat2exec script to create .exe
       run: copy superbuild\scripts\CCV_VR_VWR.bat superbuild\install_Windows\bin
     - name: List files on bin folder
       run: |
            cd superbuild\install_Windows\bin
            dir
-    - name: run bat2exec and create vr-volumeviewer executable 
+    - name: run bat2exec in the background and create vr-volumeviewer executable 
       shell: cmd
-      run: .\mybat.bat ${{github.workspace}}
+      run: .superbuild\scripts\execute_bat2exe_background.bat ${{github.workspace}}
     - uses: actions/upload-artifact@v2
       with:
        name: CCV-VR-VolumeViewer
