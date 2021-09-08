@@ -1,1 +1,0 @@
-superbuild\bat2exe\upload\bat2exe.exe /source:F:\VR-Volumeviewer\superbuild\install_Windows\bin /target:F:\VR-Volumeviewer\superbuild\install_Windows\bin /s /y
