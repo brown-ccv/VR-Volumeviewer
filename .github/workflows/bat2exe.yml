@@ -53,7 +53,7 @@ jobs:
       run: superbuild\scripts\execute_bat2exe_background.bat ${{github.workspace}}
     - name: Building the installer
       run: |
-        "%programfiles(x86)%\Inno Setup 6\iscc.exe" "superbuild\scripts\FreenetInstall_InnoSetup.iss"
+        "%programfiles(x86)%\Inno Setup 6\iscc.exe" "superbuild\scripts\VolumeViewerInnoScript.iss"
       shell: cmd
     - uses: actions/upload-artifact@v2
       with:
