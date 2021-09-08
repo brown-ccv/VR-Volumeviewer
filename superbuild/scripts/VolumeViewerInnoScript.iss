@@ -38,15 +38,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "F:\VR-Volumeviewer\superbuild\install_Windows\bin\CCV_VR_VWR.exe"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "F:\VR-Volumeviewer\superbuild\install_Windows\bin\glew32.dll"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "F:\VR-Volumeviewer\superbuild\install_Windows\bin\opencv_core453d.dll"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "F:\VR-Volumeviewer\superbuild\install_Windows\bin\opencv_imgcodecs453d.dll"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "F:\VR-Volumeviewer\superbuild\install_Windows\bin\opencv_imgproc453d.dll"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "F:\VR-Volumeviewer\superbuild\install_Windows\bin\opencv_videoio453d.dll"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "F:\VR-Volumeviewer\superbuild\install_Windows\bin\zlibd.dll"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "F:\VR-Volumeviewer\superbuild\install_Windows\bin\MinVR-2.0\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-;Source: "F:\VR-Volumeviewer\superbuild\install_Windows\bin\shaders\*"; DestDir: "{app}\shaders\"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "superbuild\install_Windows\bin\CCV_VR_VWR.exe"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]
