@@ -1,4 +1,4 @@
-name: superbuild-and-bat3exe-test
+name: list-files-bat3-folder-test
 
 on:  workflow_dispatch
 
@@ -23,44 +23,28 @@ jobs:
     - name: Clean superbuild folder
       run: superbuild/clean/clean.bat
       
-    - name: Open superbuild folder
-      run: cd superbuild
-
-    - name: Configure CMake
-      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: |
-           cd superbuild 
-           cmake -S . -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G Ninja
-    - name: Build
-      # Build your program with the given configuration
-      run: |
-           cd superbuild
-           ninja
     - name: clone bat2exe
       run: |
            cd superbuild
            git clone https://github.com/islamadel/bat2exe.git
-      
-    - name: Copy bat2exec script to create .exe
-      run: copy superbuild\scripts\CCV_VR_VWR.bat superbuild\install_Windows\bin
-    - name: List files on bin folder
+    - name: List files
       run: |
-           cd superbuild\install_Windows\bin
+           cd superbuild\bat2exe\upload
            dir
+    - name: Copy bat2exec script
+      run: |
+           cd superbuild\scripts
+           copy CCV_VR_VWR.bat ${{github.workspace}}\superbuild
     - name: run bat2exec in the background and create vr-volumeviewer executable 
       shell: cmd
       run: superbuild\scripts\execute_bat2exe_background.bat ${{github.workspace}}
-    - name: Building the installer
-      run: |
-        "%programfiles(x86)%\Inno Setup 6\iscc.exe" "superbuild\scripts\VolumeViewerInnoScript.iss"
-      shell: cmd
-    - uses: actions/upload-artifact@v2
-      with:
-       name: CCV-VR-VolumeViewer
+    - name: run bat2exec and create vr-volumeviewer executable 
+      run: superbuild/bat2exe/upload/bat2exe.exe /source:${{github.workspace}}\superbuild /target:${{github.workspace}}\superbuild /s /y
+#    - uses: actions/upload-artifact@v2
+#      with:
+#       name: CC-VR-VolumeViewer
 #       path: ${{github.workspace}}\superbuild\install_Windows\bin\CCV_VR_VWR.exe
-       path: ${{github.workspace}}\superbuild\install_Windows\bin\vvw-setup.exe
-    
+#    
 #    - name: Create Release
 #      id: create_release
 #      uses: actions/create-release@v1

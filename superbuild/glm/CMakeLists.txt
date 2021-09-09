@@ -9,9 +9,19 @@ message("glm INSTALL_DIR_ABSOLUTE ${INSTALL_DIR_ABSOLUTE}")
 set(EXTERNAL_DIR_LOCATION ${CMAKE_BINARY_DIR})  
 set(EXTERNAL_DIR_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/../install/)  
 
+#support for mac-os/clang
+if(APPLE)
+ set(GLM_TAG_CLANG_SUPPORT 0.9.9.1)
+else()
+  set(GLM_TAG_CLANG_SUPPORT 0.9.9.0)
+endif(APPLE)
+
+message(STATUS "Build GLM ${GLM_TAG_CLANG_SUPPORT}")
+
 build_glm_subproject(
   NAME glm
   URL "https://github.com/g-truc/glm"
+  TAG ${GLM_TAG_CLANG_SUPPORT}
   BUILD_ARGS
   -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 )

@@ -21,7 +21,7 @@ m_table_selection(-1), m_trn_fct_opitions_window(false), m_save_trnfct_open(fals
 m_file_load_trnsf(false), m_file_dialog_save_dir(false), m_save_session_dialog_open(false), m_current_save_modal(SAVE_NONE),
 m_current_load_modal(LOAD_NONE),m_file_extension_filter(".txt"), m_non_trns_functions_selected_modal(false),
 m_ui_background(false), m_column_selection_state(0), m_compute_new_histogram(true), m_histogram_point_1(0.0),
-m_histogram_point_2(1.1), m_stopped(false)
+m_histogram_point_2(1.1), m_stopped(false), m_show_menu(true)
 {
 
  m_histogram_quantiles[0] = 0.05;
@@ -719,9 +719,10 @@ void UIView::update_ui(int numVolumes)
 
 void UIView::render_2D(Window_Properties& window_properties)
 {
-     
+   
   if (m_show_menu)
   {
+   
     m_menu_handler->drawMenu(window_properties.window_w, window_properties.window_h,
       window_properties.framebuffer_w, window_properties.framebuffer_h);
 
