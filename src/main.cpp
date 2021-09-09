@@ -11,9 +11,19 @@ int main(int argc, char **argv) {
 		}
 	}
 
+//     std::cout << argc << std::endl;
+//     for(int i = 0; i < argc ; i++)
+//     {
+//         std::cout <<argv[i]<< std::endl;
+//     }
+// return 0;
     // argc, argv need to be passed to the app so that MinVR can parse command
     // line args to see which config files to load.
-	VolumeVisualizationApp app(argc, argv);
+    
+    int num_parameters = 4;
+    char * arguments[] = {"VR-Volumeviewer.exe","-c","desktop.minvr", "use2DUI"};
+
+	VolumeVisualizationApp app(num_parameters, arguments);
 
     // Does not return until the program shuts down.
     app.run();
