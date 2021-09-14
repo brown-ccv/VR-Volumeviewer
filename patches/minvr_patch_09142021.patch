@@ -1,3 +1,64 @@
+diff --git a/plugins/GLFW/src/VRGLFWInputDevice.cpp b/plugins/GLFW/src/VRGLFWInputDevice.cpp
+index 4975a42..dd97742 100644
+--- a/plugins/GLFW/src/VRGLFWInputDevice.cpp
++++ b/plugins/GLFW/src/VRGLFWInputDevice.cpp
+@@ -12,6 +12,7 @@
+ #include <api/VRButtonEvent.h>
+ #include <api/VRCursorEvent.h>
+ #include <api/VRAnalogEvent.h>
++#include <api/VRWindowResizeEvent.h>
+ 
+ namespace MinVR {
+ 
+@@ -41,7 +42,14 @@ static void glfw_mouse_button_callback(GLFWwindow* window, int button, int actio
+   ((VRGLFWInputDevice*)(glfwGetWindowUserPointer(window)))->mouseButtonCallback(window, button, action, mods);
+ }
+ 
+-
++static void window_close_callback(GLFWwindow* window)
++{
++  /* if (!time_to_close)
++     glfwSetWindowShouldClose(window, GLFW_FALSE);*/
++  //std::cout << "CLOSE WINDOW 111" << std::endl;
++  
++  ((VRGLFWInputDevice*)(glfwGetWindowUserPointer(window)))->closeWindowCallback(window);
++}
+ VRGLFWInputDevice::VRGLFWInputDevice() {
+ }
+ 
+@@ -66,6 +74,7 @@ void VRGLFWInputDevice::addWindow(GLFWwindow* window) {
+     glfwSetMouseButtonCallback(window, glfw_mouse_button_callback);
+     glfwSetCursorPosCallback(window, glfw_cursor_position_callback);
+ 	glfwSetScrollCallback(window, glfw_mouse_scroll_callback);
++  glfwSetWindowCloseCallback(window, window_close_callback);
+     _windows.push_back(window);
+ }
+ 
+@@ -135,6 +144,12 @@ void VRGLFWInputDevice::mouseScrollCallback(GLFWwindow* window, float xoffset, f
+ 	_events.push_back(event);
+ }
+ 
++void VRGLFWInputDevice::closeWindowCallback(GLFWwindow* window)
++{
++  VRDataIndex event = VRWindowCloseEvent::createValidDataIndex();
++  _events.push_back(event);
++}
++
+ std::string getGlfwKeyName(int key) {
+     switch (key)
+     {
+diff --git a/plugins/GLFW/src/VRGLFWInputDevice.h b/plugins/GLFW/src/VRGLFWInputDevice.h
+index e3ede50..1cb8aae 100644
+--- a/plugins/GLFW/src/VRGLFWInputDevice.h
++++ b/plugins/GLFW/src/VRGLFWInputDevice.h
+@@ -50,6 +50,7 @@ public:
+     PLUGIN_API void cursorPositionCallback(GLFWwindow* window, float xpos, float ypos);
+   	PLUGIN_API void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
+ 	PLUGIN_API void mouseScrollCallback(GLFWwindow* window, float xoffset, float yoffset);
++	PLUGIN_API void closeWindowCallback(GLFWwindow* window);
+ 
+ private:
+ 	std::vector<VRDataIndex> _events;
 diff --git a/plugins/GLFW/src/VRGLFWWindowToolkit.cpp b/plugins/GLFW/src/VRGLFWWindowToolkit.cpp
 index 1bc60b3..7fde23d 100644
 --- a/plugins/GLFW/src/VRGLFWWindowToolkit.cpp
@@ -74,6 +135,75 @@ index 745f1ba..d930be5 100644
  	PLUGIN_API void getFramebufferSize(int windowID, int& width, int& height);
  
  	PLUGIN_API VRglproc getProcAddress(const char *name);
+diff --git a/src/api/VRWindowResizeEvent.h b/src/api/VRWindowResizeEvent.h
+index 0f764a5..38e03d0 100644
+--- a/src/api/VRWindowResizeEvent.h
++++ b/src/api/VRWindowResizeEvent.h
+@@ -67,6 +67,28 @@ private:
+ };
+ 
+ 
++class VRWindowCloseEvent {
++
++public:
++  VRWindowCloseEvent(const VRDataIndex& internalIndex);
++  virtual ~VRWindowCloseEvent();
++
++
++  // A string describing the name of this cursor
++  std::string getName() const;
++
++  const VRDataIndex& index() const;
++
++
++
++  static VRDataIndex createValidDataIndex();
++
++
++private:
++
++  const VRDataIndex& _index;
++};
++
+ } // end namespace
+ 
+ 
+diff --git a/src/api/impl/VRWindowResizeEvent.cpp b/src/api/impl/VRWindowResizeEvent.cpp
+index f935046..46bf886 100644
+--- a/src/api/impl/VRWindowResizeEvent.cpp
++++ b/src/api/impl/VRWindowResizeEvent.cpp
+@@ -63,4 +63,31 @@ VRDataIndex VRWindowResizeEvent::createValidDataIndex(const std::string &eventNa
+ }
+     
+ 
++VRWindowCloseEvent::VRWindowCloseEvent(const VRDataIndex& internalIndex):_index(internalIndex)
++{
++
++}
++
++VRWindowCloseEvent::~VRWindowCloseEvent()
++{
++
++}
++
++std::string VRWindowCloseEvent::getName() const
++{
++  return _index.getName();
++}
++
++const MinVR::VRDataIndex& VRWindowCloseEvent::index() const
++{
++  return _index;
++}
++
++MinVR::VRDataIndex VRWindowCloseEvent::createValidDataIndex()
++{
++  VRDataIndex di("WindowClose");
++  di.addData("EventType", "WindowClose");
++  return di;
++}
++
+ } // end namespace
 diff --git a/src/display/VRGraphicsWindowNode.cpp b/src/display/VRGraphicsWindowNode.cpp
 index 7445cb2..999f32f 100644
 --- a/src/display/VRGraphicsWindowNode.cpp
@@ -126,10 +256,48 @@ index 2e99c0b..0be28c1 100644
  		std::cerr << "swapBuffers() not enabled in this VRWindowToolkit." << std::endl;
  	}
 diff --git a/tests-interactive/opengl-shaderpipeline-with-api/main.cpp b/tests-interactive/opengl-shaderpipeline-with-api/main.cpp
-index 6a4f3a3..d53e47b 100644
+index 6a4f3a3..5ea285c 100644
 --- a/tests-interactive/opengl-shaderpipeline-with-api/main.cpp
 +++ b/tests-interactive/opengl-shaderpipeline-with-api/main.cpp
-@@ -239,6 +239,21 @@ public:
+@@ -39,6 +39,7 @@ using namespace MinVR;
+ class MyVRApp : public VRApp {
+ public:
+   MyVRApp(int argc, char** argv) : VRApp(argc, argv) {
++    
+   }
+ 
+ 
+@@ -74,6 +75,12 @@ public:
+ 
+   void onRenderConsole(const VRConsoleState& state) {}
+ 
++  void onGenericEvent(const VRDataIndex& index) 
++  {
++    if (index.getName() == "WindowClose") {
++      shutdown();
++    }
++  }
+ 
+   void onRenderGraphicsContext(const VRGraphicsState& state) {
+     // If this is the inital call, initialize context variables
+@@ -203,6 +210,16 @@ public:
+       glAttachShader(shaderProgram, vshader);
+       glAttachShader(shaderProgram, fshader);
+       linkShaderProgram(shaderProgram);
++      
++      int w = state.index().getValue("WindowWidth");
++      int h = state.index().getValue("WindowHeight");
++      std::cout << "WindowWidth " << w << std::endl;
++      std::cout << "WindowHeight " << h << std::endl;
++
++      GLint last_viewport[4];
++      glGetIntegerv(GL_VIEWPORT, last_viewport);
++      std::cout << "viewportWidth " << last_viewport[2] << std::endl;
++      std::cout << "viewportHeight " << last_viewport[3] << std::endl;
+     }
+ 
+     // Destroy context items if the program is no longer running
+@@ -239,6 +256,21 @@ public:
      loc = glGetUniformLocation(shaderProgram, "ModelMatrix");
      glUniformMatrix4fv(loc, 1, GL_FALSE, model);
  
@@ -151,7 +319,7 @@ index 6a4f3a3..d53e47b 100644
      // Draw cube
      glBindVertexArray(vao);
      glDrawArrays(GL_TRIANGLES, 0, 36);
-@@ -294,6 +309,7 @@ public:
+@@ -294,6 +326,7 @@ public:
  private:
    GLuint vbo, vao, vshader, fshader, shaderProgram;
    float model[16];
