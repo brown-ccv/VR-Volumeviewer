@@ -43,6 +43,7 @@ jobs:
            git clone https://github.com/islamadel/bat2exe.git
       
     - name: Copy bat2exec script to create .exe
+      shell: cmd
       run: copy superbuild\scripts\CCV_VR_VWR.bat superbuild\install_Windows\bin
     - name: List files on bin folder
       run: |
