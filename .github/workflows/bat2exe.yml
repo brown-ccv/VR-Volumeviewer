@@ -57,7 +57,7 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{github.workspace}}\superbuild\install_Windows\bin\CCV_VR_VWR.exe
-        asset_name: CCV_VR_VWR-windows
+        asset_name: CCV_VR_VWR_WIN
         tag: ${{ github.ref }}
         prerelease: true
 
@@ -98,12 +98,12 @@ jobs:
       run: |
            cd superbuild/install_Darwin
            tar -czvf VR-VolumeViewer.tar.gz VR-VolumeViewer.app
-    - name: Upload app to release - windows
+    - name: Upload app to release
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{github.workspace}}/superbuild/install_Darwin/VR-VolumeViewer.tar.gz
-        asset_name: CCV_VR_VWR-mac-os
+        asset_name: CCV_VR_VWR_MAC
         tag: ${{ github.ref }}
         prerelease: true
     - name: Test
