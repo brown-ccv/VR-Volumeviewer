@@ -168,6 +168,22 @@ index 0f764a5..38e03d0 100644
  } // end namespace
  
  
+diff --git a/src/api/impl/VRApp.cpp b/src/api/impl/VRApp.cpp
+index 9a37bfb..eaa24d0 100644
+--- a/src/api/impl/VRApp.cpp
++++ b/src/api/impl/VRApp.cpp
+@@ -34,6 +34,11 @@ class VRAppInternal : public VREventHandler, public VRRenderHandler {
+ public:
+ 	VRAppInternal(int argc, char** argv, VRApp *app) : _app(app) {
+ 		_main = new VRMain();
++    std::string executable_Full_Path = argv[0];
++    std::size_t found = executable_Full_Path.find_last_of("/\\");
++    std::cout << " path: " << executable_Full_Path.substr(0, found+1) << '\n';
++
++    _main->_configPath.addPathEntry(executable_Full_Path.substr(0, found + 1));
+ 
+         _main->addEventHandler(this);
+         _main->addRenderHandler(this);
 diff --git a/src/api/impl/VRWindowResizeEvent.cpp b/src/api/impl/VRWindowResizeEvent.cpp
 index f935046..46bf886 100644
 --- a/src/api/impl/VRWindowResizeEvent.cpp
@@ -255,6 +271,23 @@ index 2e99c0b..0be28c1 100644
  	virtual void swapBuffers(int windowID) {
  		std::cerr << "swapBuffers() not enabled in this VRWindowToolkit." << std::endl;
  	}
+diff --git a/src/main/VRMain.h b/src/main/VRMain.h
+index 28e7fde..9877859 100644
+--- a/src/main/VRMain.h
++++ b/src/main/VRMain.h
+@@ -606,9 +606,11 @@ public:
+     /// This is for MinVR internal use, public only for testing.
+     bool _startLocalProcess(const std::string &name);
+ 
++    VRSearchConfig _configPath;
++    
+  private:
+ 
+-    VRSearchConfig _configPath;
++    
+ 
+     bool _initialized;
+ 
 diff --git a/tests-interactive/opengl-shaderpipeline-with-api/main.cpp b/tests-interactive/opengl-shaderpipeline-with-api/main.cpp
 index 6a4f3a3..5ea285c 100644
 --- a/tests-interactive/opengl-shaderpipeline-with-api/main.cpp

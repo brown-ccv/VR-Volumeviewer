@@ -25,7 +25,8 @@
   <OpenGLPlugin pluginType="MinVR_OpenGL"/>
   <OpenGLToolkit graphicstoolkitType="VROpenGLGraphicsToolkit"/>
 
-  
+  <ContextVersionMajor>3</ContextVersionMajor>
+  <ContextVersionMinor>3</ContextVersionMinor>
 
 
   <!-- Setup a Desktop-Style Camera -->
