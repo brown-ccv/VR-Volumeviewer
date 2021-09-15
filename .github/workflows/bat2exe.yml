@@ -57,7 +57,7 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{github.workspace}}\superbuild\install_Windows\bin\CCV_VR_VWR.exe
-        asset_name: CCV_VR_VWR
+        asset_name: CCV_VR_VWR-windows
         tag: ${{ github.ref }}
         prerelease: true
 
@@ -103,7 +103,7 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{github.workspace}}/superbuild/install_Darwin/VR-VolumeViewer.tar.gz
-        asset_name: CCV_VR_VWR
+        asset_name: CCV_VR_VWR-mac-os
         tag: ${{ github.ref }}
         prerelease: true
     - name: Test
