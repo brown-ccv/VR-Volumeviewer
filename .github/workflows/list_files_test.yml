@@ -35,6 +35,10 @@ jobs:
       run: |
            cd superbuild\scripts
            copy CCV_VR_VWR.bat ${{github.workspace}}\superbuild
+    - name: List files
+      run: |
+           cd superbuild\
+           dir
     - name: run bat2exec in the background and create vr-volumeviewer executable 
       shell: cmd
       run: superbuild\scripts\execute_bat2exe_background.bat ${{github.workspace}}
