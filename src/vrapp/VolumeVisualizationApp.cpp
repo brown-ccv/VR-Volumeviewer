@@ -196,6 +196,7 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent& event) {
     {
       m_vrVolumeApp->button_event_trackBall_handle(2, 1);
     }
+
   }
 
   if (m_vrVolumeApp && m_vrVolumeApp->is_show_menu() && m_vrVolumeApp->is_ui_event()) {
@@ -485,6 +486,13 @@ void VolumeVisualizationApp::onTrackerMove(const VRTrackerEvent& event) {
 }
 
 
+
+void VolumeVisualizationApp::onGenericEvent(const VRDataIndex& index)
+{
+  if (index.getName() == "WindowClose") {
+    shutdown();
+  }
+}
 
 void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState& renderState) {
   // This routine is called once per graphics context at the start of the

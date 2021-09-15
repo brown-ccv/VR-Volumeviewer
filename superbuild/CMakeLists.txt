@@ -61,7 +61,7 @@ message("xxxxxx CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}")
 message("xxxxxx CMAKE_VERSION ${CMAKE_VERSION}")
 
 
-set(MINVR_PATCH_PATH ${CMAKE_SOURCE_DIR}/../)
+set(MINVR_PATCH_PATH ${CMAKE_SOURCE_DIR}/../patches)
 message("MINVR_PATCH_PATH ${MINVR_PATCH_PATH}")
 
 #GLEW
@@ -633,6 +633,8 @@ add_executable(${PROJECT_NAME} ${source_files} ${header_files})
 target_link_libraries(${PROJECT_NAME}  ${LIBRARIES})
 
 file(COPY "${CMAKE_SOURCE_DIR}/../shaders" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
+file(COPY "${CMAKE_SOURCE_DIR}/../fonts/" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
+file(COPY "${CMAKE_SOURCE_DIR}/../observers/" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
 
 
 enable_testing()

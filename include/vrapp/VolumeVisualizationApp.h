@@ -82,6 +82,8 @@ public:
 
   virtual void onTrackerMove(const VRTrackerEvent& state);
 
+  virtual void onGenericEvent(const VRDataIndex& index);
+
   /** RENDERING CALLBACKS **/
 
   virtual void onRenderGraphicsScene(const VRGraphicsState& state);

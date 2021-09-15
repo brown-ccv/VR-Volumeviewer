@@ -16,9 +16,10 @@ int main(int argc, char **argv) {
     // line args to see which config files to load.
     
     int num_parameters = 4;
-    char * arguments[] = {"VR-Volumeviewer.exe","-c","desktop.minvr", "use2DUI"};
+    char * arguments[] = { argv[0],"-c","desktop_observer.minvr", "use2DUI"};
 
 	VolumeVisualizationApp app(num_parameters, arguments);
+ 
 
     // Does not return until the program shuts down.
     app.run();

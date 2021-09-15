@@ -134,7 +134,8 @@ void VRVolumeApp::load_mesh_model()
 
 void VRVolumeApp::load_shaders()
 {
-  m_shader_file_path = "shaders";
+
+  m_shader_file_path = get_directory_path()+ OS_SLASH+ "shaders";
   std::string vertexShaderFolderPath = m_shader_file_path + OS_SLASH + std::string("shader.vert");
   std::string fragmentShaderFolderPath = m_shader_file_path + OS_SLASH + std::string("shader.frag");
   m_simple_texture_shader.LoadShaders(vertexShaderFolderPath.c_str(), fragmentShaderFolderPath.c_str());
