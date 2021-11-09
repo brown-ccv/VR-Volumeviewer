@@ -221,6 +221,11 @@ private:
   float m_histogram_quantiles[2]; 
 
   
+  void load_ocean_color_maps();
+
+  std::vector<std::string> m_ocean_color_maps_names;
+
+  std::string m_color_map_directory;
 
 };
 
