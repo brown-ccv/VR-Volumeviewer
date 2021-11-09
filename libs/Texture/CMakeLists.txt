@@ -1,6 +1,7 @@
 
 include_directories(
   ../stb_image
+   ${GLEW_INCLUDE_DIR}
 )
 
 add_library( 

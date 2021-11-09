@@ -24,7 +24,6 @@
 ///\author Benjamin Knorlein
 ///\date 11/14/2019
 
-#pragma once
 
 #ifndef LOADNRRDACTION_H
 #define LOADNRRDACTION_H

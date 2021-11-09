@@ -1,7 +1,28 @@
 #ifndef VOLUMEVISUALIZATIONAPP_H
 #define VOLUMEVISUALIZATIONAPP_H
 
+#ifdef _WIN32
 #include "GL/glew.h"
+#include "GL/wglew.h"
+#elif (!defined(__APPLE__))
+#include "GL/glxew.h"
+#endif
+
+// OpenGL Headers
+#if defined(WIN32)
+#define NOMINMAX
+#include <windows.h>
+#include <GL/gl.h>
+#elif defined(__APPLE__)
+#define GL_GLEXT_PROTOTYPES
+#include <OpenGL/gl3.h>
+#include <OpenGL/glext.h>
+#else
+#define GL_GLEXT_PROTOTYPES
+#include <GL/gl.h>
+#endif
+
+
 #include "VRMenuHandler.h"
 #include "UIHelpers/transfer_function_multichannel_widget.h"
 #include "UIHelpers/transfer_function_widget.h"
@@ -26,13 +47,6 @@ using namespace MinVR;
 #include <GL/gl.h>
 #include <gl/GLU.h>
 #define M_PI 3.14159265358979323846
-#elif defined(__APPLE__)
-#include <OpenGL/OpenGL.h>
-#include <OpenGL/glu.h>
-#else
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#include <GL/glu.h>
 #endif
 
 #include "../render/VolumeSliceRenderer.h"
@@ -67,6 +81,8 @@ public:
   virtual void onButtonUp(const VRButtonEvent& state);
 
   virtual void onTrackerMove(const VRTrackerEvent& state);
+
+  virtual void onGenericEvent(const VRDataIndex& index);
 
   /** RENDERING CALLBACKS **/
 

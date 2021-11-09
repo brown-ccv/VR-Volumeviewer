@@ -11,7 +11,30 @@
 #include "render/FontHandler.h"
 #include "interaction/CreateMovieAction.h"
 
+#ifdef _WIN32
 #include "GL/glew.h"
+#include "GL/wglew.h"
+#elif (!defined(__APPLE__))
+#include "GL/glxew.h"
+#endif
+
+// OpenGL Headers
+#if defined(WIN32)
+#define NOMINMAX
+#include <windows.h>
+#include <GL/gl.h>
+#elif defined(__APPLE__)
+#define GL_GLEXT_PROTOTYPES
+#include <OpenGL/gl3.h>
+#include <OpenGL/glext.h>
+#else
+#define GL_GLEXT_PROTOTYPES
+#include <GL/gl.h>
+#endif
+
+#if (!defined(__APPLE__))
+#include <filesystem>
+#endif
 
 #include <fstream> 
 #include <sstream> 
@@ -25,7 +48,8 @@
 VRVolumeApp::VRVolumeApp() :m_mesh_model(nullptr), m_clip_max{ 1.0f }, m_clip_min{ 0.0f }, m_clip_ypr{ 0.0f }, m_clip_pos{ 0.0 }, m_wasd_pressed(0),
 m_lookingGlass(false), m_isInitailized(false), m_speed(0.01f), m_movieAction(nullptr), m_moviename("movie.mp4"), m_noColor(0.0f),
 m_ambient(0.2f, 0.2f, 0.2f, 1.0f), m_diffuse(0.5f, 0.5f, 0.5f, 1.0f), m_ui_view(nullptr), m_animated(false), m_numVolumes(0), m_selectedVolume(0),
-m_multiplier(1.0f), m_threshold(0.0f), m_frame(0.0f), m_use_multi_transfer(false), m_clipping(false), m_show_menu(true)
+m_multiplier(1.0f), m_threshold(0.0f), m_frame(0.0f), m_use_multi_transfer(false), m_clipping(false), m_show_menu(true), 
+m_window_properties(nullptr)
 {
   m_renders.push_back(new VolumeSliceRenderer());
   m_renders.push_back(new VolumeRaycastRenderer());
@@ -37,22 +61,31 @@ VRVolumeApp::~VRVolumeApp()
   {
     delete m_ui_view;
   }
+
+  delete m_window_properties;
 }
 
 
 void VRVolumeApp::initialize()
 {
+  
+
   if (!m_isInitailized)
   {
+   // std::cout << "initialize  1" << std::endl;
     m_object_pose = glm::mat4(1.0f);
     initialize_GL();
+ //   std::cout << "initialize  2" << std::endl;
     if (!m_ui_view)
     {
+      std::cout << "initialize UI " << std::endl;
       m_ui_view = new  UIView(*this);
       m_ui_view->init_ui(m_is2d, m_lookingGlass);
     }
+    m_window_properties = new Window_Properties();
     m_isInitailized = true;
     m_rendercount = 0;
+    std::cout << "initialize end" << std::endl;
   }
 
 }
@@ -60,7 +93,10 @@ void VRVolumeApp::initialize()
 void VRVolumeApp::initialize_GL()
 {
   for (auto ren : m_renders)
+  { 
     ren->initGL();
+  }
+   
 
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
@@ -98,7 +134,8 @@ void VRVolumeApp::load_mesh_model()
 
 void VRVolumeApp::load_shaders()
 {
-  m_shader_file_path = "shaders";
+
+  m_shader_file_path = get_directory_path()+ OS_SLASH+ "shaders";
   std::string vertexShaderFolderPath = m_shader_file_path + OS_SLASH + std::string("shader.vert");
   std::string fragmentShaderFolderPath = m_shader_file_path + OS_SLASH + std::string("shader.frag");
   m_simple_texture_shader.LoadShaders(vertexShaderFolderPath.c_str(), fragmentShaderFolderPath.c_str());
@@ -145,6 +182,7 @@ void VRVolumeApp::update_animation()
   }
 }
 
+#if (!defined(__APPLE__))
 void VRVolumeApp::run_movie()
 {
 #ifndef _MSC_VER
@@ -157,6 +195,7 @@ void VRVolumeApp::run_movie()
   m_frame = 0;
   m_show_menu = false;
 }
+#endif
 
 void VRVolumeApp::set_render_count(unsigned int rendercount)
 {
@@ -260,7 +299,13 @@ void VRVolumeApp::init_num_volumes(int nVolumes)
   m_promises.resize(m_numVolumes);
   m_futures.resize(m_numVolumes);
   m_threads.resize(m_numVolumes);
-  m_ui_view->update_ui(m_numVolumes);
+  if(!m_ui_view)
+  {
+m_ui_view = new UIView(*this);
+m_ui_view->init_ui(m_is2d,m_lookingGlass);
+ m_ui_view->update_ui(m_numVolumes);
+  }
+ 
 
 }
 
@@ -476,6 +521,11 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
     m_depthTextures.push_back(new DepthTexture);
   }
 
+  int window_w  =renderState.index().getValue("WindowWidth");
+  int window_h  =renderState.index().getValue("WindowHeight");
+  int framebuffer_w  =renderState.index().getValue("FramebufferWidth");
+  int framebuffer_h  =renderState.index().getValue("FramebufferHeight");
+
   //setup projection
   m_projection_mtrx = glm::make_mat4(renderState.getProjectionMatrix());
   m_model_view = glm::make_mat4(renderState.getViewMatrix());
@@ -565,12 +615,12 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
   //render labels
   render_labels(renderState);
 
-  if (m_ui_view && !m_is2d)
+  /*if (m_ui_view && !m_is2d)
   {
 
     glm::mat4 viewMatrix = glm::make_mat4(renderState.getViewMatrix());
     m_ui_view->render_3D(viewMatrix);
-  }
+  }*/
 
 
   m_depthTextures[m_rendercount]->copyDepthbuffer();
@@ -578,10 +628,13 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
 
   render_volume(renderState);
 
-  if (m_ui_view && m_is2d)
+
+  render_ui(renderState);
+
+  /*if (m_ui_view && m_is2d)
   {
     m_ui_view->render_2D();
-  }
+  }*/
 
   //drawTime
   if (m_is2d && m_animated) {
@@ -757,21 +810,24 @@ void VRVolumeApp::render_ui(const MinVR::VRGraphicsState& renderState)
   //render menu	
   glm::mat4 mvMatrix = glm::make_mat4(renderState.getViewMatrix());
 
-  if (m_ui_view)
-  {
+  if (m_ui_view && m_window_properties)
+  { 
+    m_window_properties->window_w = renderState.index().getValue("WindowWidth");
+    m_window_properties->window_h = renderState.index().getValue("WindowHeight");
+    m_window_properties->framebuffer_w = renderState.index().getValue("FramebufferWidth");
+    m_window_properties->framebuffer_h = renderState.index().getValue("FramebufferHeight");
+  
+
     if (!m_is2d)
-    {
-      m_ui_view->render_3D(mvMatrix);
+    { 
+      m_ui_view->render_3D(mvMatrix,*m_window_properties);
     }
     else
     {
-      m_ui_view->render_2D();
+      m_ui_view->render_2D(*m_window_properties);
     }
   }
 
-
-  m_depthTextures[m_rendercount]->copyDepthbuffer();
-  (static_cast <VolumeRaycastRenderer*> (m_renders[1]))->setDepthTexture(m_depthTextures[m_rendercount]);
 }
 
 
@@ -807,9 +863,9 @@ void VRVolumeApp::update_2D_ui()
 {
   if (m_show_menu && m_ui_view)
   {
-    if (m_is2d)
+    if (m_is2d && m_window_properties)
     {
-      m_ui_view->render_2D();
+      m_ui_view->render_2D(*m_window_properties);
     }
   }
 }
@@ -847,7 +903,7 @@ void VRVolumeApp::add_lodaded_textures()
         delete m_promises[i][counter];
         counter++;
       }
-
+  
 
     }
     
@@ -1051,3 +1107,4 @@ void VRVolumeApp::do_grab(glm::mat4& newPose)
   }
   m_controller_pose = newPose;
 }
+

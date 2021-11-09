@@ -1,4 +1,9 @@
-#include <GL/glew.h>
+#ifdef _WIN32
+#include "GL/glew.h"
+#include "GL/wglew.h"
+#elif (!defined(__APPLE__))
+#include "GL/glxew.h"
+#endif
 
 #define  _CRT_SECURE_NO_WARNINGS
 

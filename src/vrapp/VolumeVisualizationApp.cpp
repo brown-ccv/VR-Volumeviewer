@@ -84,7 +84,8 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
           std::vector<std::promise<Volume*>*> v2= promises.back();
           ths.emplace_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, v2.back()));
           threads.push_back(ths);*/
-        m_vrVolumeApp->load_nrrd_file(std::string(argv_int[i]));
+        std::string nrrdFileName(argv_int[i]);
+        m_vrVolumeApp->load_nrrd_file(nrrdFileName);
         //m_vrVolumeApp->initialize();
       }
     }
@@ -177,7 +178,8 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent& event) {
 
     if (m_vrVolumeApp)
     {
-      m_vrVolumeApp->set_character_state(event.getName(), 1);
+      std::string evName = event.getName();
+      m_vrVolumeApp->set_character_state(evName, 1);
     }
   }
   else
@@ -194,6 +196,7 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent& event) {
     {
       m_vrVolumeApp->button_event_trackBall_handle(2, 1);
     }
+
   }
 
   if (m_vrVolumeApp && m_vrVolumeApp->is_show_menu() && m_vrVolumeApp->is_ui_event()) {
@@ -295,7 +298,8 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent& event) {
 
     if (m_vrVolumeApp)
     {
-      m_vrVolumeApp->set_character_state(event.getName(), 0);
+      std::string evName = event.getName();
+      m_vrVolumeApp->set_character_state(evName, 0);
     }
   }
   else
@@ -483,12 +487,18 @@ void VolumeVisualizationApp::onTrackerMove(const VRTrackerEvent& event) {
 
 
 
+void VolumeVisualizationApp::onGenericEvent(const VRDataIndex& index)
+{
+  if (index.getName() == "WindowClose") {
+    shutdown();
+  }
+}
+
 void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState& renderState) {
   // This routine is called once per graphics context at the start of the
   // rendering process.  So, this is the place to initialize textures,
   // load models, or do other operations that you only want to do once per
   // frame when in stereo mode.
-
 
   std::chrono::steady_clock::time_point nowTime = std::chrono::steady_clock::now();
   std::chrono::duration<double> time_span = std::chrono::duration<double>(nowTime - m_lastTime);
@@ -511,14 +521,14 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState& rend
       std::cout << "Error initializing GLEW." << std::endl;
     }
 #endif        
-
+std::cout << "init vizapp " << std::endl;
     if (m_vrVolumeApp)
     {
       m_vrVolumeApp->initialize();
       m_vrVolumeApp->intialize_ui();
       m_vrVolumeApp->load_shaders();
     }
-
+    std::cout << "init vizapp 2" << std::endl;
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glLightfv(GL_LIGHT0, GL_AMBIENT, glm::value_ptr(m_vrVolumeApp->get_ambient()));
@@ -531,8 +541,12 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState& rend
     glClearDepth(1.0f);
     glDepthFunc(GL_LEQUAL);
     glClearColor(0.0, 0.0, 0.0, 1);
+     std::cout << "init vizapp end" << std::endl;
   }
 
+
+
+  
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glLightfv(GL_LIGHT0, GL_POSITION, m_light_pos);
@@ -543,8 +557,8 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState& rend
     {
       m_vrVolumeApp->load_mesh_model();
     }
+    
     m_vrVolumeApp->initialize_textures();
-    m_vrVolumeApp->update_frame_state();
     m_vrVolumeApp->update_3D_ui();
     m_vrVolumeApp->update_trackBall_state();
     m_vrVolumeApp->update_animation();
@@ -552,7 +566,7 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState& rend
 
   }
 
-
+  // std::cout << "init vizapp loop" << std::endl;
 }
 
 

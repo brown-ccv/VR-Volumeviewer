@@ -24,8 +24,6 @@
 ///\author Benjamin Knorlein
 ///\date 11/28/2017
 
-#pragma once
-
 #ifndef LOADDATAACTION_H
 #define LOADDATAACTION_H
 #include <string>

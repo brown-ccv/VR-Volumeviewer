@@ -25,26 +25,28 @@
 ///\date 05/24/2019
 /// Based on the book : OpenGL Development Cookbook  by Muhammad Mobeen Movania
 
-#pragma once
-
 #ifndef VOLUMESLICERCASTRENDER_H
 #define VOLUMESLICERCASTRENDER_H
 
+#ifdef _WIN32
 #include "GL/glew.h"
+#include "GL/wglew.h"
+#elif (!defined(__APPLE__))
+#include "GL/glxew.h"
+#endif
 
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
+// OpenGL Headers
+#if defined(WIN32)
+#define NOMINMAX
 #include <windows.h>
 #include <GL/gl.h>
-#include <gl/GLU.h>
-#define M_PI 3.14159265358979323846
 #elif defined(__APPLE__)
-#include <OpenGL/OpenGL.h>
-#include <OpenGL/glu.h>
+#define GL_GLEXT_PROTOTYPES
+#include <OpenGL/gl3.h>
+#include <OpenGL/glext.h>
 #else
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
-#include <GL/glu.h>
 #endif
 
 #include <glm/glm.hpp>

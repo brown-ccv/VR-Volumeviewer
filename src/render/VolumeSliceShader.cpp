@@ -24,14 +24,12 @@
 ///\author Benjamin Knorlein
 ///\date 11/30/2017
 
-#pragma once
-
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "render/VolumeSliceShader.h"
-#include <GL/glew.h>
+
 
 #include <glm/gtc/type_ptr.hpp>
 
