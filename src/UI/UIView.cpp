@@ -114,17 +114,12 @@ void UIView::draw_ui_callback()
           m_selected_volume_TrFn[index][i] = false;
         }
 
-        MyTransFerFunctions trfntc;
-        char label[32];
-
-        sprintf(label, "TF%d", m_trnfnct_counter++);
-        trfntc.ID =  tfn_widget.size();
-        trfntc.Name = label;
-        for (int i = 0; i < numVolumes; i++)
+        addTransferFunction();
+        if (m_tfns.size() == 1)
         {
-          trfntc.volumes.push_back(false);
+          m_table_selection = 0;
         }
-        m_tfns.push_back(trfntc);
+
       };
       ImGui::SameLine();
       if (ImGui::SmallButton("Remove Function")) {
@@ -137,16 +132,7 @@ void UIView::draw_ui_callback()
           m_tfns.clear();
           tfn_widget.push_back(TransferFunctionWidget());
           tfn_widget_multi.push_back(TransferFunctionMultiChannelWidget());
-          MyTransFerFunctions trfntc;
-          char label[32];
-          sprintf(label, "TF%d", (int)tfn_widget.size());
-          trfntc.ID = tfn_widget.size();
-          trfntc.Name = label;
-          for (int i = 0; i < numVolumes; i++)
-          {
-            trfntc.volumes.push_back(false);
-          }
-          m_tfns.push_back(trfntc);
+          addTransferFunction();
           m_table_selection = 0;
         }
         else if (m_tfns.size() > 1 && m_table_selection >= 0)
@@ -1341,5 +1327,20 @@ void UIView::compute_new_histogram_view()
   m_histogram.setHistogram(histogram);
   
   m_compute_new_histogram = false;
+}
+
+void UIView::addTransferFunction()
+{
+  int numVolumes = m_controller_app.get_num_volumes();
+  MyTransFerFunctions trfntc;
+  char label[32];
+  sprintf(label, "TF%d", (int)tfn_widget.size());
+  trfntc.ID = tfn_widget.size();
+  trfntc.Name = label;
+  for (int i = 0; i < numVolumes; i++)
+  {
+    trfntc.volumes.push_back(false);
+  }
+  m_tfns.push_back(trfntc);
 }
 

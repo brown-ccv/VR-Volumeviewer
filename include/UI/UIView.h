@@ -114,6 +114,8 @@ public:
 
   void compute_new_histogram_view();
 
+  void addTransferFunction();
+
 private:
 
   struct MyTransFerFunctions
