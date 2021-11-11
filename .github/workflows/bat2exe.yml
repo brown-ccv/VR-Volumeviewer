@@ -56,8 +56,8 @@ jobs:
     - name: (test -- commend after it works)
       uses: actions/upload-artifact@v2
       with:
-      name: Windows-VR-VolumeViewer
-      path: ${{github.workspace}}\superbuild\install_Windows\bin\CCV_VR_VWR.exe 
+        name: Windows-VR-VolumeViewer
+        path: ${{github.workspace}}\superbuild\install_Windows\bin\CCV_VR_VWR.exe 
     # - name: Upload app to release - windows
     #   uses: svenstaro/upload-release-action@v2
     #   with:
