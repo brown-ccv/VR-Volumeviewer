@@ -19,6 +19,9 @@ public:
   virtual ~FontHandler();
   static FontHandler* getInstance();
 
+  static void setParentPath(std::string& path);
+  
+
   FTFont* getFont();
 
   void renderTextBox(std::string text, double x, double y, double z, double width, double height, TextAlignment alignment = CENTER, bool rotateY = false);
@@ -30,7 +33,7 @@ public:
 private:
   FontHandler();
   static FontHandler* instance;
-
+  static std::string m_parentPath;
   FTFont* font;
   double m_fontMinMax[2];
 };
