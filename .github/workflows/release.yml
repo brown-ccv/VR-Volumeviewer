@@ -7,7 +7,6 @@ on:
 
 env:
   BUILD_TYPE: Release
-  ENABLE_MAC_BUILD: 0
 jobs:
   build_windows:
     
@@ -55,53 +54,3 @@ jobs:
         file: ${{github.workspace}}\superbuild\install_Windows\bin\CCV_VR_VWR.exe
         tag: ${{ github.ref }}
         prerelease: true
-  build_mac:
-
-    runs-on: macos-11
-    if: ${{env.ENABLE_MAC_BUILD == 1}}  
-    steps:
-    - uses: actions/checkout@v2
-    
-    - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.9
-      with:
-        cmake-version: '3.20.3'
-    
-    - name: Clean superbuild folder
-      run: python3 superbuild/clean/clean.py
-      
-    - name: Open superbuild folder
-      run: cd superbuild
-
-    - name: Configure CMake
-      run: |
-           cd superbuild 
-           cmake -S . -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-
-    - name: Build
-      run: |
-           cd superbuild
-           make
-    - name: create .app folder
-      run: |
-           cd superbuild/install_Darwin
-           cp -R ./bin VR-VolumeViewer.app
-    - name: create tar-gz
-      run: |
-           cd superbuild/install_Darwin
-           tar -czvf VR-VolumeViewer.tar.gz VR-VolumeViewer.app
-    - name: (test -- commend after it works)
-      uses: actions/upload-artifact@v2
-      with:
-        name: Mac-Os-VR-VolumeViewer
-        path: ${{github.workspace}}/superbuild/install_Darwin/VR-VolumeViewer.tar.gz
-    # - name: Upload app to release
-    #   uses: svenstaro/upload-release-action@v2
-    #   with:
-    #     repo_token: ${{ secrets.GITHUB_TOKEN }}
-    #     file: ${{github.workspace}}/superbuild/install_Darwin/VR-VolumeViewer.tar.gz
-    #     tag: ${{ github.ref }}
-    #     prerelease: true
-    - name: Test
-      working-directory: ${{github.workspace}}/superbuild/install_Darwin/bin
-      run:  ctest
