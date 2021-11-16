@@ -31,7 +31,7 @@ jobs:
            cd superbuild
            ninja
     - name: Test
-      working-directory: ${{github.workspace}}/superbuild/install_Darwin/bin
+      working-directory: ${{github.workspace}}/superbuild/install_Windows/bin
       run:  ctest
     
 
