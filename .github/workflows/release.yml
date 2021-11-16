@@ -1,4 +1,4 @@
-name: superbuild-and-bat3exe-test
+name: build-release-vr-volumeviewer
 
 on:  workflow_dispatch
 
