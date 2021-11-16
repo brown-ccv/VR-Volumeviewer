@@ -1,5 +1,5 @@
 
-![example workflow](https://github.com/brown-ccv/VR-Volumeviewer/actions/workflows/cmake.yml/badge.svg)
+![example workflow](https://github.com/brown-ccv/VR-Volumeviewer/actions/workflows/build.yml/badge.svg)
 
 # VR-Volumeviewer
 A simple viewer for visualizing volumetric datasets. It supports color mapping using transfer functions to map specific values of data to a scalar color. The view camera is fully interactive, and it works on multiple systems (Windows and Linux).
