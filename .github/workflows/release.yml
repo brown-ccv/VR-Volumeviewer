@@ -1,6 +1,9 @@
 name: build-release-vr-volumeviewer
 
-on:  workflow_dispatch
+on:  
+  push:
+    tags:
+      - '*'
 
 env:
   BUILD_TYPE: Release
