@@ -33,10 +33,11 @@
 #define TEXTBORDER 0.003
 
 FontHandler* FontHandler::instance = NULL;
+std::string FontHandler::m_parentPath ="";
 
 FontHandler::FontHandler()
 {
-  font = new FTGLPolygonFont("calibri.ttf");
+  font = new FTGLPolygonFont((m_parentPath+"calibri.ttf").c_str());
 
   if (font->Error()) {
     std::cerr << "Font load error" << std::endl;
@@ -49,6 +50,11 @@ FontHandler::FontHandler()
   m_fontMinMax[0] = ll[1];
   m_fontMinMax[1] = ur[1];
 }
+
+void FontHandler::setParentPath(std::string& path)
+{
+  m_parentPath = path;
+};
 
 FontHandler::~FontHandler()
 {

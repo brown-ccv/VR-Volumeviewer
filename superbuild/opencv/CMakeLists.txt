@@ -16,5 +16,6 @@ build_git_subproject(
    -DBUILD_TESTS=OFF
    -DBUILD_PERF_TESTS=OFF
    -DBUILD_opencv_python_tests=OFF
+   -DBUILD_OPENEXR=OFF
    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 )

@@ -1,0 +1,67 @@
+name: build-vr-volumeviewer
+
+on:  workflow_dispatch
+
+env:
+  BUILD_TYPE: Debug
+
+jobs:
+  build_windows:
+    
+    runs-on: windows-2019
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ilammy/msvc-dev-cmd@v1
+    - uses: seanmiddleditch/gha-setup-ninja@master
+    
+
+    - name: Clean superbuild folder
+      run: superbuild/clean/clean.bat
+      
+    - name: Open superbuild folder
+      run: cd superbuild
+
+    - name: Configure CMake
+      run: |
+           cd superbuild 
+           cmake -S . -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G Ninja
+    - name: Build
+      run: |
+           cd superbuild
+           ninja
+    - name: Test
+      working-directory: ${{github.workspace}}/superbuild/install_Darwin/bin
+      run:  ctest
+    
+
+  build_mac:
+   
+    runs-on: macos-11
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v1.9
+      with:
+        cmake-version: '3.20.3'
+    
+    - name: Clean superbuild folder
+      run: python3 superbuild/clean/clean.py
+      
+    - name: Open superbuild folder
+      run: cd superbuild
+
+    - name: Configure CMake
+      run: |
+           cd superbuild 
+           cmake -S . -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+    - name: Build
+      run: |
+           cd superbuild
+           make
+    - name: Test
+      working-directory: ${{github.workspace}}/superbuild/install_Darwin/bin
+      run:  ctest
