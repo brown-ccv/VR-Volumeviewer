@@ -51,11 +51,18 @@ jobs:
       with:
         files: ${{github.workspace}}\superbuild\install_Windows\bin
         recursive: false
-        dest: vr-volumeviewer-exec.zip
+        dest: ${{github.workspace}}\superbuild\install_Windows\vr-volumeviewer-exec.zip
     - name: Upload app to release - windows
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{github.workspace}}\superbuild\install_Windows\bin\CCV_VR_VWR.exe
+        tag: ${{ github.ref }}
+        prerelease: true
+    - name: Upload app to release - windows
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{github.workspace}}\superbuild\install_Windows\vr-volumeviewer-exec.zip
         tag: ${{ github.ref }}
         prerelease: true
