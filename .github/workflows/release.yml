@@ -47,6 +47,11 @@ jobs:
     - name: run bat2exec in the background and create vr-volumeviewer executable 
       shell: cmd
       run: superbuild\scripts\execute_bat2exe_background.bat ${{github.workspace}}
+    - uses: papeloto/action-zip@v1
+      with:
+        files: ${{github.workspace}}\superbuild\install_Windows\bin
+        recursive: false
+        dest: vr-volumeviewer-exec.zip
     - name: Upload app to release - windows
       uses: svenstaro/upload-release-action@v2
       with:
