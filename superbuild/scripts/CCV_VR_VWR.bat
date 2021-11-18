@@ -1,1 +1,1 @@
-VR-Volumeviewer.exe
+.\VR-Volumeviewer.exe
