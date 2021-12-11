@@ -64,6 +64,8 @@ message("xxxxxx CMAKE_VERSION ${CMAKE_VERSION}")
 set(MINVR_PATCH_PATH ${CMAKE_SOURCE_DIR}/../patches)
 message("MINVR_PATCH_PATH ${MINVR_PATCH_PATH}")
 
+find_package(OpenGL REQUIRED)
+
 #GLEW
 # Configure external project
 IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/glew/glew)
@@ -380,7 +382,7 @@ if(Imgui_FOUND)
   message(STATUS "Imgui NOT found" )
 endif()
 
-find_package(OpenGL REQUIRED)
+
 find_package(OpenCV CONFIG REQUIRED)
 if(OpenCV_FOUND)
   message(STATUS "OpenCV found ${_OpenCV_LIB_PATH}")
