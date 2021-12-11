@@ -1,4 +1,4 @@
-#version 410
+#version 330
 
 const vec4 lightPos = vec4(0.0, 2.0, 2.0, 1.0);
 const vec4 color = vec4(0.5, 0.5, 0.5, 1.0);

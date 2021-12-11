@@ -51,3 +51,5 @@ superbuild/*.sln
 superbuild/zlib/zlib/
 superbuild/vr-imgui/vr-imgui/
 superbuild/CPPFSD/CPPFSD/
+superbuild/*.ttf
+superbuild/*.zip
