@@ -6,12 +6,17 @@ env:
   BUILD_TYPE: Debug
 
 jobs:
-  build_mac:
+  build_linux:
    
     runs-on: ubuntu-18.04
 
     steps:
     - uses: actions/checkout@v2
+    
+    - name: Install OpenGL support
+      uses: openrndr/setup-opengl@v1.1
+    - name: Test OpenGL
+      run: xvfb-run glxinfo
     
     - name: Setup cmake
       uses: jwlawson/actions-setup-cmake@v1.9
@@ -23,6 +28,11 @@ jobs:
       
     - name: Open superbuild folder
       run: cd superbuild
+    
+    - name: Install Mesa Packages
+      run: |
+          sudo apt-get install -y --no-install-recommends libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libgl1-mesa-dev libgl-dev
+
 
     - name: Configure CMake
       run: |
