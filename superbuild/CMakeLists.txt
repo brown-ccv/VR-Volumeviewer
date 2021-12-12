@@ -259,9 +259,11 @@ execute_process(
 )
 ENDIF()
 
+message(STATUS "CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
+
 #FTGL
 # Configure external project
-IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/FTGL/FTGL)
+#IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/FTGL/FTGL)
 execute_process(
     COMMAND ${CMAKE_COMMAND} 
     -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
@@ -276,7 +278,7 @@ execute_process(
 execute_process(
     COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/FTGL
 )
-ENDIF()
+#ENDIF()
 
 #CCPFS
 # Configure external project
@@ -302,7 +304,7 @@ ENDIF()
 
 #opencv
 # Configure external project
-IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/opencv/opencv)
+#IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/opencv/opencv)
 execute_process(
     COMMAND ${CMAKE_COMMAND} 
     -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
@@ -318,7 +320,7 @@ execute_process(
     COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/opencv --config ${CMAKE_BUILD_TYPE}
 )
 
-ENDIF()
+#ENDIF()
 
 
 find_package(ZLIB REQUIRED)
