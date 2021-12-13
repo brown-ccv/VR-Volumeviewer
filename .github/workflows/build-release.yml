@@ -30,6 +30,40 @@ jobs:
       run: |
            cd superbuild
            ninja
+    - name: clone bat2exe
+      run: |
+           cd superbuild
+           git clone https://github.com/islamadel/bat2exe.git
+    - name: Copy bat2exec script to create .exe
+      shell: cmd
+      run: copy superbuild\scripts\CCV_VR_VWR.bat superbuild\install_Windows\bin
+    - name: List files on bin folder
+      run: |
+           cd superbuild\install_Windows\bin
+           dir   
+    - name: Copy MinVR plugins to root folder
+      shell: cmd
+      run: copy superbuild\install_Windows\bin\MinVR-2.0 superbuild\install_Windows\bin
+    - name: run bat2exec in the background and create vr-volumeviewer executable 
+      shell: cmd
+      run: superbuild\scripts\execute_bat2exe_background.bat ${{github.workspace}}
+      
+    - name: Download vc 2019 redistributable
+    - uses: actions/download-artifact@v2
+      with:
+        name: vc_redist.x64.exe
+        path: ${{github.workspace}}\superbuild\install_Windows\bin
+    
+    - name: Building the installer
+      run: |
+        "%programfiles(x86)%\Inno Setup 6\iscc.exe" "superbuild\scripts\VolumeViewerInnoScript.iss"
+      shell: cmd
+
+    - uses: actions/upload-artifact@v2
+      with:
+       name: setup.exe
+       path: ${{github.workspace}}\superbuild\install_Windows\bin\setup.exe
+       
     - name: Test
       working-directory: ${{github.workspace}}/superbuild/install_Windows/bin
       run:  ctest
