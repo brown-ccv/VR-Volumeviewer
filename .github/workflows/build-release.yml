@@ -48,10 +48,13 @@ jobs:
       shell: cmd
       run: superbuild\scripts\execute_bat2exe_background.bat ${{github.workspace}}
       
-    - uses: actions/download-artifact@v2
+    - name: Download artifact
+      uses: dawidd6/action-download-artifact@v2
       with:
-        name: vc_redist.x64.exe
-        path: ${{github.workspace}}\superbuild\install_Windows\bin
+         workflow: download_vcresdristr.yml
+         name: vc_redist.x64.exe
+         # Optional, directory where to extract artifact. Defaults to the artifact name (see `name` input)
+         path: ${{github.workspace}}\superbuild\install_Windows\bin
     
     - name: Building the installer
       run: |
