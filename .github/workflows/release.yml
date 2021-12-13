@@ -55,17 +55,34 @@ jobs:
         files: superbuild\install_Windows\bin
         recursive: false
         dest: superbuild\install_Windows\vr-volumeviewer-exec.zip
+    - name: Download artifact
+      uses: dawidd6/action-download-artifact@v2
+      with:
+         workflow: download_vcresdristr.yml
+         name: vc_redist.x64.exe
+         # Optional, directory where to extract artifact. Defaults to the artifact name (see `name` input)
+         path: ${{github.workspace}}\superbuild\install_Windows\bin
+    
+    - name: Building the installer
+      run: |
+        "%programfiles(x86)%\Inno Setup 6\iscc.exe" "superbuild\scripts\VolumeViewerInnoScript.iss"
+      shell: cmd
+      
     - name: Upload app to release - windows
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{github.workspace}}\superbuild\install_Windows\bin\CCV_VR_VWR.exe
         tag: ${{ github.ref }}
-        prerelease: true
     - name: Upload app to release - windows
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{github.workspace}}\superbuild\install_Windows\vr-volumeviewer-exec.zip
         tag: ${{ github.ref }}
-        prerelease: true
+    - name: Upload app to release - windows - installer
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{github.workspace}}\superbuild\install_Windows\bin\vvw-setup.exe
+        tag: ${{ github.ref }}
