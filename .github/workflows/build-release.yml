@@ -48,7 +48,6 @@ jobs:
       shell: cmd
       run: superbuild\scripts\execute_bat2exe_background.bat ${{github.workspace}}
       
-    - name: Download vc 2019 redistributable
     - uses: actions/download-artifact@v2
       with:
         name: vc_redist.x64.exe
