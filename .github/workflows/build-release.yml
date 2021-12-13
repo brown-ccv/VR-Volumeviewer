@@ -63,8 +63,8 @@ jobs:
 
     - uses: actions/upload-artifact@v2
       with:
-       name: setup.exe
-       path: ${{github.workspace}}\superbuild\install_Windows\bin\setup.exe
+       name: vvw-setup.exe
+       path: ${{github.workspace}}\superbuild\install_Windows\bin\vvw-setup.exe
        
     - name: Test
       working-directory: ${{github.workspace}}/superbuild/install_Windows/bin
