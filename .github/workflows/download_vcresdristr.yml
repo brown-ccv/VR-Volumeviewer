@@ -18,7 +18,7 @@ jobs:
        id: vc_distributablex64
        name: Download the file
        with:
-          url: https://aka.ms/vs/17/release/vc_redist.x64.exe
+          url: "https://aka.ms/vs/17/release/vc_redist.x64.exe"
           target: ${{github.workspace}}/superbuild/install_Windows/bin
           auto-match: true
      - uses: actions/upload-artifact@v2
