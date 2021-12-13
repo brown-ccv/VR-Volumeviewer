@@ -20,7 +20,6 @@ jobs:
        with:
           url: "https://aka.ms/vs/17/release/vc_redist.x64.exe"
           target: ${{github.workspace}}/superbuild/install_Windows/bin
-          auto-match: true
      - uses: actions/upload-artifact@v2
        with:
          name: vc_redist.x64.exe
