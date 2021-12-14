@@ -5,7 +5,7 @@
 #define MyAppVersion "1.5"
 #define MyAppPublisher "My Company, Inc."
 #define MyAppURL "https://www.example.com/"
-#define MyAppExeName "VR-Volumeviewer.exe"
+#define MyAppExeName "CCV_VR_VWR.exe"
 #define MyAppAssocName MyAppName + " File"
 
 
