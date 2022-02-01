@@ -6,7 +6,7 @@
 #include <future>
 #include <api/MinVR.h>
 #include "interaction/Labels.h"
-#include "interaction/ArcBall.h"
+#include "interaction/ArcBallCamera.h"
 #include "render/Volume.h"
 
 #include "Model.h"
@@ -152,7 +152,7 @@ public:
 
   std::vector< Volume* >& get_volume(int volume);
 
-  
+  ArcBallCamera& get_trackball_camera();
 
 protected:
 
@@ -230,7 +230,7 @@ protected:
   glm::mat4 m_model_view;
 
 
-  ArcBall m_trackball;
+  ArcBallCamera m_trackball;
   bool m_lookingGlass;
 
   glm::mat4 m_object_pose;

@@ -19,11 +19,11 @@ UIView::UIView(VRVolumeApp& controllerApp) :m_controller_app(controllerApp), m_m
 m_z_scale(0.16f), m_scale{ 1.0f }, m_slices(256), m_dynamic_slices(false), m_renderVolume(true), m_selectedTrnFnc(0),
 m_animated(false), m_ui_frame_controller(0.0f), m_menu_handler(nullptr), m_initialized(false), m_use_transferfunction(false),
 m_clip_max(1.0), m_clip_min(0.0), m_clip_ypr(0.0), m_clip_pos(0.0), m_useCustomClipPlane(false), m_rendermethod(1), m_renderchannel(0),
-m_table_selection(-1), m_trn_fct_opitions_window(false), m_save_trnfct_open(false), m_trnfnct_counter(1), m_file_dialog_open(false),
+m_trnfnc_table_selection(-1), m_trn_fct_opitions_window(false), m_save_trnfct_open(false), m_trnfnct_counter(1), m_file_dialog_open(false),
 m_file_load_trnsf(false), m_file_dialog_save_dir(false), m_save_session_dialog_open(false), m_current_save_modal(SAVE_NONE),
 m_current_load_modal(LOAD_NONE), m_file_extension_filter(".txt"), m_non_trns_functions_selected_modal(false),
 m_ui_background(false), m_column_selection_state(0), m_compute_new_histogram(true), m_histogram_point_1(0.0),
-m_histogram_point_2(1.1), m_stopped(false), m_color_map_directory("colormaps"),m_show_menu(true)
+m_histogram_point_2(1.1), m_stopped(false), m_color_map_directory("colormaps"), m_show_menu(true), m_camera_poi_table_selection(0)
 {
   m_ocean_color_maps_names = { "algae.png","amp.png","balance.png","curl.png","deep.png","delta.png","dense.png",
 "diff.png","gray.png","haline.png","ice.png","matter.png","oxy.png","phase.png","rain.png","solar.png","speed.png","tarn.png","tempo.png",
@@ -120,7 +120,7 @@ void UIView::draw_ui_callback()
         addTransferFunction();
         if (m_tfns.size() == 1)
         {
-          m_table_selection = 0;
+          m_trnfnc_table_selection = 0;
         }
 
       };
@@ -136,16 +136,16 @@ void UIView::draw_ui_callback()
           tfn_widget.push_back(TransferFunctionWidget());
           tfn_widget_multi.push_back(TransferFunctionMultiChannelWidget());
           addTransferFunction();
-          m_table_selection = 0;
+          m_trnfnc_table_selection = 0;
         }
-        else if (m_tfns.size() > 1 && m_table_selection >= 0)
+        else if (m_tfns.size() > 1 && m_trnfnc_table_selection >= 0)
         {
-          tfn_widget.erase(tfn_widget.begin() + m_table_selection); ;
-          tfn_widget_multi.erase(tfn_widget_multi.begin() + m_table_selection);
-          m_tfns.erase(m_tfns.begin() + m_table_selection);
-          if (m_table_selection != 0)
+          tfn_widget.erase(tfn_widget.begin() + m_trnfnc_table_selection); ;
+          tfn_widget_multi.erase(tfn_widget_multi.begin() + m_trnfnc_table_selection);
+          m_tfns.erase(m_tfns.begin() + m_trnfnc_table_selection);
+          if (m_trnfnc_table_selection != 0)
           {
-            m_table_selection = m_table_selection - 1;
+            m_trnfnc_table_selection = m_trnfnc_table_selection - 1;
           }
 
         }
@@ -169,7 +169,7 @@ void UIView::draw_ui_callback()
           trfntc.volumes.push_back(false);
         }
         m_tfns.push_back(trfntc);
-        m_table_selection = 0;
+        m_trnfnc_table_selection = 0;
       };
 
       ImGui::SameLine();
@@ -246,17 +246,17 @@ void UIView::draw_ui_callback()
           {
 
             ImGuiSelectableFlags selectable_flags = ImGuiSelectableFlags_AllowDoubleClick;
-            bool item_is_selected = (row == m_table_selection) ? true : false;
+            bool item_is_selected = (row == m_trnfnc_table_selection) ? true : false;
             if (ImGui::Selectable(m_tfns[row].Name.c_str(), item_is_selected, selectable_flags))
             {
-              m_table_selection = row;
+              m_trnfnc_table_selection = row;
 
               if (ImGui::IsMouseDoubleClicked(0))
               {
                 m_copy_trnfnct_name = m_tfns[row].Name;
                 float q_min = 0;
                 float q_max = 0;
-                tfn_widget[m_table_selection].get_Quantiles(q_min, q_max);
+                tfn_widget[m_trnfnc_table_selection].get_Quantiles(q_min, q_max);
                 m_histogram_quantiles[0] = q_min;
                 m_histogram_quantiles[1] = q_max;
                 m_trn_fct_opitions_window = true;
@@ -351,12 +351,12 @@ void UIView::draw_ui_callback()
           if (ImGui::Button("Adjust to Histogram"))
           {
             adjust_transfer_function_to_histogram();
-            tfn_widget[m_table_selection].alpha_control_pts.clear();
-            tfn_widget[m_table_selection].alpha_control_pts.push_back(vec2f(0.0, 0.0));
-            tfn_widget[m_table_selection].alpha_control_pts.push_back(m_histogram_point_1);
-            tfn_widget[m_table_selection].alpha_control_pts.push_back(m_histogram_point_2);
-            tfn_widget[m_table_selection].alpha_control_pts.push_back(vec2f(1.0, 1.0));
-            tfn_widget[m_table_selection].set_Quantiles(m_histogram_quantiles[0], m_histogram_quantiles[1]);
+            tfn_widget[m_trnfnc_table_selection].alpha_control_pts.clear();
+            tfn_widget[m_trnfnc_table_selection].alpha_control_pts.push_back(vec2f(0.0, 0.0));
+            tfn_widget[m_trnfnc_table_selection].alpha_control_pts.push_back(m_histogram_point_1);
+            tfn_widget[m_trnfnc_table_selection].alpha_control_pts.push_back(m_histogram_point_2);
+            tfn_widget[m_trnfnc_table_selection].alpha_control_pts.push_back(vec2f(1.0, 1.0));
+            tfn_widget[m_trnfnc_table_selection].set_Quantiles(m_histogram_quantiles[0], m_histogram_quantiles[1]);
             ImGui::OpenPopup("Confirmation");
             ImGui::SetNextWindowSize(ImVec2(350, 400), ImGuiCond_FirstUseEver);
           }
@@ -376,7 +376,7 @@ void UIView::draw_ui_callback()
 
           if (ImGui::Button("Ok"))
           {
-            m_tfns[m_table_selection].Name = m_copy_trnfnct_name;
+            m_tfns[m_trnfnc_table_selection].Name = m_copy_trnfnct_name;
             m_trn_fct_opitions_window = false;
             m_current_save_modal = SAVE_MODAL::SAVE_NONE;
             ImGui::CloseCurrentPopup();
@@ -426,7 +426,7 @@ void UIView::draw_ui_callback()
           }
           m_controller_app.set_multi_transfer(true);
           //tfn_widget_multi[m_selectedTrnFnc].draw_histogram();
-          tfn_widget_multi[m_table_selection].draw_ui();
+          tfn_widget_multi[m_trnfnc_table_selection].draw_ui();
         }
         else
         {
@@ -448,7 +448,7 @@ void UIView::draw_ui_callback()
           m_controller_app.set_multi_transfer(false);
 
           m_histogram.draw_histogram();
-          tfn_widget[m_table_selection].draw_ui();
+          tfn_widget[m_trnfnc_table_selection].draw_ui();
         }
       }
 
@@ -521,6 +521,49 @@ void UIView::draw_ui_callback()
     }
     ImGui::EndTabItem();
   }
+
+  if (ImGui::BeginTabItem("Camera"))
+  {
+
+    ImGui::Text("Points of Interest");
+    
+    if (ImGui::Button("Add")) {
+      m_controller_app.get_trackball_camera().add_camera_poi();
+      m_camera_poi_table_selection = 0;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Remove")) {
+      if (m_controller_app.get_trackball_camera().get_camera_poi().size() > 0)
+      {
+        m_controller_app.get_trackball_camera().remove_poi(m_camera_poi_table_selection);
+        m_camera_poi_table_selection = m_camera_poi_table_selection - 1 < 0 ? 0 : m_camera_poi_table_selection--;
+        m_controller_app.get_trackball_camera().set_current_poi(m_camera_poi_table_selection);
+      }
+     
+    }
+    
+
+    ImGui::BeginTable("##Camera Point of interest (POI) Editor", 1, ImGuiTableFlags_Borders);
+    ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+
+    
+    for (int row = 0 ; row < m_controller_app.get_trackball_camera().get_camera_poi().size(); ++row)
+    {
+      ImGui::TableNextRow();
+      ImGui::TableSetColumnIndex(0);
+      bool item_is_selected = (row == m_camera_poi_table_selection) ? true : false;
+      if (ImGui::Selectable(m_controller_app.get_trackball_camera().get_poi_at(row).label.c_str(), item_is_selected))
+      {
+        m_camera_poi_table_selection = row;
+        m_controller_app.get_trackball_camera().set_current_poi(row);
+        
+      }
+    }
+    ImGui::EndTable();
+
+    ImGui::EndTabItem();
+  }
+
   ImGui::EndTabBar();
 
   //file loading
@@ -549,9 +592,9 @@ void UIView::draw_ui_callback()
         promises.push_back(new std::promise<Volume*>);
         futures.push_back(promises.back()->get_future());
         threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));*/
-    }
-#endif
   }
+#endif
+}
 
 
 
@@ -615,7 +658,7 @@ void UIView::draw_ui_callback()
         std::string filePath = fileDialogLoadTrnsFnc.selected_path;
         std::ifstream fileToLoad(filePath);
         load_trans_functions(fileToLoad);
-        m_table_selection = 0;
+        m_trnfnc_table_selection = 0;
         m_current_load_modal = LOAD_NONE;
       }
     }
@@ -628,7 +671,7 @@ void UIView::draw_ui_callback()
         tfn_widget_multi.clear();
         m_tfns.clear();
         load_user_session(fileDialogLoadTrnsFnc.selected_path);
-        m_table_selection = 0;
+        m_trnfnc_table_selection = 0;
         m_current_load_modal = LOAD_NONE;
       }
     }
@@ -702,7 +745,7 @@ void UIView::update_ui(int numVolumes)
     trfntc.volumes.push_back(false);
   }
   m_tfns.push_back(trfntc);
-  m_table_selection = 0;
+  m_trnfnc_table_selection = 0;
 
   load_ocean_color_maps();
 }
@@ -1269,7 +1312,7 @@ void UIView::adjust_transfer_function_to_histogram()
 
   const std::size_t pos1 = std::floor(m_histogram_quantiles[0] * std::distance(histogram_copy.begin(), histogram_copy.end()));
   const std::size_t pos2 = std::floor(m_histogram_quantiles[1] * std::distance(histogram_copy.begin(), histogram_copy.end()));
-  if (histogram_copy.size() > pos1&& histogram_copy.size() > pos2)
+  if (histogram_copy.size() > pos1 && histogram_copy.size() > pos2)
   {
     std::nth_element(histogram_copy.begin(), histogram_copy.begin() + pos1, histogram_copy.end());
 

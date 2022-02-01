@@ -181,7 +181,9 @@ private:
   glm::vec3 m_clip_ypr;
   glm::vec3 m_clip_pos;
 
-  int m_table_selection;
+  int m_trnfnc_table_selection;
+
+  int m_camera_poi_table_selection;
 
   bool m_initialized;
 

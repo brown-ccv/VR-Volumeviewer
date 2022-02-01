@@ -391,7 +391,7 @@ if(OpenCV_FOUND)
   message(STATUS "OpenCV found ${OpenCV_INSTALL_PATH}")
   if(WIN32)
    set(OPENCV_PATH ${_OpenCV_LIB_PATH} )
-   set(OPENCV_SUFIX "454" )
+   set(OPENCV_SUFIX "455" )
   elseif(APPLE)
    set(OPENCV_PATH "${CMAKE_BINARY_DIR}/install_${CMAKE_SYSTEM_NAME}/lib")
    set(OPENCV_PREFIX "lib" )
@@ -537,7 +537,7 @@ endif()
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/transfer_function_multichannel_widget.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/histogram.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/Vec2.cpp
- ${CMAKE_CURRENT_BINARY_DIR}/../src/interaction/ArcBall.cpp
+ ${CMAKE_CURRENT_BINARY_DIR}/../src/interaction/ArcBallCamera.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/interaction/HelperFunctions.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/interaction/CreateMovieAction.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/loader/LoadDescriptionAction.cpp
@@ -565,7 +565,7 @@ set(header_files
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/embedded_colormaps.h
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/histogram.h
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/Vec2.h
- ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/ArcBall.h
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/ArcBallCamera.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/HelperFunctions.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/CreateMovieAction.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/loader/LoadDescriptionAction.h

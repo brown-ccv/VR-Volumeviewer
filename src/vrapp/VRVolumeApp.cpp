@@ -166,7 +166,7 @@ void VRVolumeApp::update_trackBall_state()
 {
   if (m_wasd_pressed)
   {
-    m_trackball.wasd_pressed(m_wasd_pressed);
+    get_trackball_camera().wasd_pressed(m_wasd_pressed);
   }
 
 }
@@ -532,7 +532,7 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
 
   //overwrite MV for 2D viewing
   if (m_is2d)
-    m_model_view = m_trackball.getViewmatrix();
+    m_model_view = get_trackball_camera().getViewmatrix();
 
   glMatrixMode(GL_PROJECTION);
   glLoadMatrixf(glm::value_ptr(m_projection_mtrx));
@@ -993,7 +993,7 @@ void VRVolumeApp::set_num_volumes(int nVolumes)
 
 void VRVolumeApp::mouse_pos_event(glm::vec2& mPos)
 {
-  m_trackball.mouse_move(mPos.x, mPos.y);
+  get_trackball_camera().mouse_move(mPos.x, mPos.y);
   if (m_ui_view)
   {
     m_ui_view->set_cursor_pos(mPos);
@@ -1013,7 +1013,7 @@ void VRVolumeApp::update_ui_events(float value)
 
 void VRVolumeApp::update_track_ball_event(float value)
 {
-  m_trackball.mouse_scroll(value);
+  get_trackball_camera().mouse_scroll(value);
 }
 
 void VRVolumeApp::button_events_ui_handle(int button, int state)
@@ -1027,7 +1027,7 @@ void VRVolumeApp::button_events_ui_handle(int button, int state)
 
 void VRVolumeApp::button_event_trackBall_handle(int button, int state)
 {
-  m_trackball.mouse_pressed(button, state);
+  get_trackball_camera().mouse_pressed(button, state);
 }
 
 void VRVolumeApp::enable_grab(bool grab)
@@ -1108,3 +1108,7 @@ void VRVolumeApp::do_grab(glm::mat4& newPose)
   m_controller_pose = newPose;
 }
 
+ArcBallCamera& VRVolumeApp::get_trackball_camera()  
+{ 
+  return m_trackball; 
+}

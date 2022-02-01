@@ -33,7 +33,7 @@
 #include "render/VolumeRaycastRenderer.h"
 #include "render/DepthTexture.h"
 #include <future>
-#include "interaction/ArcBall.h"
+#include "interaction/ArcBallCamera.h"
 
 
 
