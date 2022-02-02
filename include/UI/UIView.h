@@ -138,6 +138,11 @@ private:
 
   void load_user_session(std::string filePath);
 
+  void save_camera_poi(std::ofstream& loadPath, int num_poi);
+
+  void load_camera_poi(std::ifstream& loadPath,int num_poi);
+
+  void read_file_line(std::string& line, std::vector<std::string>& values);
 
   VRVolumeApp& m_controller_app;
   VRMenuHandler* m_menu_handler;

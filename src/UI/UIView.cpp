@@ -1091,7 +1091,7 @@ void UIView::save_trans_functions(std::ofstream& saveFile)
       }
       saveFile << "\n";
     }
-    saveFile.close();
+    
   }
 }
 
@@ -1122,11 +1122,21 @@ void UIView::save_user_session(std::ofstream& savefile)
     savefile << "ClipZmax " << std::to_string(m_clip_max.z) << "\n";
     savefile << "Use_transferfunction " << std::to_string(m_use_transferfunction) << "\n";
 
+    int num_camera_poi = m_controller_app.get_trackball_camera().get_camera_poi().size();
+    if (num_camera_poi > 0)
+    {
+      savefile << "POI " << num_camera_poi << "\n";
+      save_camera_poi(savefile, num_camera_poi);
+    }
+
     if (m_use_transferfunction)
     {
       savefile << "Trnfncs" << "\n";
       save_trans_functions(savefile);
     }
+    
+    
+   
 
     savefile.close();
   }
@@ -1142,7 +1152,7 @@ void UIView::load_trans_functions(std::ifstream& loadFile)
   {
     while (std::getline(loadFile, line))
     {
-      std::vector<std::string> vals; // Create vector to hold our words
+      std::vector<std::string> vals; 
       std::stringstream ss(line);
       std::string buf;
 
@@ -1291,9 +1301,73 @@ void UIView::load_user_session(std::string filePath)
       {
         load_trans_functions(loadFile);
       }
+      else if (tag == "POI")
+      {
+        load_camera_poi(loadFile, std::stoi(vals[1]));
+      }
     }
     loadFile.close();
+    m_controller_app.get_trackball_camera().rest_camera();
+  }
+}
 
+void UIView::save_camera_poi(std::ofstream& saveFile,int num_camera_poi)
+{
+  if (saveFile.is_open())
+  {
+    
+    auto poit_iterator = m_controller_app.get_trackball_camera().get_camera_poi().begin();
+    for (poit_iterator; poit_iterator != m_controller_app.get_trackball_camera().get_camera_poi().end(); poit_iterator++)
+    {
+      saveFile << poit_iterator->label << " "
+        << std::to_string(poit_iterator->eye.x) + " " + std::to_string(poit_iterator->eye.y) + " " + std::to_string(poit_iterator->eye.z) + " "
+        << std::to_string(poit_iterator->target.x) + " " + std::to_string(poit_iterator->target.y) + " " + std::to_string(poit_iterator->target.z) + " "
+        << std::to_string(poit_iterator->up.x) + " " + std::to_string(poit_iterator->up.y) + " " + std::to_string(poit_iterator->up.z) + " "
+        << std::to_string(poit_iterator->radius) + "\n";
+    }
+  }
+}
+
+void UIView::load_camera_poi(std::ifstream& loadFile, int num_poi)
+{
+  std::string line;
+  if (loadFile.is_open())
+  {
+    for (int i = 0; i < num_poi; ++i)
+    {
+      std::getline(loadFile, line);
+      std::vector<std::string> poiVals;
+      read_file_line(line, poiVals);
+
+      if (poiVals.size() > 0)
+      {
+          std::string label = poiVals[0];
+          float eye_x = std::stof(poiVals[1]);
+          float eye_y = std::stof(poiVals[2]);
+          float eye_z = std::stof(poiVals[3]);
+          float target_x = std::stof(poiVals[4]);
+          float target_y = std::stof(poiVals[5]);
+          float target_z = std::stof(poiVals[6]);
+          float up_x = std::stof(poiVals[7]);
+          float up_y = std::stof(poiVals[8]);
+          float up_z = std::stof(poiVals[9]);
+          float radius = std::stof(poiVals[10]);
+          m_controller_app.get_trackball_camera().add_camera_poi(label,eye_x, eye_y, eye_z, target_x, target_y, target_z, up_x, up_y, up_z, radius);
+       }
+
+    }
+   }
+   
+}
+
+
+void UIView::read_file_line(std::string& line, std::vector<std::string>& values)
+{
+  std::stringstream ss(line);
+  std::string buf;
+
+  while (ss >> buf) {
+    values.push_back(buf);
   }
 }
 
