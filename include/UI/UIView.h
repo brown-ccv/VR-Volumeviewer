@@ -116,6 +116,8 @@ public:
 
   void addTransferFunction();
 
+  void set_animation_length(int num_frames);
+
 private:
 
   struct MyTransFerFunctions
@@ -177,6 +179,7 @@ private:
 
   bool m_animated;
   float m_ui_frame_controller;
+  unsigned int m_num_animation_frames;
   float m_stopped;
 
   glm::vec3 m_clip_min;
@@ -235,6 +238,8 @@ private:
   std::vector<std::string> m_ocean_color_maps_names;
 
   std::string m_color_map_directory;
+
+  float m_animation_speed;
 
 };
 

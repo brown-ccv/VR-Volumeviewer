@@ -40,7 +40,7 @@
 #include <sstream> 
 #include "GLMLoader.h"
 #include <locale>
-
+#include <algorithm>
 
 #include <glm/gtx/euler_angles.hpp>
 
@@ -49,7 +49,7 @@ VRVolumeApp::VRVolumeApp() :m_mesh_model(nullptr), m_clip_max{ 1.0f }, m_clip_mi
 m_lookingGlass(false), m_isInitailized(false), m_speed(0.01f), m_movieAction(nullptr), m_moviename("movie.mp4"), m_noColor(0.0f),
 m_ambient(0.2f, 0.2f, 0.2f, 1.0f), m_diffuse(0.5f, 0.5f, 0.5f, 1.0f), m_ui_view(nullptr), m_animated(false), m_numVolumes(0), m_selectedVolume(0),
 m_multiplier(1.0f), m_threshold(0.0f), m_frame(0.0f), m_use_multi_transfer(false), m_clipping(false), m_show_menu(true),
-m_window_properties(nullptr)
+m_window_properties(nullptr), m_animation_speed(1.0f)
 {
   m_renders.push_back(new VolumeSliceRenderer());
   m_renders.push_back(new VolumeRaycastRenderer());
@@ -177,7 +177,7 @@ void VRVolumeApp::update_animation()
   {
     if (m_volumes.size())
     {
-      m_ui_view->update_animation(m_speed, m_volumes[m_selectedVolume].size() - 1);
+      m_ui_view->update_animation(m_speed * m_animation_speed, m_volumes[m_selectedVolume].size() - 1);
     }
   }
 }
@@ -637,7 +637,7 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
   }*/
 
   //drawTime
-  if (m_is2d && m_animated) {
+  /*if (m_is2d && m_animated) {
     unsigned int active_volume = floor(m_frame);
     unsigned int active_volume2 = ceil(m_frame);
     if (active_volume < m_volumes[0].size() && active_volume2 < m_volumes[0].size() && m_volumes[0][active_volume]->texture_initialized() && m_volumes[0][active_volume2]->texture_initialized()) {
@@ -645,7 +645,7 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
       time_t time = m_volumes[0][active_volume]->getTime() * (1 - alpha) + m_volumes[0][active_volume2]->getTime() * alpha;
       FontHandler::getInstance()->drawClock(time);
     }
-  }
+  }*/
 
   glFlush();
 
@@ -659,7 +659,7 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
 #endif
     std::cerr << "Add Frame" << std::endl;
     m_movieAction->addFrame();
-    if (m_frame > m_volumes[m_selectedVolume].size() - 1 - m_speed) {
+    if (m_frame > m_volumes[m_selectedVolume].size() - 1 - (m_speed * m_animation_speed)) {
       std::cerr << "Save Movie" << std::endl;
 #ifdef _MSC_VER
       m_movieAction->save(m_moviename);
@@ -767,16 +767,18 @@ void VRVolumeApp::animated_render(int tfn, int vol)
 {
   unsigned int active_volume = floor(m_frame);
   unsigned int active_volume2 = ceil(m_frame);
-  int renderMethod = m_ui_view->get_render_method();
-  bool useTranferFunction = m_ui_view->is_use_transfer_function_enabled();
+  int render_method = m_ui_view->get_render_method();
+  bool use_tranferFunction = m_ui_view->is_use_transfer_function_enabled();
   //bool useMultitransferFunction = m_ui_view->isUseMultiTransfer();
 
+  size_t max_animation_length = 0;
   if (m_ui_view && m_ui_view->is_transfer_function_enabled(tfn, vol))
   {
+    max_animation_length = std::max(max_animation_length, m_volumes[vol].size());
     if (active_volume < m_volumes[vol].size() && active_volume2 < m_volumes[vol].size() && m_volumes[vol][active_volume]->texture_initialized() && m_volumes[vol][active_volume2]->texture_initialized())
     {
 
-      m_renders[renderMethod]->set_blending(true, m_frame - active_volume, m_volumes[vol][active_volume2]);
+      m_renders[render_method]->set_blending(true, m_frame - active_volume, m_volumes[vol][active_volume2]);
 
       if (m_ui_view->is_render_volume_enabled())
       {
@@ -784,7 +786,7 @@ void VRVolumeApp::animated_render(int tfn, int vol)
         GLint colorMap = m_ui_view->get_transfer_function_colormap(tfn);
         GLint colorMapMult = m_ui_view->get_multitransfer_function_colormap(tfn);
         GLint lut = -1;
-        if (useTranferFunction)
+        if (use_tranferFunction)
         {
           if (m_use_multi_transfer)
           {
@@ -797,11 +799,12 @@ void VRVolumeApp::animated_render(int tfn, int vol)
         }
 
 
-        m_renders[renderMethod]->render(m_volumes[vol][active_volume], m_volumes[vol][active_volume]->get_volume_mv(), m_projection_mtrx, m_volumes[vol][active_volume]->get_volume_scale().x / m_volumes[vol][active_volume]->get_volume_scale().z,
+        m_renders[render_method]->render(m_volumes[vol][active_volume], m_volumes[vol][active_volume]->get_volume_mv(), m_projection_mtrx, m_volumes[vol][active_volume]->get_volume_scale().x / m_volumes[vol][active_volume]->get_volume_scale().z,
           lut, m_ui_view->get_render_channel());
       }
     }
   }
+  m_ui_view->set_animation_length(max_animation_length);
 
 }
 
@@ -838,7 +841,7 @@ void VRVolumeApp::update_frame_state()
   glLightfv(GL_LIGHT0, GL_POSITION, m_light_pos);
   if (m_animated && !m_ui_view->is_stopped())
   {
-    m_frame += m_speed;
+    m_frame += (m_speed * m_animation_speed);
     if (m_frame > m_volumes[m_selectedVolume].size() - 1) m_frame = 0.0;
   }
   m_rendercount = 0;
@@ -1111,4 +1114,9 @@ void VRVolumeApp::do_grab(glm::mat4& newPose)
 ArcBallCamera& VRVolumeApp::get_trackball_camera()  
 { 
   return m_trackball; 
+}
+
+void VRVolumeApp::set_animation_speed(float time)
+{
+  m_animation_speed = time;
 }

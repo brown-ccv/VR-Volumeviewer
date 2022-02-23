@@ -154,6 +154,8 @@ public:
 
   ArcBallCamera& get_trackball_camera();
 
+  void set_animation_speed(float time);
+
 protected:
 
   glm::vec4 m_noColor;// (0.0f, 0.0f, 0.0f, 0.0f);
@@ -206,6 +208,7 @@ protected:
   bool m_animated;
   float m_threshold;
   int m_descriptionHeight;
+  float m_animation_speed;
   
   float m_frame;
   float m_speed;

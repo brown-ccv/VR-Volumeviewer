@@ -14,6 +14,7 @@
 #include "common/common.h"
 
 #include <limits>
+#include <iomanip>
 
 UIView::UIView(VRVolumeApp& controllerApp) :m_controller_app(controllerApp), m_multiplier(1.0f), m_threshold(0.0f),
 m_z_scale(0.16f), m_scale{ 1.0f }, m_slices(256), m_dynamic_slices(false), m_renderVolume(true), m_selectedTrnFnc(0),
@@ -23,7 +24,8 @@ m_trnfnc_table_selection(-1), m_trn_fct_opitions_window(false), m_save_trnfct_op
 m_file_load_trnsf(false), m_file_dialog_save_dir(false), m_save_session_dialog_open(false), m_current_save_modal(SAVE_NONE),
 m_current_load_modal(LOAD_NONE), m_file_extension_filter(".txt"), m_non_trns_functions_selected_modal(false),
 m_ui_background(false), m_column_selection_state(0), m_compute_new_histogram(true), m_histogram_point_1(0.0),
-m_histogram_point_2(1.1), m_stopped(false), m_color_map_directory("colormaps"), m_show_menu(true), m_camera_poi_table_selection(0)
+m_histogram_point_2(1.1), m_stopped(true), m_color_map_directory("colormaps"), m_show_menu(true), m_camera_poi_table_selection(0),
+m_num_animation_frames(0), m_animation_speed(1.0f)
 {
   m_ocean_color_maps_names = { "algae.png","amp.png","balance.png","curl.png","deep.png","delta.png","dense.png",
 "diff.png","gray.png","haline.png","ice.png","matter.png","oxy.png","phase.png","rain.png","solar.png","speed.png","tarn.png","tempo.png",
@@ -202,7 +204,6 @@ void UIView::draw_ui_callback()
         const char* column_name = ImGui::TableGetColumnName(column);
         ImGui::PushID(column);
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-        //ImGui::RadioButton("", &m_column_selected, column-1); ImGui::SameLine();
         ImGui::Checkbox("##checkall", &m_column_selected[column - 1]); ImGui::SameLine();
         ImGui::PopStyleVar();
         ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
@@ -462,14 +463,25 @@ void UIView::draw_ui_callback()
       ImGui::SetNextItemWidth(-100 - ImGui::GetStyle().ItemSpacing.x);
       float frame_tmp = m_controller_app.get_current_frame() + 1;
       //controls animated multi datasets
-      //ImGui::SliderFloat("##Timestep", &frame_tmp, 1, m_volumes[m_selectedVolume].size());
-      m_ui_frame_controller = frame_tmp - 1;
+      ImGui::SliderFloat("##Timestep", &frame_tmp, 1, m_num_animation_frames);
+      m_ui_frame_controller = (frame_tmp) - 1;
       m_controller_app.set_frame(m_ui_frame_controller);
-      ImGui::SameLine();
+      
 
       std::string text = m_stopped ? "Play" : "Stop";
-      if (ImGui::Button(text.c_str(), ImVec2(100, 0))) {
+      if (ImGui::Button(text.c_str(), ImVec2(50, 0))) {
         m_stopped = !m_stopped;
+      }
+      ImGui::SameLine();
+      float value = (int)(m_animation_speed * 100 + .5);
+      std::string speed_text = ">>X "+std::to_string(value/100);
+      if (ImGui::Button(speed_text.c_str(), ImVec2(80, 0))) {
+        m_animation_speed += 0.5;
+        if (m_animation_speed > 4.0f)
+        {
+          m_animation_speed = 1.0f;
+        }
+        m_controller_app.set_animation_speed(m_animation_speed);
       }
 
 #if (!defined(__APPLE__))
@@ -1369,6 +1381,11 @@ void UIView::read_file_line(std::string& line, std::vector<std::string>& values)
   while (ss >> buf) {
     values.push_back(buf);
   }
+}
+
+void UIView::set_animation_length(int num_frames)
+{
+  m_num_animation_frames = num_frames;
 }
 
 void UIView::adjust_transfer_function_to_histogram()
