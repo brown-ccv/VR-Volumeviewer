@@ -12,17 +12,20 @@
 #include <stdint.h>
 #include <fstream>
 
+
+
 class VRVolumeApp;
 class CreateMovieAction;
 #define INPUT_TEXT_SIZE 200
 #define MAX_COLUMS 50
 
-enum SAVE_MODAL {SAVE_NONE, SAVE_SESSION, SAVE_TRFR_FNC};
-enum LOAD_MODAL {LOAD_NONE, LOAD_SESSION, LOAD_TRFR_FNC };
+enum SAVE_MODAL { SAVE_NONE, SAVE_SESSION, SAVE_TRFR_FNC };
+enum LOAD_MODAL { LOAD_NONE, LOAD_SESSION, LOAD_TRFR_FNC };
+enum BUTTON_ACTION { NONE, ADD, EDIT, REMOVE };
 
 struct Window_Properties
 {
-  
+
   int window_w = 0;
   int window_h = 0;
   int framebuffer_w = 0;
@@ -46,7 +49,7 @@ class UIView
 public:
   UIView(VRVolumeApp& controllerApp);
   ~UIView();
-  
+
 
   void draw_ui_callback();
   void init_ui(bool is2D, bool lookingGlass);
@@ -108,13 +111,15 @@ public:
   glm::vec3 get_clip_min();
   glm::vec3 get_clip_max();
 
-  void set_chracter(char c);
+  void add_character(char c);
 
   void remove_character();
 
   void compute_new_histogram_view();
 
   void addTransferFunction();
+
+  void get_Quantiles(int row);
 
 private:
 
@@ -125,8 +130,8 @@ private:
     std::vector<bool> volumes;
   };
 
-  void open_save_modal_dialog(std::string& id, bool& window_state, 
-    std::function<void(std::ofstream&)> save_function,  std::string& extension);
+  void open_save_modal_dialog(std::string& id, bool& window_state,
+    std::function<void(std::ofstream&)> save_function, std::string& extension);
 
   void add_trans_function();
 
@@ -140,7 +145,7 @@ private:
 
   void save_camera_poi(std::ofstream& loadPath, int num_poi);
 
-  void load_camera_poi(std::ifstream& loadPath,int num_poi);
+  void load_camera_poi(std::ifstream& loadPath, int num_poi);
 
   void read_file_line(std::string& line, std::vector<std::string>& values);
 
@@ -192,9 +197,9 @@ private:
 
   bool m_initialized;
 
-  bool m_trn_fct_opitions_window;
+  bool m_trn_fct_options_window;
 
-  bool m_save_trnfct_open;  
+  bool m_save_trnfct_open;
 
   bool m_save_session_dialog_open;
 
@@ -206,6 +211,12 @@ private:
 
   std::string m_copy_trnfnct_name;
 
+  std::string m_copy_camera_name;
+
+  bool m_camera_name_window_open;
+
+  BUTTON_ACTION m_camera_button_action;
+
   std::string m_save_file_name;
 
   unsigned int m_trnfnct_counter;
@@ -214,8 +225,8 @@ private:
 
   bool m_ui_background;
 
-  
-  
+
+
   bool m_column_selected[MAX_COLUMS];
 
   unsigned int m_column_selection_state;
@@ -227,9 +238,9 @@ private:
 
   vec2f m_histogram_point_1;
   vec2f m_histogram_point_2;
-  float m_histogram_quantiles[2]; 
+  float m_histogram_quantiles[2];
 
-  
+
   void load_ocean_color_maps();
 
   std::vector<std::string> m_ocean_color_maps_names;
@@ -238,5 +249,5 @@ private:
 
 };
 
- 
+
 #endif

@@ -81,7 +81,7 @@ public:
 
   std::list<PointOfInterest>& get_camera_poi();
 
-  void add_camera_poi();
+  void add_camera_poi(std::string & label);
   void add_camera_poi(std::string& label, float eye_x, float eye_y, float eye_z,
     float target_x, float target_y, float target_z,
     float up_x, float up_y, float up_z, float radius);

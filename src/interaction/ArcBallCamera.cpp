@@ -183,9 +183,9 @@ std::list<PointOfInterest>& ArcBallCamera::get_camera_poi()
   return m_camera_poi;
 }
 
-void ArcBallCamera::add_camera_poi()
+void ArcBallCamera::add_camera_poi(std::string& label)
 {
-  m_current_poi.label = "Position-" + std::to_string(m_camera_poi.size() + 1);
+  m_current_poi.label = label;
   m_camera_poi.push_front(m_current_poi);
 }
 

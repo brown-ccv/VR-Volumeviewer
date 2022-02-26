@@ -368,7 +368,7 @@ void VRVolumeApp::set_character_state(std::string& eventName, int state)
       {
         if (m_ui_view)
         {
-          m_ui_view->set_chracter(keyStr[0]);
+          m_ui_view->add_character(keyStr[0]);
         }
       }
       /*   if (std::isalpha(keyStr[0], loc) || isdigit(keyStr[0]))
@@ -390,7 +390,7 @@ void VRVolumeApp::set_character_state(std::string& eventName, int state)
         }
         else if (keyStr == "Space")
         {
-          m_ui_view->set_chracter(32);
+          m_ui_view->add_character(32);
           /*std::string space(" ");
           addTextToInputField(space);*/
         }
@@ -1108,7 +1108,7 @@ void VRVolumeApp::do_grab(glm::mat4& newPose)
   m_controller_pose = newPose;
 }
 
-ArcBallCamera& VRVolumeApp::get_trackball_camera()  
-{ 
-  return m_trackball; 
+ArcBallCamera& VRVolumeApp::get_trackball_camera()
+{
+  return m_trackball;
 }
