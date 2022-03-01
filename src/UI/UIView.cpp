@@ -538,8 +538,17 @@ void UIView::draw_ui_callback()
       if (m_controller_app.get_trackball_camera().get_camera_poi().size() > 0)
       {
         m_controller_app.get_trackball_camera().remove_poi(m_camera_poi_table_selection);
-        m_camera_poi_table_selection = m_camera_poi_table_selection - 1 < 0 ? 0 : m_camera_poi_table_selection--;
-        m_controller_app.get_trackball_camera().set_current_poi(m_camera_poi_table_selection);
+        if (m_camera_poi_table_selection - 1 < 0)
+        {
+          m_camera_poi_table_selection = 0;
+        }
+        else
+        {
+          m_camera_poi_table_selection--;
+          m_controller_app.get_trackball_camera().set_current_poi(m_camera_poi_table_selection);
+        }
+        
+        
       }
 
     }
@@ -554,7 +563,7 @@ void UIView::draw_ui_callback()
       ImGui::TableNextRow();
       ImGui::TableSetColumnIndex(0);
       bool item_is_selected = (row == m_camera_poi_table_selection) ? true : false;
-      if (ImGui::Selectable(m_controller_app.get_trackball_camera().get_poi_at(row).label.c_str(), item_is_selected), ImGuiSelectableFlags_AllowDoubleClick)
+      if (ImGui::Selectable(m_controller_app.get_trackball_camera().get_poi_at(row).label.c_str(), item_is_selected, ImGuiSelectableFlags_AllowDoubleClick))
       {
         m_camera_poi_table_selection = row;
         m_controller_app.get_trackball_camera().set_current_poi(m_camera_poi_table_selection);
@@ -593,6 +602,7 @@ void UIView::draw_ui_callback()
     ImGui::SetNextWindowSize(ImVec2(350, 400), ImGuiCond_FirstUseEver);
     if (ImGui::BeginPopupModal(modal_window_name.c_str(), &m_camera_name_window_open))
     {
+
       ImGui::Text("Camera Name");
       ImGui::InputText("##textcameraname", &m_copy_camera_name);
       if (ImGui::Button("Ok"))
@@ -601,6 +611,7 @@ void UIView::draw_ui_callback()
         if (m_camera_button_action == ADD)
         {
           m_controller_app.get_trackball_camera().add_camera_poi(m_copy_camera_name);
+          m_copy_camera_name.clear();
           m_camera_poi_table_selection = 0;
         }
         else if (m_camera_button_action == EDIT)
@@ -614,6 +625,7 @@ void UIView::draw_ui_callback()
       if (ImGui::Button("Cancel"))
       {
         m_camera_name_window_open = false;
+        m_copy_camera_name.clear();
         ImGui::CloseCurrentPopup();
       }
       ImGui::EndPopup();
@@ -773,7 +785,7 @@ void UIView::init_ui(bool is2D, bool lookingGlass)
     m_initialized = true;
 
 
-  }
+}
 
 
 }
