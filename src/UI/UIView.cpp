@@ -13,19 +13,24 @@
 #include "UIHelpers/stb_image.h"
 #include "common/common.h"
 
+
 #include <limits>
 #include <iomanip>
+
+
+#include <imgui_stdlib.h>
+
 
 UIView::UIView(VRVolumeApp& controllerApp) :m_controller_app(controllerApp), m_multiplier(1.0f), m_threshold(0.0f),
 m_z_scale(0.16f), m_scale{ 1.0f }, m_slices(256), m_dynamic_slices(false), m_renderVolume(true), m_selectedTrnFnc(0),
 m_animated(false), m_ui_frame_controller(0.0f), m_menu_handler(nullptr), m_initialized(false), m_use_transferfunction(false),
 m_clip_max(1.0), m_clip_min(0.0), m_clip_ypr(0.0), m_clip_pos(0.0), m_useCustomClipPlane(false), m_rendermethod(1), m_renderchannel(0),
-m_trnfnc_table_selection(-1), m_trn_fct_opitions_window(false), m_save_trnfct_open(false), m_trnfnct_counter(1), m_file_dialog_open(false),
+m_trnfnc_table_selection(-1), m_trn_fct_options_window(false), m_save_trnfct_open(false), m_trnfnct_counter(1), m_file_dialog_open(false),
 m_file_load_trnsf(false), m_file_dialog_save_dir(false), m_save_session_dialog_open(false), m_current_save_modal(SAVE_NONE),
 m_current_load_modal(LOAD_NONE), m_file_extension_filter(".txt"), m_non_trns_functions_selected_modal(false),
 m_ui_background(false), m_column_selection_state(0), m_compute_new_histogram(true), m_histogram_point_1(0.0),
-m_histogram_point_2(1.1), m_stopped(true), m_color_map_directory("colormaps"), m_show_menu(true), m_camera_poi_table_selection(0),
-m_num_animation_frames(0), m_animation_speed(1.0f)
+m_histogram_point_2(1.1), m_stopped(false), m_color_map_directory("colormaps"), m_show_menu(true), m_camera_poi_table_selection(0),
+m_camera_name_window_open(false), m_camera_button_action(BUTTON_ACTION::NONE), m_num_animation_frames(0), m_animation_speed(1.0f)
 {
   m_ocean_color_maps_names = { "algae.png","amp.png","balance.png","curl.png","deep.png","delta.png","dense.png",
 "diff.png","gray.png","haline.png","ice.png","matter.png","oxy.png","phase.png","rain.png","solar.png","speed.png","tarn.png","tempo.png",
@@ -251,16 +256,15 @@ void UIView::draw_ui_callback()
             if (ImGui::Selectable(m_tfns[row].Name.c_str(), item_is_selected, selectable_flags))
             {
               m_trnfnc_table_selection = row;
-
               if (ImGui::IsMouseDoubleClicked(0))
               {
-                m_copy_trnfnct_name = m_tfns[row].Name;
+                m_copy_trnfnct_name = m_tfns[m_trnfnc_table_selection].Name;
                 float q_min = 0;
                 float q_max = 0;
                 tfn_widget[m_trnfnc_table_selection].get_Quantiles(q_min, q_max);
                 m_histogram_quantiles[0] = q_min;
                 m_histogram_quantiles[1] = q_max;
-                m_trn_fct_opitions_window = true;
+                m_trn_fct_options_window = true;
               }
 
 
@@ -324,20 +328,16 @@ void UIView::draw_ui_callback()
 
       }
 
-      if (m_trn_fct_opitions_window)
+      if (m_trn_fct_options_window)
       {
         ImGui::OpenPopup("Transfer Function Options");
         ImGui::SetNextWindowSize(ImVec2(350, 400), ImGuiCond_FirstUseEver);
-        if (ImGui::BeginPopupModal("Transfer Function Options", &m_trn_fct_opitions_window))
+        if (ImGui::BeginPopupModal("Transfer Function Options", &m_trn_fct_options_window))
         {
           ImGui::Text("Change Name");
-          char* writable = new char[m_copy_trnfnct_name.size() + 1];
-          std::copy(m_copy_trnfnct_name.begin(), m_copy_trnfnct_name.end(), writable);
-          writable[m_copy_trnfnct_name.size()] = '\0'; // don't forget the terminating 0
-          //ImGui::PushItemWidth(-1);
-          ImGui::InputText("##text1", writable, IM_ARRAYSIZE(writable));
+          ImGui::InputText("##text1", &m_copy_trnfnct_name);
           ImGui::IsItemActive();
-          //ImGui::PopItemWidth();
+
 
           ImGui::Separator();
           /*float q_min = 0;
@@ -378,14 +378,14 @@ void UIView::draw_ui_callback()
           if (ImGui::Button("Ok"))
           {
             m_tfns[m_trnfnc_table_selection].Name = m_copy_trnfnct_name;
-            m_trn_fct_opitions_window = false;
+            m_trn_fct_options_window = false;
             m_current_save_modal = SAVE_MODAL::SAVE_NONE;
             ImGui::CloseCurrentPopup();
           }
           ImGui::SameLine();
           if (ImGui::Button("Cancel"))
           {
-            m_trn_fct_opitions_window = false;
+            m_trn_fct_options_window = false;
             m_current_save_modal = SAVE_MODAL::SAVE_NONE;
             ImGui::CloseCurrentPopup();
           }
@@ -538,37 +538,52 @@ void UIView::draw_ui_callback()
   {
 
     ImGui::Text("Points of Interest");
-    
+
     if (ImGui::Button("Add")) {
-      m_controller_app.get_trackball_camera().add_camera_poi();
-      m_camera_poi_table_selection = 0;
+      m_camera_name_window_open = true;
+      m_camera_button_action = BUTTON_ACTION::ADD;
+
     }
     ImGui::SameLine();
     if (ImGui::Button("Remove")) {
       if (m_controller_app.get_trackball_camera().get_camera_poi().size() > 0)
       {
         m_controller_app.get_trackball_camera().remove_poi(m_camera_poi_table_selection);
-        m_camera_poi_table_selection = m_camera_poi_table_selection - 1 < 0 ? 0 : m_camera_poi_table_selection--;
-        m_controller_app.get_trackball_camera().set_current_poi(m_camera_poi_table_selection);
+        if (m_camera_poi_table_selection - 1 < 0)
+        {
+          m_camera_poi_table_selection = 0;
+        }
+        else
+        {
+          m_camera_poi_table_selection--;
+          m_controller_app.get_trackball_camera().set_current_poi(m_camera_poi_table_selection);
+        }
+
+
       }
-     
+
     }
-    
+
 
     ImGui::BeginTable("##Camera Point of interest (POI) Editor", 1, ImGuiTableFlags_Borders);
     ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, 120.0f);
 
-    
-    for (int row = 0 ; row < m_controller_app.get_trackball_camera().get_camera_poi().size(); ++row)
+
+    for (int row = 0; row < m_controller_app.get_trackball_camera().get_camera_poi().size(); ++row)
     {
       ImGui::TableNextRow();
       ImGui::TableSetColumnIndex(0);
       bool item_is_selected = (row == m_camera_poi_table_selection) ? true : false;
-      if (ImGui::Selectable(m_controller_app.get_trackball_camera().get_poi_at(row).label.c_str(), item_is_selected))
+      if (ImGui::Selectable(m_controller_app.get_trackball_camera().get_poi_at(row).label.c_str(), item_is_selected, ImGuiSelectableFlags_AllowDoubleClick))
       {
         m_camera_poi_table_selection = row;
-        m_controller_app.get_trackball_camera().set_current_poi(row);
-        
+        m_controller_app.get_trackball_camera().set_current_poi(m_camera_poi_table_selection);
+        if (ImGui::IsMouseDoubleClicked(0))
+        {
+          m_copy_camera_name = m_controller_app.get_trackball_camera().get_poi_at(m_camera_poi_table_selection).label;
+          m_camera_name_window_open = true;
+          m_camera_button_action = BUTTON_ACTION::EDIT;
+        }
       }
     }
     ImGui::EndTable();
@@ -577,6 +592,57 @@ void UIView::draw_ui_callback()
   }
 
   ImGui::EndTabBar();
+
+  if (m_camera_name_window_open)
+  {
+    std::string modal_window_name;
+
+    switch (m_camera_button_action)
+    {
+    case ADD:
+      modal_window_name = "Add Camera";
+      break;
+    case EDIT:
+      modal_window_name = "Edit Camera";
+      break;
+    default:
+      break;
+    }
+
+    ImGui::OpenPopup(modal_window_name.c_str());
+    ImGui::SetNextWindowSize(ImVec2(350, 400), ImGuiCond_FirstUseEver);
+    if (ImGui::BeginPopupModal(modal_window_name.c_str(), &m_camera_name_window_open))
+    {
+
+      ImGui::Text("Camera Name");
+      ImGui::InputText("##textcameraname", &m_copy_camera_name);
+      if (ImGui::Button("Ok"))
+      {
+
+        if (m_camera_button_action == ADD)
+        {
+          m_controller_app.get_trackball_camera().add_camera_poi(m_copy_camera_name);
+          m_copy_camera_name.clear();
+          m_camera_poi_table_selection = 0;
+        }
+        else if (m_camera_button_action == EDIT)
+        {
+          m_controller_app.get_trackball_camera().get_poi_at(m_camera_poi_table_selection).label = m_copy_camera_name;
+        }
+        m_camera_name_window_open = false;
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("Cancel"))
+      {
+        m_camera_name_window_open = false;
+        m_copy_camera_name.clear();
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndPopup();
+    }
+
+  }
 
   //file loading
   if (m_file_dialog_open)
@@ -604,9 +670,9 @@ void UIView::draw_ui_callback()
         promises.push_back(new std::promise<Volume*>);
         futures.push_back(promises.back()->get_future());
         threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));*/
-  }
+    }
 #endif
-}
+  }
 
 
 
@@ -784,8 +850,8 @@ void UIView::render_3D(glm::mat4& space_matrix, Window_Properties& window_proper
 
   if (m_show_menu)
   {
-    glMatrixMode(GL_MODELVIEW);
-    glLoadMatrixf(glm::value_ptr(space_matrix));
+    // glMatrixMode(GL_MODELVIEW);
+    // glLoadMatrixf(glm::value_ptr(space_matrix));
     m_menu_handler->drawMenu(window_properties.window_w, window_properties.window_h,
       window_properties.framebuffer_w, window_properties.framebuffer_h);
   }
@@ -987,21 +1053,30 @@ glm::vec3 UIView::get_clip_max()
   return m_clip_max;
 }
 
-void UIView::set_chracter(char c)
+void UIView::add_character(char c)
 {
-  if (m_trn_fct_opitions_window)
+  if (m_trn_fct_options_window)
   {
+    ImGui::ClearActiveID();
     m_copy_trnfnct_name += c;
+
   }
   if (m_save_trnfct_open || m_save_session_dialog_open)
   {
+    ImGui::ClearActiveID();
     m_save_file_name += c;
+  }
+
+  if (m_camera_name_window_open)
+  {
+    ImGui::ClearActiveID();
+    m_copy_camera_name += c;
   }
 }
 
 void UIView::remove_character()
 {
-  if (m_trn_fct_opitions_window)
+  if (m_trn_fct_options_window)
   {
     if (!m_copy_trnfnct_name.empty())
     {
@@ -1018,6 +1093,14 @@ void UIView::remove_character()
     }
 
   }
+
+  if (m_camera_name_window_open)
+  {
+    if (!m_copy_camera_name.empty())
+    {
+      m_copy_camera_name.pop_back();
+    }
+  }
 }
 
 void UIView::open_save_modal_dialog(std::string& id, bool& window_state,
@@ -1027,9 +1110,7 @@ void UIView::open_save_modal_dialog(std::string& id, bool& window_state,
   ImGui::SetNextWindowSize(ImVec2(350, 200), ImGuiCond_FirstUseEver);
   if (ImGui::BeginPopupModal(id.c_str(), &window_state))
   {
-    char* writable = new char[m_save_file_name.size() + 1];
-    std::copy(m_save_file_name.begin(), m_save_file_name.end(), writable);
-    writable[m_save_file_name.size()] = '\0';
+
     ImGui::Text(m_dir_to_save.c_str());
     ImGui::SameLine();
     if (ImGui::Button("..."))
@@ -1037,7 +1118,7 @@ void UIView::open_save_modal_dialog(std::string& id, bool& window_state,
       m_file_dialog_save_dir = true;
     }
 
-    ImGui::InputText("##filename", writable, IM_ARRAYSIZE(writable));
+    ImGui::InputText("##filename", &m_save_file_name);
     ImGui::IsItemActive();
 
 
@@ -1103,7 +1184,7 @@ void UIView::save_trans_functions(std::ofstream& saveFile)
       }
       saveFile << "\n";
     }
-    
+
   }
 }
 
@@ -1146,9 +1227,9 @@ void UIView::save_user_session(std::ofstream& savefile)
       savefile << "Trnfncs" << "\n";
       save_trans_functions(savefile);
     }
-    
-    
-   
+
+
+
 
     savefile.close();
   }
@@ -1164,7 +1245,7 @@ void UIView::load_trans_functions(std::ifstream& loadFile)
   {
     while (std::getline(loadFile, line))
     {
-      std::vector<std::string> vals; 
+      std::vector<std::string> vals;
       std::stringstream ss(line);
       std::string buf;
 
@@ -1323,11 +1404,11 @@ void UIView::load_user_session(std::string filePath)
   }
 }
 
-void UIView::save_camera_poi(std::ofstream& saveFile,int num_camera_poi)
+void UIView::save_camera_poi(std::ofstream& saveFile, int num_camera_poi)
 {
   if (saveFile.is_open())
   {
-    
+
     auto poit_iterator = m_controller_app.get_trackball_camera().get_camera_poi().begin();
     for (poit_iterator; poit_iterator != m_controller_app.get_trackball_camera().get_camera_poi().end(); poit_iterator++)
     {
@@ -1353,23 +1434,23 @@ void UIView::load_camera_poi(std::ifstream& loadFile, int num_poi)
 
       if (poiVals.size() > 0)
       {
-          std::string label = poiVals[0];
-          float eye_x = std::stof(poiVals[1]);
-          float eye_y = std::stof(poiVals[2]);
-          float eye_z = std::stof(poiVals[3]);
-          float target_x = std::stof(poiVals[4]);
-          float target_y = std::stof(poiVals[5]);
-          float target_z = std::stof(poiVals[6]);
-          float up_x = std::stof(poiVals[7]);
-          float up_y = std::stof(poiVals[8]);
-          float up_z = std::stof(poiVals[9]);
-          float radius = std::stof(poiVals[10]);
-          m_controller_app.get_trackball_camera().add_camera_poi(label,eye_x, eye_y, eye_z, target_x, target_y, target_z, up_x, up_y, up_z, radius);
-       }
+        std::string label = poiVals[0];
+        float eye_x = std::stof(poiVals[1]);
+        float eye_y = std::stof(poiVals[2]);
+        float eye_z = std::stof(poiVals[3]);
+        float target_x = std::stof(poiVals[4]);
+        float target_y = std::stof(poiVals[5]);
+        float target_z = std::stof(poiVals[6]);
+        float up_x = std::stof(poiVals[7]);
+        float up_y = std::stof(poiVals[8]);
+        float up_z = std::stof(poiVals[9]);
+        float radius = std::stof(poiVals[10]);
+        m_controller_app.get_trackball_camera().add_camera_poi(label, eye_x, eye_y, eye_z, target_x, target_y, target_z, up_x, up_y, up_z, radius);
+      }
 
     }
-   }
-   
+  }
+
 }
 
 
@@ -1403,7 +1484,7 @@ void UIView::adjust_transfer_function_to_histogram()
 
   const std::size_t pos1 = std::floor(m_histogram_quantiles[0] * std::distance(histogram_copy.begin(), histogram_copy.end()));
   const std::size_t pos2 = std::floor(m_histogram_quantiles[1] * std::distance(histogram_copy.begin(), histogram_copy.end()));
-  if (histogram_copy.size() > pos1 && histogram_copy.size() > pos2)
+  if (histogram_copy.size() > pos1&& histogram_copy.size() > pos2)
   {
     std::nth_element(histogram_copy.begin(), histogram_copy.begin() + pos1, histogram_copy.end());
 
@@ -1482,6 +1563,18 @@ void UIView::addTransferFunction()
   }
   m_tfns.push_back(trfntc);
 }
+
+void UIView::get_Quantiles(int row)
+{
+  m_copy_trnfnct_name = m_tfns[row].Name;
+  float q_min = 0;
+  float q_max = 0;
+  tfn_widget[m_trnfnc_table_selection].get_Quantiles(q_min, q_max);
+  m_histogram_quantiles[0] = q_min;
+  m_histogram_quantiles[1] = q_max;
+  m_trn_fct_options_window = true;
+}
+
 void UIView::load_ocean_color_maps()
 {
   int w, h, n;

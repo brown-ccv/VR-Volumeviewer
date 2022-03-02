@@ -80,12 +80,11 @@ macro(build_minvr_subproject)
   # Setup SUBPROJECT_* variables (containing paths) for this function
   setup_subproject_path_vars(${BUILD_SUBPROJECT_NAME})
 
-  message("BUILD_SUBPROJECT_PATCH ${BUILD_SUBPROJECT_PATCH}")
+  
   # Build the actual subproject
   ExternalProject_Add(${SUBPROJECT_NAME}
     PREFIX ${SUBPROJECT_NAME}
     DOWNLOAD_DIR ${SUBPROJECT_NAME}
-    PATCH_COMMAND  git apply ${BUILD_SUBPROJECT_PATCH}/minvr_patch_09142021.patch
     STAMP_DIR ${SUBPROJECT_STAMP_PATH}
     SOURCE_DIR ${SUBPROJECT_SOURCE_PATH}
     BINARY_DIR ${SUBPROJECT_BUILD_PATH}

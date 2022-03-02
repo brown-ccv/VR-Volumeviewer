@@ -55,12 +55,13 @@ VolumeRaycastShader::VolumeRaycastShader() : m_use_blending{ false }, m_blend_vo
     //vertex position. Since the unit cube is at origin (min: (-0.5,-0.5,-0.5) and max: (0.5,0.5,0.5))
     //adding (0.5,0.5,0.5) to the unit cube object space position gives us values from (0,0,0) to 
     //(1,1,1)
-    "vUV = vVertex + vec3(0.5); \n"
+    "vUV = vVertex + vec3(0.5001); \n"
     "}\n";
 
   m_fragmentShader =
     "#version 330 core\n"
     "vec2 intersect_box(vec3 orig, vec3 dir, vec3 clip_min, vec3 clip_max) { \n"
+    "dir += vec3(0.0000001); \n"
     "vec3 inv_dir = 1.0 / dir; \n"
     "vec3 tmin_tmp = (clip_min - orig) * inv_dir; \n"
     "vec3 tmax_tmp = (clip_max - orig) * inv_dir; \n"
@@ -115,7 +116,7 @@ VolumeRaycastShader::VolumeRaycastShader() : m_use_blending{ false }, m_blend_vo
     //To ensure we update dataPos and t_hit to reflect a ray from entry point to exit
     "dataPos = camPos + t_hit.x * geomDir;\n"
     "t_hit.y = t_hit.y-t_hit.x; \n"
-    "t_hit.x = 0.0f; \n"
+    "t_hit.x = 0.0001f; \n"
 
     //get t for the clipping plane and overwrite the entry point
     "if(clipping){ \n"
@@ -148,8 +149,8 @@ VolumeRaycastShader::VolumeRaycastShader() : m_use_blending{ false }, m_blend_vo
     "d_ndc = d_ndc / d_ndc.w; \n"
 
     //compute t_occ and check if it closer than the exit point
-    "float t_occ = ((d_ndc.x + 0.5) - dataPos.x) / geomDir.x; \n"
-    "t_hit.y = min(t_hit.y, t_occ); \n"
+    /*"float t_occ = ((d_ndc.x + 0.5) - dataPos.x) / geomDir.x; \n"
+    "t_hit.y = min(t_hit.y, t_occ); \n"*/
 
     //first value should always be lower by definition and this case should never occur. If it does discard the fragment.
     "if (t_hit.x > t_hit.y) \n"
@@ -325,5 +326,5 @@ void VolumeRaycastShader::initGL()
   glUniform1i(m_blendVolume_uniform, 3);
 
   unbindProgram();
- 
+
 }

@@ -51,6 +51,7 @@ set(source_files
   src/render/VolumeRaycastRenderer.cpp
   src/render/VolumeRaycastShader.cpp
   src/UI/UIView.cpp
+  src/UI/UIDoubleClickedTableCell.cpp
   libs/glm.cpp
   src/render/FrameBufferObject.cpp
   src/render/DepthTexture.cpp
@@ -79,6 +80,7 @@ set(header_files
   include/render/VolumeRaycastRenderer.h
   include/render/VolumeRaycastShader.h
   include/UI/UIView.h
+  include/UI/UIDoubleClickedTableCell.h
   libs/glm.h
   include/render/FrameBufferObject.h
   include/render/DepthTexture.h
