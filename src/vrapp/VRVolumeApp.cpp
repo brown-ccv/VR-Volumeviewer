@@ -528,6 +528,7 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
 
   //setup projection
   m_projection_mtrx = glm::make_mat4(renderState.getProjectionMatrix());
+  //m_projection_mtrx = m_trackball.get_projection_camera();
   m_model_view = glm::make_mat4(renderState.getViewMatrix());
 
   //overwrite MV for 2D viewing

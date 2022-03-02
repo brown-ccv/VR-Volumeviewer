@@ -547,8 +547,8 @@ void UIView::draw_ui_callback()
           m_camera_poi_table_selection--;
           m_controller_app.get_trackball_camera().set_current_poi(m_camera_poi_table_selection);
         }
-        
-        
+
+
       }
 
     }
@@ -785,7 +785,7 @@ void UIView::init_ui(bool is2D, bool lookingGlass)
     m_initialized = true;
 
 
-}
+  }
 
 
 }
@@ -839,8 +839,8 @@ void UIView::render_3D(glm::mat4& space_matrix, Window_Properties& window_proper
 
   if (m_show_menu)
   {
-    glMatrixMode(GL_MODELVIEW);
-    glLoadMatrixf(glm::value_ptr(space_matrix));
+    // glMatrixMode(GL_MODELVIEW);
+    // glLoadMatrixf(glm::value_ptr(space_matrix));
     m_menu_handler->drawMenu(window_properties.window_w, window_properties.window_h,
       window_properties.framebuffer_w, window_properties.framebuffer_h);
   }

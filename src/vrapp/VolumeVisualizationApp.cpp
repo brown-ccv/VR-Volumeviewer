@@ -441,7 +441,7 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent& event) {
     }
   }
 
-  
+
 
 }
 
@@ -493,6 +493,20 @@ void VolumeVisualizationApp::onGenericEvent(const VRDataIndex& index)
   if (index.getName() == "WindowClose") {
     shutdown();
   }
+
+  if (index.getName() == "WindowSize") {
+    /*
+    some code to update projection matrix
+    */
+  }
+
+  if (index.getName() == "BufferSize") {
+    const std::vector<float>* v = index.getValue("WindowSize");
+    const float* f = &(v->front());
+    std::cout << "new buffer size: " << GLint(f[0]) << ", " << GLint(f[1]) << std::endl;
+    glViewport(0, 0, GLint(f[0]), GLint(f[1]));
+  }
+
 }
 
 void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState& renderState) {
@@ -522,7 +536,7 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState& rend
       std::cout << "Error initializing GLEW." << std::endl;
     }
 #endif        
-std::cout << "init vizapp " << std::endl;
+    std::cout << "init vizapp " << std::endl;
     if (m_vrVolumeApp)
     {
       m_vrVolumeApp->initialize();
@@ -542,15 +556,15 @@ std::cout << "init vizapp " << std::endl;
     glClearDepth(1.0f);
     glDepthFunc(GL_LEQUAL);
     glClearColor(0.0, 0.0, 0.0, 1);
-     std::cout << "init vizapp end" << std::endl;
+    std::cout << "init vizapp end" << std::endl;
   }
 
 
 
-  
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  glLightfv(GL_LIGHT0, GL_POSITION, m_light_pos);
+
+  //glMatrixMode(GL_MODELVIEW);
+  //glLoadIdentity();
+  //glLightfv(GL_LIGHT0, GL_POSITION, m_light_pos);
 
   if (m_vrVolumeApp)
   {
@@ -558,7 +572,7 @@ std::cout << "init vizapp " << std::endl;
     {
       m_vrVolumeApp->load_mesh_model();
     }
-    
+
     m_vrVolumeApp->initialize_textures();
     m_vrVolumeApp->update_3D_ui();
     m_vrVolumeApp->update_trackBall_state();
