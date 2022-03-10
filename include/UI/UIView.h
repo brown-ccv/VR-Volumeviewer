@@ -252,7 +252,7 @@ private:
   std::string m_color_map_directory;
 
   float m_animation_speed;
-  
+  std::string m_str_animation_duration;
   
 };
 

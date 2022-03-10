@@ -44,11 +44,13 @@ enum WASD_KEYS
 };
 
 struct PointOfInterest {
-  std::string label;
+  
+ 
   glm::vec3 eye = glm::vec3(0.0f, 0.0f, 1.0f);
   glm::vec3 target = glm::vec3(0.0f, 0.0f, 0.0f);
   glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
   float radius = 1.f;
+  std::string label;
 
   glm::vec3 get_camera_position()
   {
@@ -114,6 +116,9 @@ public:
 
   std::string get_camera_animation_state();
 
+  float get_camera_animation_duration();
+  void set_camera_animation_duration(float duration);
+
 protected:
   void Rotate(float dTheta, float dPhi);
   void RotateEyeAxis(float dy);
@@ -141,9 +146,11 @@ protected:
   ch::Output<glm::vec3>  m_target_animation;
   ch::Output<glm::vec3>  m_eye_animation;
   ch::Output<glm::vec3>  m_up_animation;
+  ch::Output<float>  m_radius_animation;
   ch::Timeline     m_timeline;
 
   bool m_is_animate_path;
+  float m_animation_duration;
   
   CAMERA_ANIMATION_STATE m_camera_animation_state;
   std::string animation_button_label;

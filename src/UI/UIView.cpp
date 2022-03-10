@@ -530,7 +530,7 @@ void UIView::draw_ui_callback()
 
   if (ImGui::BeginTabItem("Camera"))
   {
-
+    
     ImGui::Text("Points of Interest");
 
     if (ImGui::Button("Add")) {
@@ -584,6 +584,7 @@ void UIView::draw_ui_callback()
     }
     ImGui::EndTable();
     
+    //Camera animator
     std::string is_animation_playing = m_controller_app.get_trackball_camera().get_camera_animation_state();
 
     if (ImGui::Button(is_animation_playing.c_str())) {
@@ -592,7 +593,16 @@ void UIView::draw_ui_callback()
       
     }
 
+    ImGui::Text("Duration (seconds)");
+    
+    m_str_animation_duration = std::to_string(m_controller_app.get_trackball_camera().get_camera_animation_duration());
+    ImGui::InputText("##textanimationtime", &m_str_animation_duration);
+    if (ImGui::Button("OK")) {
 
+
+      m_controller_app.get_trackball_camera().set_camera_animation_duration(std::stof(m_str_animation_duration));
+
+    }
 
     ImGui::EndTabItem();
   }
