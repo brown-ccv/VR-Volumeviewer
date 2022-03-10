@@ -38,6 +38,7 @@
 
 ArcBallCamera::ArcBallCamera() : m_radius(1), m_mouse_left_pressed(false), m_mouse_center_pressed(false), m_mouse_right_pressed(false), last_x(0), last_y(0)
 , m_PanFactor(1), m_RotateFactor(1), m_cameraScrollFactor(0.1), m_target(0, 0, 0), m_eye(0, 0, 1), m_up(0, 1, 0), m_rotate_camera_center{ false }
+, m_is_animate_path(false), m_camera_animation_state(STOP), animation_button_label("ANIMATE")
 {
   
 }
@@ -49,7 +50,33 @@ ArcBallCamera::~ArcBallCamera()
 
 void ArcBallCamera::updateCameraMatrix()
 {
-  viewmatrix = glm::lookAt(m_current_poi.get_camera_position(), m_current_poi.target, m_current_poi.up);
+  if (m_is_animate_path)
+  {
+    /*glm::vec3 animation_position = m_animation;
+    viewmatrix =  glm::lookAt(animation_position, m_current_poi.target, m_current_poi.up);*/
+    if (m_camera_animation_state != PAUSE )
+    {
+      update_animation();
+
+    }
+    if (m_timeline.isFinished())
+    {
+      m_camera_animation_state = STOP;
+      animation_button_label = "Animate";
+      m_timeline.resetTime();
+    }
+    
+   
+    
+    m_viewmatrix = glm::lookAt(m_eye_animation.value(), m_target_animation.value(), m_up_animation.value());
+
+
+  }
+  else
+  {
+    m_viewmatrix = glm::lookAt(m_current_poi.eye, m_current_poi.target, m_current_poi.up);
+  }
+  
 }
 
 void ArcBallCamera::mouse_pressed(int button, bool isDown)
@@ -168,7 +195,8 @@ void ArcBallCamera::Zoom(float distance) {
   {
     m_current_poi.radius = 0.000001;
   }
-   
+  
+  std::cout << m_current_poi.radius << std::endl;
 }
 
 void ArcBallCamera::Pan(float dx, float dy) {
@@ -186,7 +214,7 @@ std::list<PointOfInterest>& ArcBallCamera::get_camera_poi()
 void ArcBallCamera::add_camera_poi(std::string& label)
 {
   m_current_poi.label = label;
-  m_camera_poi.push_front(m_current_poi);
+  m_camera_poi.push_back(m_current_poi);
 }
 
 void ArcBallCamera::add_camera_poi(std::string& label, float eye_x, float eye_y, float eye_z, float target_x, float target_y, float target_z, float up_x, float up_y, float up_z, float radius)
@@ -207,11 +235,13 @@ int ArcBallCamera::get_current_poi()
 
 void ArcBallCamera::set_current_poi(int val) 
 { 
+  m_is_animate_path = false;
   std::list<PointOfInterest>::iterator it = m_camera_poi.begin();
   for (int i = 0; i < val; i++) {
     ++it;
   }
   m_current_poi = *it;
+
 }
 
 void ArcBallCamera::remove_poi(int val)
@@ -221,8 +251,17 @@ void ArcBallCamera::remove_poi(int val)
   m_camera_poi.erase(poi_iterator);
 }
 
-void ArcBallCamera::rest_camera()
+void ArcBallCamera::reset_camera()
 {
+  m_is_animate_path = false;
+  last_x = 0;
+  last_y = 0;
+  m_PanFactor = 1;
+  m_RotateFactor = 1;
+  m_cameraScrollFactor = 0.1;
+  m_target = glm::vec3(0, 0, 0);
+  m_eye = glm::vec3(0, 0, 1);
+  m_up = glm::vec3(0, 1, 0);
   m_current_poi = PointOfInterest();
 }
 
@@ -231,5 +270,94 @@ PointOfInterest& ArcBallCamera::get_poi_at(int val)
   auto poi_iterator = m_camera_poi.begin();
   std::advance(poi_iterator, val);
   return *poi_iterator;
+}
+
+void ArcBallCamera::update_animation()
+{
+  if (m_is_animate_path)
+  {
+    m_timeline.step(1.0 / 60.0);
+   
+  }
+
+  
+}
+
+void ArcBallCamera::set_animation_path()
+{
+  if (m_camera_poi.size() > 1)
+  {
+    
+    PointOfInterest first_position = m_camera_poi.front();
+    
+    ch::Sequence<glm::vec3> sequence_eye(first_position.eye);
+    ch::Sequence<glm::vec3> sequence_target(first_position.target);
+    ch::Sequence<glm::vec3> sequence_up(first_position.up);
+
+
+    for (auto next_camera_poi_interator = std::next(m_camera_poi.begin()); next_camera_poi_interator != m_camera_poi.end(); next_camera_poi_interator++)
+    {
+      sequence_eye.then<ch::RampTo>(next_camera_poi_interator->eye, 10.f);
+      sequence_target.then<ch::RampTo>(next_camera_poi_interator->target, 10.f);
+      sequence_up.then<ch::RampTo>(next_camera_poi_interator->up, 10.f);
+    }
+    
+  
+    auto group= std::make_shared<ch::Timeline>();
+    group->apply<glm::vec3>(&m_eye_animation, sequence_eye);
+    group->apply<glm::vec3>(&m_target_animation, sequence_target);
+    group->apply<glm::vec3>(&m_up_animation, sequence_up);
+
+    m_timeline.addShared(group);
+    
+  }
+  
+}
+
+void ArcBallCamera::set_animation_state()
+{
+  if (m_camera_animation_state == STOP)
+  {
+    set_animation_path();
+    m_camera_animation_state = PLAYING;  
+    animation_button_label = "PAUSE";
+  }
+  else if (m_camera_animation_state == PLAYING)
+  {
+    if (!m_timeline.isFinished())
+    {
+      m_camera_animation_state = PAUSE;
+      animation_button_label = "ANIMATE";
+    }
+  }
+  else if (m_camera_animation_state == PAUSE)
+  {
+    m_camera_animation_state = PLAYING;
+    animation_button_label = "PAUSE";
+  }
+
+  m_is_animate_path = true;
+  
+}
+
+CAMERA_ANIMATION_STATE ArcBallCamera::get_animation_state()
+{
+  if (m_timeline.isFinished())
+  {
+    return STOP;
+  }
+  else if (!m_timeline.isFinished() && m_camera_animation_state == PLAYING)
+  {
+    return  PLAYING;
+  }
+  else if (!m_timeline.isFinished() && m_camera_animation_state == STOP)
+  {
+    return  PAUSE;
+  }
+}
+
+std::string ArcBallCamera::get_camera_animation_state()
+{
+  return animation_button_label;
 }
 

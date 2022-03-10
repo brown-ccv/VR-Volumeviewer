@@ -171,13 +171,14 @@ void VRVolumeApp::update_trackBall_state()
 
 }
 
-void VRVolumeApp::update_animation()
+void VRVolumeApp::update_animation(float fps)
 {
   if (m_ui_view)
   {
     if (m_volumes.size())
     {
-      m_ui_view->update_animation(m_speed * m_animation_speed, m_volumes[m_selectedVolume].size() - 1);
+      //m_animation_speed = fps;
+      m_ui_view->update_animation(m_speed, m_volumes[m_selectedVolume].size() - 1);
     }
   }
 }
@@ -843,7 +844,10 @@ void VRVolumeApp::update_frame_state()
   if (m_animated && !m_ui_view->is_stopped())
   {
     m_frame += (m_speed * m_animation_speed);
-    if (m_frame > m_volumes[m_selectedVolume].size() - 1) m_frame = 0.0;
+    if (m_frame > m_volumes[m_selectedVolume].size() - 1)
+    {
+      m_frame = 0.0;
+    }
   }
   m_rendercount = 0;
 }

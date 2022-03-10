@@ -13,7 +13,6 @@
 #include <fstream>
 
 
-
 class VRVolumeApp;
 class CreateMovieAction;
 #define INPUT_TEXT_SIZE 200
@@ -253,7 +252,8 @@ private:
   std::string m_color_map_directory;
 
   float m_animation_speed;
-
+  
+  
 };
 
 

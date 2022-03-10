@@ -31,6 +31,7 @@
 #include <string>
 #include <list>
 
+#include "choreograph/Choreograph.h"
 
 enum WASD_KEYS
 {
@@ -57,6 +58,13 @@ struct PointOfInterest {
 
 };
 
+enum CAMERA_ANIMATION_STATE
+{
+  STOP,
+  PLAYING,
+  PAUSE
+};
+
 /** Adds a HeadMatrix to the RenderState that gets updated repeatedly based
     upon head tracking events.
  */
@@ -76,7 +84,7 @@ public:
   glm::mat4& getViewmatrix()
   {
     updateCameraMatrix();
-    return viewmatrix;
+    return m_viewmatrix;
   }
 
   std::list<PointOfInterest>& get_camera_poi();
@@ -92,9 +100,19 @@ public:
 
   void remove_poi(int val);
 
-  void rest_camera();
+  void reset_camera();
 
   PointOfInterest& get_poi_at(int val);
+
+  void update_animation();
+
+  void set_animation_path();
+
+  void set_animation_state();
+
+  CAMERA_ANIMATION_STATE get_animation_state();
+
+  std::string get_camera_animation_state();
 
 protected:
   void Rotate(float dTheta, float dPhi);
@@ -110,7 +128,7 @@ protected:
   std::list<PointOfInterest> m_camera_poi;
   PointOfInterest m_current_poi;
 
-  glm::mat4 viewmatrix;
+  glm::mat4 m_viewmatrix;
   bool m_mouse_left_pressed;
   bool m_mouse_right_pressed;
   bool m_mouse_center_pressed;
@@ -120,6 +138,15 @@ protected:
   float m_cameraScrollFactor;
 
   bool m_rotate_camera_center;
+  ch::Output<glm::vec3>  m_target_animation;
+  ch::Output<glm::vec3>  m_eye_animation;
+  ch::Output<glm::vec3>  m_up_animation;
+  ch::Timeline     m_timeline;
+
+  bool m_is_animate_path;
+  
+  CAMERA_ANIMATION_STATE m_camera_animation_state;
+  std::string animation_button_label;
 };
 
 #endif

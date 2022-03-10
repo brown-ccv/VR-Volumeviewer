@@ -338,13 +338,7 @@ void UIView::draw_ui_callback()
           ImGui::InputText("##text1", &m_copy_trnfnct_name);
           ImGui::IsItemActive();
 
-
           ImGui::Separator();
-          /*float q_min = 0;
-          float q_max = 0;
-          tfn_widget[m_table_selection].get_Quantiles(q_min, q_max);
-          m_histogram_quantiles[0] = q_min;
-          m_histogram_quantiles[1] = q_max;*/
 
           ImGui::Text("Quantiles");
           ImGui::SliderFloat2("##Quantiles", m_histogram_quantiles, 0.05f, 0.95f);
@@ -473,7 +467,7 @@ void UIView::draw_ui_callback()
         m_stopped = !m_stopped;
       }
       ImGui::SameLine();
-      float value = (int)(m_animation_speed * 100 + .5);
+      int value = int(m_animation_speed * 100.0 + .5);
       std::string speed_text = ">>X "+std::to_string(value/100);
       if (ImGui::Button(speed_text.c_str(), ImVec2(80, 0))) {
         m_animation_speed += 0.5;
@@ -563,8 +557,10 @@ void UIView::draw_ui_callback()
       }
 
     }
-
-
+    ImGui::SameLine();
+    if (ImGui::Button("Reset")) {
+      m_controller_app.get_trackball_camera().reset_camera();
+    }
     ImGui::BeginTable("##Camera Point of interest (POI) Editor", 1, ImGuiTableFlags_Borders);
     ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, 120.0f);
 
@@ -587,6 +583,16 @@ void UIView::draw_ui_callback()
       }
     }
     ImGui::EndTable();
+    
+    std::string is_animation_playing = m_controller_app.get_trackball_camera().get_camera_animation_state();
+
+    if (ImGui::Button(is_animation_playing.c_str())) {
+      
+       m_controller_app.get_trackball_camera().set_animation_state();
+      
+    }
+
+
 
     ImGui::EndTabItem();
   }
@@ -623,7 +629,7 @@ void UIView::draw_ui_callback()
         {
           m_controller_app.get_trackball_camera().add_camera_poi(m_copy_camera_name);
           m_copy_camera_name.clear();
-          m_camera_poi_table_selection = 0;
+          m_camera_poi_table_selection = m_controller_app.get_trackball_camera().get_camera_poi().size()-1;
         }
         else if (m_camera_button_action == EDIT)
         {
@@ -1400,7 +1406,7 @@ void UIView::load_user_session(std::string filePath)
       }
     }
     loadFile.close();
-    m_controller_app.get_trackball_camera().rest_camera();
+    m_controller_app.get_trackball_camera().reset_camera();
   }
 }
 

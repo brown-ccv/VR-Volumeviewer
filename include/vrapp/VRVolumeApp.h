@@ -90,7 +90,7 @@ public:
 
   void update_trackBall_state();
 
-  void update_animation();
+  void update_animation(float fps);
 
 #if (!defined(__APPLE__))
  void run_movie();
