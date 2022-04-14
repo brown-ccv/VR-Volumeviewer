@@ -415,6 +415,27 @@ void TransferFunctionWidget::drawLegend() {
 
 }
 
+void TransferFunctionWidget::drawLegend( float legend_pos_x, float legend_pos_y, float legend_width, float legend_height)
+{
+  bool show_legend = true;
+  ImGui::SetNextWindowPos(ImVec2(legend_pos_x, legend_pos_y));
+  ImGui::SetNextWindowSize(ImVec2(legend_width, legend_height));
+  ImGui::Begin("##legend", &show_legend, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
+  ImGuiIO& io = ImGui::GetIO();
+  ImTextureID my_tex_id = io.Fonts->TexID;
+  float my_tex_w = (float)io.Fonts->TexWidth;
+  float my_tex_h = (float)io.Fonts->TexHeight;
+  std::string max_str = std::to_string(m_min_max_val[1]);
+  float offset = 0.008 * (my_tex_w * max_str.size());
+  ImGui::Image(reinterpret_cast<void*>(colormap_img), ImVec2(legend_width, 16));
+  ImGui::Text("%.0f", m_min_max_val[0]);
+  ImGui::SameLine((legend_width /2) );
+  ImGui::Text("%.0f", (m_min_max_val[0]+ m_min_max_val[1]) /2);
+  ImGui::SameLine(ImGui::GetWindowWidth() - offset);
+  ImGui::Text(" %.0f", m_min_max_val[1]);
+  ImGui::End();
+}
+
 void TransferFunctionWidget::draw_histogram()
 {
 

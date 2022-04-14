@@ -1,15 +1,17 @@
 #ifndef VRVOLUMEAPP_H
 #define VRVOLUMEAPP_H
 
+
 #include <string>
 #include <vector>
 #include <future>
 #include <api/MinVR.h>
-#include "interaction/Labels.h"
+
 #include "interaction/ArcBallCamera.h"
 #include "render/Volume.h"
 
-#include "Model.h"
+
+#include "ShaderProgram.h"
 
 
 class UIView;
@@ -17,6 +19,16 @@ class CreateMovieAction;
 class VolumeRenderer;
 class DepthTexture;
 class Window_Properties;
+class Model;
+class Texture;
+class Simulation;
+class Labels;
+
+enum MovieState
+{
+  MOVIE_STOP,
+  MOVIE_RECORD
+};
 
 class VRVolumeApp
 {
@@ -93,7 +105,8 @@ public:
   void update_animation(float fps);
 
 #if (!defined(__APPLE__))
- void run_movie();
+ void run_movie(bool is_animation);
+ void stop_movie();
 #endif
  
 
@@ -156,6 +169,15 @@ public:
 
   void set_animation_speed(float time);
 
+  Simulation& get_simulation();
+
+  void set_clip_min(glm::vec3 clip_min);
+  void set_clip_max(glm::vec3 clip_max);
+
+  std::string get_movie_state_label();
+
+  MovieState get_movie_state();
+
 protected:
 
   glm::vec4 m_noColor;// (0.0f, 0.0f, 0.0f, 0.0f);
@@ -169,7 +191,7 @@ protected:
 
 
 
-  void render_labels(const MinVR::VRGraphicsState& renderState);
+  void render_labels(glm::mat4& volume_mv, const MinVR::VRGraphicsState& renderState);
   void render_mesh(const MinVR::VRGraphicsState& renderState);
   void render_volume(const MinVR::VRGraphicsState& renderState);
   void render_ui(const MinVR::VRGraphicsState& renderState);
@@ -181,7 +203,7 @@ protected:
 
   std::vector < std::vector< Volume* >> m_volumes;
   std::vector<std::string> m_description;
-  Labels m_labels;
+  Labels* m_labels;
   std::vector <std::string> m_models_filenames;
   std::vector <unsigned int> m_models_displayLists;
   std::vector<pt> m_models_position;
@@ -200,6 +222,8 @@ protected:
 
   Model* m_mesh_model;
   ShaderProgram m_simple_texture_shader;
+  ShaderProgram m_line_shader;
+
   std::string m_shader_file_path;
   std::string m_texture_filePath;
   Texture* m_texture;
@@ -276,5 +300,11 @@ protected:
   std::string m_current_file_loaded;
 
   Window_Properties* m_window_properties;
+
+  Simulation* m_simulation;
+  
+  MovieState m_current_movie_state;
+  bool m_stop_movie;
+
 };
 #endif

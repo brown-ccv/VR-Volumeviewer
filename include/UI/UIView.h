@@ -110,6 +110,9 @@ public:
   glm::vec3 get_clip_min();
   glm::vec3 get_clip_max();
 
+  void set_clip_min(glm::vec3 clip_min);
+  void set_clip_max(glm::vec3 clip_max);
+
   void add_character(char c);
 
   void remove_character();
@@ -123,6 +126,11 @@ public:
 
   void get_Quantiles(int row);
 
+  void set_volume_time_info(time_t time);
+
+  void draw_tranfer_funciton_legend();
+
+  void set_trns_fnct_min_max(float min, float max);
 
 private:
 
@@ -254,6 +262,25 @@ private:
   float m_animation_speed;
   std::string m_str_animation_duration;
   
+  bool m_camera_animation_duration_open;
+  
+  std::vector<float> m_clip_maxs;
+  std::vector<float> m_clip_mins;
+
+
+  bool m_show_clock;
+  float halfScreen;
+  float m_clock_pos_x;
+  float m_clock_pos_y;
+  float m_clock_width;
+  float m_clock_height;
+
+  float m_legend_pos_y;
+
+  std::string m_time_info;
+  std::string m_day_info;
+
+  std::string months[12] = { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
 };
 
 

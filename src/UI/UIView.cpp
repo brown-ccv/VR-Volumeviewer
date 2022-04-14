@@ -30,7 +30,9 @@ m_file_load_trnsf(false), m_file_dialog_save_dir(false), m_save_session_dialog_o
 m_current_load_modal(LOAD_NONE), m_file_extension_filter(".txt"), m_non_trns_functions_selected_modal(false),
 m_ui_background(false), m_column_selection_state(0), m_compute_new_histogram(true), m_histogram_point_1(0.0),
 m_histogram_point_2(1.1), m_stopped(false), m_color_map_directory("colormaps"), m_show_menu(true), m_camera_poi_table_selection(0),
-m_camera_name_window_open(false), m_camera_button_action(BUTTON_ACTION::NONE), m_num_animation_frames(0), m_animation_speed(1.0f)
+m_camera_name_window_open(false), m_camera_button_action(BUTTON_ACTION::NONE), m_num_animation_frames(0), m_animation_speed(1.0f),
+m_camera_animation_duration_open(false), m_show_clock(true), m_clock_width(250), m_clock_height(200),
+m_time_info(""),m_day_info("")
 {
   m_ocean_color_maps_names = { "algae.png","amp.png","balance.png","curl.png","deep.png","delta.png","dense.png",
 "diff.png","gray.png","haline.png","ice.png","matter.png","oxy.png","phase.png","rain.png","solar.png","speed.png","tarn.png","tempo.png",
@@ -444,6 +446,7 @@ void UIView::draw_ui_callback()
 
           m_histogram.draw_histogram();
           tfn_widget[m_trnfnc_table_selection].draw_ui();
+          //tfn_widget[m_trnfnc_table_selection].setMinMax()
         }
       }
 
@@ -479,10 +482,22 @@ void UIView::draw_ui_callback()
       }
 
 #if (!defined(__APPLE__))
-      if (ImGui::Button("Write Movie"))
+      std::string movie_button_label = m_controller_app.get_movie_state_label();
+      if (movie_button_label == "Write Movie")
       {
-        m_controller_app.run_movie();
+        if (ImGui::Button(movie_button_label.c_str()))
+        {
+          m_controller_app.run_movie(false);
+        }
       }
+      else
+      {
+        if (ImGui::Button(movie_button_label.c_str()))
+        {
+          m_controller_app.stop_movie();
+        }
+      }
+      
 #endif
     }
     ImGui::EndTabItem();
@@ -590,24 +605,95 @@ void UIView::draw_ui_callback()
     if (ImGui::Button(is_animation_playing.c_str())) {
       
        m_controller_app.get_trackball_camera().set_animation_state();
-      
+        
     }
 
     ImGui::Text("Duration (seconds)");
     
-    m_str_animation_duration = std::to_string(m_controller_app.get_trackball_camera().get_camera_animation_duration());
-    ImGui::InputText("##textanimationtime", &m_str_animation_duration);
-    if (ImGui::Button("OK")) {
+    
+    std::stringstream text;
+    text << std::fixed << std::setprecision(1) << m_controller_app.get_trackball_camera().get_camera_animation_duration();
+    std::string str_animation_duration = text.str();
+
+    if (ImGui::Button(str_animation_duration.c_str()))
+    {
+      m_camera_animation_duration_open = true;
+      m_str_animation_duration= std::string( str_animation_duration);
+    }
+#if (!defined(__APPLE__))
+    std::string movie_button_label = m_controller_app.get_movie_state_label();
+    if (movie_button_label == "Write Movie")
+    {
+      if (ImGui::Button(movie_button_label.c_str()))
+      {
+        m_controller_app.get_trackball_camera().set_animation_state();
+        m_controller_app.run_movie(true);
+      }
+    }
+    else
+    {
+      if (ImGui::Button(movie_button_label.c_str()))
+      {
+        m_controller_app.stop_movie();
+      }
+    }
+#endif
+
+    ImGui::EndTabItem();
+  }
 
 
-      m_controller_app.get_trackball_camera().set_camera_animation_duration(std::stof(m_str_animation_duration));
+  if (ImGui::BeginTabItem("Animation"))
+  {
+    std::string is_animation_playing = m_controller_app.get_trackball_camera().get_camera_animation_state();
+
+    if (ImGui::Button(is_animation_playing.c_str())) {
+
+      m_controller_app.get_trackball_camera().set_animation_state();
 
     }
+
+    ImGui::Text("Duration (seconds)");
+
+
+    std::stringstream text;
+    text << std::fixed << std::setprecision(1) << m_controller_app.get_trackball_camera().get_camera_animation_duration();
+    std::string str_animation_duration = text.str();
+
+    if (ImGui::Button(str_animation_duration.c_str()))
+    {
+      m_camera_animation_duration_open = true;
+      m_str_animation_duration = std::string(str_animation_duration);
+    }
+#if (!defined(__APPLE__))
+    if (ImGui::Button("Write Movie"))
+    {
+      m_controller_app.get_trackball_camera().set_animation_state();
+      m_controller_app.run_movie(true);
+    }
+#endif
 
     ImGui::EndTabItem();
   }
 
   ImGui::EndTabBar();
+
+
+  float width = 11.0f;
+  ImGui::SetNextWindowPos(ImVec2(m_clock_pos_x, m_clock_pos_y));
+  ImGui::SetNextWindowSize(ImVec2(m_clock_width, m_clock_height));
+  ImGui::Begin("##clock", &m_show_clock, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
+  ImGui::SetWindowFontScale(1.3f);
+  ImGui::Text(m_time_info.c_str());
+  ImGui::Text(m_day_info.c_str());
+  ImGui::End();
+
+  if (m_use_transferfunction)
+  {
+    tfn_widget[0].drawLegend(0, m_legend_pos_y + 80, m_clock_width + 50, m_clock_height - 140);
+  }
+  
+
 
   if (m_camera_name_window_open)
   {
@@ -637,7 +723,8 @@ void UIView::draw_ui_callback()
 
         if (m_camera_button_action == ADD)
         {
-          m_controller_app.get_trackball_camera().add_camera_poi(m_copy_camera_name);
+          m_controller_app.get_trackball_camera().add_camera_poi(m_copy_camera_name, m_clip_max,m_clip_min);
+
           m_copy_camera_name.clear();
           m_camera_poi_table_selection = m_controller_app.get_trackball_camera().get_camera_poi().size()-1;
         }
@@ -659,6 +746,32 @@ void UIView::draw_ui_callback()
     }
 
   }
+
+  if (m_camera_animation_duration_open)
+  {
+    ImGui::OpenPopup("Animation Time");
+    ImGui::SetNextWindowSize(ImVec2(350, 400), ImGuiCond_FirstUseEver);
+    if (ImGui::BeginPopupModal("Animation Time", &m_camera_animation_duration_open))
+    {
+      ImGui::Text("Camera Name");
+      ImGui::InputText("##textanimationtime", &m_str_animation_duration, ImGuiInputTextFlags_CharsDecimal);
+      if (ImGui::Button("Ok"))
+      {
+        m_controller_app.get_trackball_camera().set_camera_animation_duration(std::stof(m_str_animation_duration));
+        m_str_animation_duration.clear();
+        m_camera_animation_duration_open = false;
+        ImGui::CloseCurrentPopup();
+      }
+      if (ImGui::Button("Cancel"))
+      {
+        m_camera_animation_duration_open = false;
+        m_str_animation_duration.clear();
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndPopup();
+    }
+  }
+
 
   //file loading
   if (m_file_dialog_open)
@@ -822,12 +935,12 @@ void UIView::update_ui(int numVolumes)
   tfn_widget_multi.resize(1);
   tfn_widget.resize(1);
   m_use_transferfunction = true;
-  /* m_selected_volume_TrFn.resize(1);
+   m_selected_volume_TrFn.resize(1);
    m_selected_volume_TrFn[0].resize(numVolumes);
    for (int i = 0; i < numVolumes; i++)
    {
      m_selected_volume_TrFn[0][i] = false;
-   }*/
+   }
 
   MyTransFerFunctions trfntc;
   char label[32];
@@ -849,6 +962,11 @@ void UIView::render_2D(Window_Properties& window_properties)
 
   if (m_show_menu)
   {
+
+    m_clock_pos_x = window_properties.window_w - m_clock_width;
+    m_clock_pos_y = window_properties.window_h - m_clock_height;
+    m_legend_pos_y = window_properties.window_h - m_clock_height;
+
 
     m_menu_handler->drawMenu(window_properties.window_w, window_properties.window_h,
       window_properties.framebuffer_w, window_properties.framebuffer_h);
@@ -1069,6 +1187,16 @@ glm::vec3 UIView::get_clip_max()
   return m_clip_max;
 }
 
+void UIView::set_clip_min(glm::vec3 clip_min)
+{
+  m_clip_min = clip_min;
+}
+
+void UIView::set_clip_max(glm::vec3 clip_max)
+{
+  m_clip_max = clip_max;
+}
+
 void UIView::add_character(char c)
 {
   if (m_trn_fct_options_window)
@@ -1087,6 +1215,16 @@ void UIView::add_character(char c)
   {
     ImGui::ClearActiveID();
     m_copy_camera_name += c;
+  }
+
+  if (m_camera_animation_duration_open)
+  {
+    ImGui::ClearActiveID();
+    if ((c >= '0' && c <= '9') || (c == '.'))
+    {
+      m_str_animation_duration += c;
+    }
+    
   }
 }
 
@@ -1116,6 +1254,16 @@ void UIView::remove_character()
     {
       m_copy_camera_name.pop_back();
     }
+  }
+
+  if (m_camera_animation_duration_open)
+  {
+    if (!m_str_animation_duration.empty())
+    {
+      ImGui::ClearActiveID();
+      m_str_animation_duration.pop_back();
+    }
+ 
   }
 }
 
@@ -1589,6 +1737,49 @@ void UIView::get_Quantiles(int row)
   m_histogram_quantiles[0] = q_min;
   m_histogram_quantiles[1] = q_max;
   m_trn_fct_options_window = true;
+}
+
+void UIView::set_volume_time_info(time_t time)
+{
+
+  tm* time_info = localtime(&time);
+
+  bool pm = time_info->tm_hour >= 12;
+  int hour_12 = (time_info->tm_hour >= 13) ? time_info->tm_hour - 12 : time_info->tm_hour;
+
+  std::stringstream ss_time;
+  ss_time << std::setw(2) << std::setfill('0') << hour_12 << ":";
+  ss_time << std::setw(2) << std::setfill('0') << time_info->tm_min << " ";
+  ss_time << (pm ? "PM" : "AM");
+
+  std::stringstream ss_day;
+  ss_day << months[time_info->tm_mon] << " ";
+  ss_day << std::setw(2) << std::setfill('0') << time_info->tm_mday;
+  ss_day << ", " << time_info->tm_year + 1900;
+
+  m_time_info = ss_time.str();
+  m_day_info = ss_day.str();
+
+}
+
+void UIView::draw_tranfer_funciton_legend()
+{
+  if (m_use_transferfunction)
+  {
+    tfn_widget[0].drawLegend();
+  }
+  
+}
+
+void UIView::set_trns_fnct_min_max(float min, float max)
+{
+  /*tfn_widget[0].setMinMax(m_volumes[m_selectedVolume][active_volume]->getMin() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMin() * (1.0 - alpha),
+    m_volumes[m_selectedVolume][active_volume]->getMax() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMax() * (1.0 - alpha));*/
+  if (m_use_transferfunction)
+  {
+    tfn_widget[0].setMinMax(min, max);
+  }
+
 }
 
 void UIView::load_ocean_color_maps()

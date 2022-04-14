@@ -31,6 +31,7 @@
 #include <iostream>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
+#include "../../include/vrapp/VRVolumeApp.h"
 
 #ifndef _PI
 #define _PI 3.141592653
@@ -57,6 +58,8 @@ void ArcBallCamera::updateCameraMatrix()
     if (m_camera_animation_state != PAUSE)
     {
       update_animation();
+      m_controller_app->set_clip_max(m_clip_max_animation.value());
+      m_controller_app->set_clip_min(m_clip_min_animation.value());
 
     }
     if (m_timeline.isFinished())
@@ -64,6 +67,11 @@ void ArcBallCamera::updateCameraMatrix()
       m_camera_animation_state = STOP;
       animation_button_label = "Animate";
       m_timeline.resetTime();
+      if (m_controller_app->get_movie_state() == MOVIE_RECORD)
+      {
+        m_controller_app->stop_movie();
+      }
+      
     }
 
 
@@ -211,9 +219,12 @@ std::list<PointOfInterest>& ArcBallCamera::get_camera_poi()
   return m_camera_poi;
 }
 
-void ArcBallCamera::add_camera_poi(std::string& label)
+void ArcBallCamera::add_camera_poi(std::string& label, glm::vec3& clip_max, glm::vec3& clip_min)
 {
   m_current_poi.label = label;
+  m_current_poi.max_clip = clip_max;
+  m_current_poi.min_clip = clip_min;
+
   m_camera_poi.push_back(m_current_poi);
 }
 
@@ -226,6 +237,8 @@ void ArcBallCamera::add_camera_poi(std::string& label, float eye_x, float eye_y,
   poi.up = glm::vec3(up_x, up_y, up_z);
   poi.radius = radius;
   m_camera_poi.push_front(poi);
+
+ 
 }
 
 int ArcBallCamera::get_current_poi()
@@ -294,6 +307,8 @@ void ArcBallCamera::set_animation_path()
     ch::Sequence<glm::vec3> sequence_target(first_position.target);
     ch::Sequence<glm::vec3> sequence_up(first_position.up);
     ch::Sequence<float> sequence_radius(first_position.radius);
+    ch::Sequence<glm::vec3> sequence_clip_max(first_position.max_clip);
+    ch::Sequence<glm::vec3> sequence_clip_min(first_position.min_clip);
 
     
     for (auto next_camera_poi_interator = std::next(m_camera_poi.begin()); next_camera_poi_interator != m_camera_poi.end(); next_camera_poi_interator++)
@@ -302,6 +317,8 @@ void ArcBallCamera::set_animation_path()
       sequence_target.then<ch::RampTo>(next_camera_poi_interator->target, m_animation_duration);
       sequence_up.then<ch::RampTo>(next_camera_poi_interator->up, m_animation_duration);
       sequence_radius.then<ch::RampTo>(next_camera_poi_interator->radius, m_animation_duration);
+      sequence_clip_max.then<ch::RampTo>(next_camera_poi_interator->max_clip, m_animation_duration);
+      sequence_clip_min.then<ch::RampTo>(next_camera_poi_interator->min_clip, m_animation_duration);
     }
 
 
@@ -310,6 +327,8 @@ void ArcBallCamera::set_animation_path()
     group->apply<glm::vec3>(&m_target_animation, sequence_target);
     group->apply<glm::vec3>(&m_up_animation, sequence_up);
     group->apply<float>(&m_radius_animation, sequence_radius);
+    group->apply<glm::vec3>(&m_clip_max_animation, sequence_clip_max);
+    group->apply<glm::vec3>(&m_clip_min_animation, sequence_clip_min);
 
     m_timeline.addShared(group);
 
@@ -372,5 +391,10 @@ float ArcBallCamera::get_camera_animation_duration()
 void ArcBallCamera::set_camera_animation_duration(float duration)
 {
   m_animation_duration = duration;
+}
+
+void ArcBallCamera::set_controller_application(VRVolumeApp* vr_app)
+{
+  m_controller_app = vr_app;
 }
 

@@ -104,6 +104,8 @@ public:
 	
 	void drawLegend();
 
+  void drawLegend(float legend_pos_x, float legend_pos_y, float legend_width, float legend_height);
+
   void draw_histogram();
 
   void update_colormap();

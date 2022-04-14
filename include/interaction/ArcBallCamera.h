@@ -50,6 +50,9 @@ struct PointOfInterest {
   glm::vec3 target = glm::vec3(0.0f, 0.0f, 0.0f);
   glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
   float radius = 1.f;
+  glm::vec3 max_clip;
+  glm::vec3 min_clip;
+
   std::string label;
 
   glm::vec3 get_camera_position()
@@ -70,6 +73,8 @@ enum CAMERA_ANIMATION_STATE
 /** Adds a HeadMatrix to the RenderState that gets updated repeatedly based
     upon head tracking events.
  */
+
+class VRVolumeApp;
 class ArcBallCamera {
 public:
 
@@ -91,7 +96,7 @@ public:
 
   std::list<PointOfInterest>& get_camera_poi();
 
-  void add_camera_poi(std::string & label);
+  void add_camera_poi(std::string & label, glm::vec3& clip_max, glm::vec3& clip_min);
   void add_camera_poi(std::string& label, float eye_x, float eye_y, float eye_z,
     float target_x, float target_y, float target_z,
     float up_x, float up_y, float up_z, float radius);
@@ -118,6 +123,8 @@ public:
 
   float get_camera_animation_duration();
   void set_camera_animation_duration(float duration);
+
+  void set_controller_application(VRVolumeApp* vr_app);
 
 protected:
   void Rotate(float dTheta, float dPhi);
@@ -147,6 +154,8 @@ protected:
   ch::Output<glm::vec3>  m_eye_animation;
   ch::Output<glm::vec3>  m_up_animation;
   ch::Output<float>  m_radius_animation;
+  ch::Output<glm::vec3>  m_clip_max_animation;
+  ch::Output<glm::vec3>  m_clip_min_animation;
   ch::Timeline     m_timeline;
 
   bool m_is_animate_path;
@@ -154,6 +163,8 @@ protected:
   
   CAMERA_ANIMATION_STATE m_camera_animation_state;
   std::string animation_button_label;
+
+  VRVolumeApp* m_controller_app;
 };
 
 #endif
