@@ -31,6 +31,7 @@
 #include <string>
 #include <list>
 
+#include "choreograph/Choreograph.h"
 
 enum WASD_KEYS
 {
@@ -43,11 +44,16 @@ enum WASD_KEYS
 };
 
 struct PointOfInterest {
-  std::string label;
+  
+ 
   glm::vec3 eye = glm::vec3(0.0f, 0.0f, 1.0f);
   glm::vec3 target = glm::vec3(0.0f, 0.0f, 0.0f);
   glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
   float radius = 1.f;
+  glm::vec3 max_clip;
+  glm::vec3 min_clip;
+
+  std::string label;
 
   glm::vec3 get_camera_position()
   {
@@ -57,9 +63,18 @@ struct PointOfInterest {
 
 };
 
+enum CAMERA_ANIMATION_STATE
+{
+  STOP,
+  PLAYING,
+  PAUSE
+};
+
 /** Adds a HeadMatrix to the RenderState that gets updated repeatedly based
     upon head tracking events.
  */
+
+class VRVolumeApp;
 class ArcBallCamera {
 public:
 
@@ -76,12 +91,12 @@ public:
   glm::mat4& getViewmatrix()
   {
     updateCameraMatrix();
-    return viewmatrix;
+    return m_viewmatrix;
   }
 
   std::list<PointOfInterest>& get_camera_poi();
 
-  void add_camera_poi(std::string & label);
+  void add_camera_poi(std::string & label, glm::vec3& clip_max, glm::vec3& clip_min);
   void add_camera_poi(std::string& label, float eye_x, float eye_y, float eye_z,
     float target_x, float target_y, float target_z,
     float up_x, float up_y, float up_z, float radius);
@@ -92,9 +107,24 @@ public:
 
   void remove_poi(int val);
 
-  void rest_camera();
+  void reset_camera();
 
   PointOfInterest& get_poi_at(int val);
+
+  void update_animation();
+
+  void set_animation_path();
+
+  void set_animation_state();
+
+  CAMERA_ANIMATION_STATE get_animation_state();
+
+  std::string get_camera_animation_state();
+
+  float get_camera_animation_duration();
+  void set_camera_animation_duration(float duration);
+
+  void set_controller_application(VRVolumeApp* vr_app);
 
 protected:
   void Rotate(float dTheta, float dPhi);
@@ -110,7 +140,7 @@ protected:
   std::list<PointOfInterest> m_camera_poi;
   PointOfInterest m_current_poi;
 
-  glm::mat4 viewmatrix;
+  glm::mat4 m_viewmatrix;
   bool m_mouse_left_pressed;
   bool m_mouse_right_pressed;
   bool m_mouse_center_pressed;
@@ -120,6 +150,21 @@ protected:
   float m_cameraScrollFactor;
 
   bool m_rotate_camera_center;
+  ch::Output<glm::vec3>  m_target_animation;
+  ch::Output<glm::vec3>  m_eye_animation;
+  ch::Output<glm::vec3>  m_up_animation;
+  ch::Output<float>  m_radius_animation;
+  ch::Output<glm::vec3>  m_clip_max_animation;
+  ch::Output<glm::vec3>  m_clip_min_animation;
+  ch::Timeline     m_timeline;
+
+  bool m_is_animate_path;
+  float m_animation_duration;
+  
+  CAMERA_ANIMATION_STATE m_camera_animation_state;
+  std::string animation_button_label;
+
+  VRVolumeApp* m_controller_app;
 };
 
 #endif

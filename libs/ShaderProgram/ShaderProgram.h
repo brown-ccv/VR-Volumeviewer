@@ -23,17 +23,11 @@
 #endif
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/glm.hpp>
-#include <glm/gtx/transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtc/quaternion.hpp>
+
 
 #include <string>
 #include <unordered_map>
-
-
-
+#include <glm/glm.hpp>
 
 class ShaderProgram
 {

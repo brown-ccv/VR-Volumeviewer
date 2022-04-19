@@ -2,8 +2,9 @@
 #define MODEL_H
 #include "VertexBuffer.h"
 #include "Texture.h"
-#include "ShaderProgram.h"
 
+
+class ShaderProgram;
 class Model
 {
 public:
@@ -15,7 +16,7 @@ public:
 
 
 	Texture& texture(int index) const; 
-	void addTexture(Texture* val); 
+	void setTexture(Texture* val); 
 	
 
 	void render( ShaderProgram& shader);
@@ -52,7 +53,7 @@ private:
 	Model();
 
 	VertexBuffer* m_Obj_Model;
-	std::vector<Texture*> m_textures;
+	Texture* m_texture;
 
 	friend class GLMLoader;
 	friend class AssimpLoader;

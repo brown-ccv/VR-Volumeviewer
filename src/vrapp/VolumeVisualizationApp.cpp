@@ -28,7 +28,7 @@
 #include "render/FontHandler.h"
 
 
-VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(argc, argv), m_vrVolumeApp(nullptr)
+VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(argc, argv), m_vrVolumeApp(nullptr), m_num_frames(0)
 {
   int argc_int = this->getLeftoverArgc();
   char** argv_int = this->getLeftoverArgv();
@@ -514,10 +514,16 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState& rend
   // rendering process.  So, this is the place to initialize textures,
   // load models, or do other operations that you only want to do once per
   // frame when in stereo mode.
+  m_num_frames++;
 
   std::chrono::steady_clock::time_point nowTime = std::chrono::steady_clock::now();
-  std::chrono::duration<double> time_span = std::chrono::duration<double>(nowTime - m_lastTime);
-  float fps = 1000.0f / std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
+  std::chrono::duration<double> delta_time = std::chrono::duration<double>(nowTime - m_lastTime);
+  float delta_time_to_milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(delta_time).count();
+  float fps = 1000.0f / delta_time_to_milliseconds;
+  
+  std::chrono::duration<double> time_lapse = std::chrono::duration<double>(nowTime - last_Update_Time);
+  float time_lapse_to_seconds = std::chrono::duration_cast<std::chrono::seconds>(time_lapse).count();
+
   if (m_vrVolumeApp)
   {
     m_vrVolumeApp->update_fps(fps);
@@ -525,7 +531,8 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState& rend
   }
   m_lastTime = nowTime;
 
-
+  
+  
 
   if (renderState.isInitialRenderCall()) {
 
@@ -557,6 +564,22 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState& rend
     glDepthFunc(GL_LEQUAL);
     glClearColor(0.0, 0.0, 0.0, 1);
     std::cout << "init vizapp end" << std::endl;
+    const float duration = 10.5f;
+
+
+    auto ramp_a = ch::makeRamp(v1, v2, duration);
+    auto ramp_b = ch::makeRamp(pos1, pos2, duration);
+    auto group = std::make_shared<ch::Timeline>();
+    auto my_sequence = ch::Sequence<glm::vec3>(glm::vec3());
+    my_sequence.then<ch::RampTo>(pos1, 10.0f);
+    my_sequence.then<ch::Hold>(pos1, 5.0f);
+    my_sequence.then<ch::RampTo>(pos2, 20.0f);
+    //ch::Motion motion(&_control_b, my_sequence);
+    //group->apply<float>(&_control_a, ramp_a);
+    group->apply<glm::vec3>(&_control_b, my_sequence);
+    
+    _timeline.addShared(group);
+   
   }
 
 
@@ -565,6 +588,14 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState& rend
   //glMatrixMode(GL_MODELVIEW);
   //glLoadIdentity();
   //glLightfv(GL_LIGHT0, GL_POSITION, m_light_pos);
+
+  
+ 
+  //_timeline.step(1.0 / 60.0);
+  //std::cout << target << std::endl;
+  //std::cout << _control_b.value().x<<" , "<< _control_b.value().y << " , " << _control_b.value().z << std::endl;
+  
+  
 
   if (m_vrVolumeApp)
   {
@@ -576,7 +607,17 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState& rend
     m_vrVolumeApp->initialize_textures();
     m_vrVolumeApp->update_3D_ui();
     m_vrVolumeApp->update_trackBall_state();
-    m_vrVolumeApp->update_animation();
+
+    
+    //if (time_lapse_to_seconds  >= fps_Limit)
+    if (true)
+    {
+      //std::cout << "animate" << std::endl;
+      m_vrVolumeApp->update_animation(delta_time.count());
+      last_Update_Time = nowTime;
+      
+    }
+    
     m_vrVolumeApp->set_render_count(0);
 
   }

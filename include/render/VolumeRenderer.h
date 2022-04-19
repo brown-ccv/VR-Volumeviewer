@@ -31,6 +31,7 @@
 
 #include "FrameBufferObject.h"
 #include "Volume.h"
+#include "choreograph/Choreograph.h"
 
 class VolumeRenderer
 	{
@@ -50,6 +51,13 @@ class VolumeRenderer
 	
 		virtual void setClipMinMax(glm::vec3 min_clip, glm::vec3 max_clip) = 0;
 
+
+		void set_animation()
+		{
+			
+		}
+
+
 		void setClipping(bool isClipping, glm::mat4 * clipPlane)
 		{
 			m_clipping = isClipping;
@@ -60,5 +68,9 @@ class VolumeRenderer
 	protected:
 		bool m_clipping;
 		glm::mat4 m_clipPlane; 
+
+	
 	};
+
+
 #endif // VOLUMERENDER_H

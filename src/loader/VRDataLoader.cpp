@@ -73,7 +73,7 @@ void VRDataLoader::load_txt_file(VRVolumeApp& vrVolumeApp, std::string& filename
           std::cerr << "text at position " << vals[2] << " , " << vals[3] << " , " << vals[5] << std::endl;
           std::cerr << "text Size " << vals[6] << std::endl;
           std::cerr << "for Volume " << vals[7] << std::endl;
-          std::string label = vals[1];
+          std::string label = p_filename.directoryPath() + OS_SLASH_LOCAL +  vals[1];
           vrVolumeApp.add_label(label, stof(vals[2]), stof(vals[3]), stof(vals[4]), stof(vals[5]), stof(vals[6]), stoi(vals[7]) - 1);
         }
         if (tag == "desc")

@@ -1,7 +1,7 @@
 #include "Model.h"
 #include <string>
 #include <cassert>
-
+#include "ShaderProgram.h"
 
 Model::Model():m_position(0),m_orientation(glm::quat()),m_scale(1), m_bounding_volumen_radius(1)
 {
@@ -12,10 +12,8 @@ Model::Model():m_position(0),m_orientation(glm::quat()),m_scale(1), m_bounding_v
 Model::~Model()
 {
 	delete m_Obj_Model;
-	for (int i = 0 ; i < m_textures.size(); ++i)
-	{
-		delete m_textures[i];
-	}
+	
+	delete m_texture;
 		
 }
 
@@ -31,12 +29,12 @@ void Model::setObjModel(VertexBuffer* val)
 
 Texture& Model::texture(int index) const
 {
-	return *m_textures[index];
+	return *m_texture;
 }
 
-void Model::addTexture(Texture* val)
+void Model::setTexture(Texture* val)
 {
-	m_textures.push_back(val);
+	m_texture = val;
 }
 
 void Model::render(ShaderProgram& shaderProgram)
@@ -52,16 +50,20 @@ void Model::render(ShaderProgram& shaderProgram)
 
 	assert(m_Obj_Model && "NO MODEL TO RENDER");
 	// bind texture
-	for (int i = 0; i < m_textures.size(); ++i)
-	{
-		m_textures[i]->Bind(i);
-	}
+	
+	m_texture->Bind(0);
+	
 
 	//render geometry
 	if (m_Obj_Model)
 	{
 		m_Obj_Model->render();
 	}
+
+	//Unbind Text
+  
+  m_texture->UnBind(0);
+  
 }
 
 glm::vec3& Model::position() 
