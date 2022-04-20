@@ -51,7 +51,6 @@ using namespace MinVR;
 #include "../render/VolumeSliceRenderer.h"
 #include "../interaction/CreateMovieAction.h"
 
-#include "choreograph/Choreograph.h"
 
 #include "ShaderProgram.h"
 
@@ -119,10 +118,6 @@ private:
   const double fps_Limit = 1.0 / 60.0;
   std::chrono::steady_clock::time_point last_Update_Time ;  // number of seconds since the last loop
   
-  ch::Timeline            _timeline;
-  ch::Output<float> target = 0.0f;
-  ch::Output<float>  _control_a = 0;
-  ch::Output<glm::vec3>  _control_b ;
   float v1 = 0.0f;
   float v2 = 100.0f;
 

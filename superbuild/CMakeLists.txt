@@ -540,6 +540,7 @@ endif()
  ${CMAKE_CURRENT_BINARY_DIR}/../src/interaction/ArcBallCamera.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/interaction/HelperFunctions.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/interaction/CreateMovieAction.cpp
+ ${CMAKE_CURRENT_BINARY_DIR}/../src/interaction/Simulation.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/loader/LoadDescriptionAction.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/loader/VRDataLoader.cpp
 )
@@ -568,6 +569,8 @@ set(header_files
  ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/ArcBallCamera.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/HelperFunctions.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/CreateMovieAction.h
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/PointOfInterests.h
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/Simulation.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/loader/LoadDescriptionAction.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/loader/VRDataLoader.h
  

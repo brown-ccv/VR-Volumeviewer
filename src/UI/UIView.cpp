@@ -12,14 +12,14 @@
 
 #include "UIHelpers/stb_image.h"
 #include "common/common.h"
-
+#include "../include/interaction/Simulation.h"
 
 #include <limits>
 #include <iomanip>
 
 
 #include <imgui_stdlib.h>
-
+#include <thread>
 
 UIView::UIView(VRVolumeApp& controllerApp) :m_controller_app(controllerApp), m_multiplier(1.0f), m_threshold(0.0f),
 m_z_scale(0.16f), m_scale{ 1.0f }, m_slices(256), m_dynamic_slices(false), m_renderVolume(true), m_selectedTrnFnc(0),
@@ -31,8 +31,8 @@ m_current_load_modal(LOAD_NONE), m_file_extension_filter(".txt"), m_non_trns_fun
 m_ui_background(false), m_column_selection_state(0), m_compute_new_histogram(true), m_histogram_point_1(0.0),
 m_histogram_point_2(1.1), m_stopped(false), m_color_map_directory("colormaps"), m_show_menu(true), m_camera_poi_table_selection(0),
 m_camera_name_window_open(false), m_camera_button_action(BUTTON_ACTION::NONE), m_num_animation_frames(0), m_animation_speed(1.0f),
-m_camera_animation_duration_open(false), m_show_clock(true), m_clock_width(250), m_clock_height(200),
-m_time_info(""),m_day_info("")
+m_camera_animation_duration_open(false), m_show_clock(false), m_clock_width(250), m_clock_height(200),
+m_time_info(""),m_day_info(""), m_time_frame_edited(false), m_show_movie_saved_pop_up(false)
 {
   m_ocean_color_maps_names = { "algae.png","amp.png","balance.png","curl.png","deep.png","delta.png","dense.png",
 "diff.png","gray.png","haline.png","ice.png","matter.png","oxy.png","phase.png","rain.png","solar.png","speed.png","tarn.png","tempo.png",
@@ -54,431 +54,625 @@ void UIView::draw_ui_callback()
     return;
   }
 
-
-  m_ui_background = m_menu_handler->windowIsActive() ? true : false;
-
-
-  int flags = ImGuiWindowFlags_NoResize;
-  if (!m_ui_background)
+  if (m_controller_app.is_show_menu())
   {
-    flags |= ImGuiWindowFlags_NoBackground;
-  }
-  ImGui::SetNextWindowSize(ImVec2(544, 798));
-  ImGui::Begin("Volumeviewer", NULL, flags);
-  ImGui::BeginTabBar("##tabs");
-  if (ImGui::BeginTabItem("General"))
-  {
-    if (ImGui::Button("load file", ImVec2(ImGui::GetWindowSize().x * 0.5f - 1.5 * ImGui::GetStyle().ItemSpacing.x, 0.0f)))
+    m_ui_background = m_menu_handler->windowIsActive() ? true : false;
+
+
+    int flags = ImGuiWindowFlags_NoResize;
+    if (!m_ui_background)
     {
-      m_file_dialog_open = true;
-      m_file_extension_filter = ".txt";
+      flags |= ImGuiWindowFlags_NoBackground;
     }
-
-    ImGui::SameLine();
-    if (ImGui::Button("Clear all", ImVec2(ImGui::GetWindowSize().x * 0.5f - 1.5 * ImGui::GetStyle().ItemSpacing.x, 0.0f)))
+    ImGui::SetNextWindowSize(ImVec2(544, 798));
+    ImGui::Begin("Volumeviewer", NULL, flags);
+    ImGui::BeginTabBar("##tabs");
+    if (ImGui::BeginTabItem("General"))
     {
-      m_controller_app.clear_data();
-    }
-
-    ImGui::SliderFloat("alpha multiplier", &m_multiplier, 0.0f, 1.0f, "%.3f");
-    ImGui::SliderFloat("threshold", &m_threshold, 0.0f, 1.0f, "%.3f");
-    ImGui::SliderFloat("scale", &m_scale, 0.001f, 5.0f, "%.3f");
-    ImGui::SliderFloat("z - scale", &m_z_scale, 0.001f, 5.0f, "%.3f");
-    ImGui::SliderInt("Slices", &m_slices, 10, 1024, "%d");
-    ImGui::Checkbox("automatic slice adjustment", &m_dynamic_slices);
-
-    ImGui::SameLine(ImGui::GetWindowSize().x * 0.5f, 0);
-    ImGui::Text("FPS = %f", m_controller_app.get_fps());
-    const char* items[] = { "sliced" , "raycast" };
-    ImGui::Combo("RenderMethod", &m_rendermethod, items, IM_ARRAYSIZE(items));
-
-    const char* items_channel[] = { "based on data" , "red", "green" , "blue", "alpha", "rgba", "rgba with alpha as max rgb" };
-    ImGui::Combo("Render Channel", &m_renderchannel, items_channel, IM_ARRAYSIZE(items_channel));
-
-    ImGui::Checkbox("Render Volume data", &m_renderVolume);
-
-    int numVolumes = m_controller_app.get_num_volumes();
-
-
-    if (numVolumes > 0) {
-      if (ImGui::SmallButton("Save Session")) {
-        m_save_session_dialog_open = true;
+      if (ImGui::Button("load file", ImVec2(ImGui::GetWindowSize().x * 0.5f - 1.5 * ImGui::GetStyle().ItemSpacing.x, 0.0f)))
+      {
+        m_file_dialog_open = true;
+        m_file_extension_filter = ".txt";
       }
+
       ImGui::SameLine();
-    }
+      if (ImGui::Button("Clear all", ImVec2(ImGui::GetWindowSize().x * 0.5f - 1.5 * ImGui::GetStyle().ItemSpacing.x, 0.0f)))
+      {
+        m_controller_app.clear_data();
+      }
+
+      ImGui::SliderFloat("alpha multiplier", &m_multiplier, 0.0f, 1.0f, "%.3f");
+      ImGui::SliderFloat("threshold", &m_threshold, 0.0f, 1.0f, "%.3f");
+      ImGui::SliderFloat("scale", &m_scale, 0.001f, 5.0f, "%.3f");
+      ImGui::SliderFloat("z - scale", &m_z_scale, 0.001f, 5.0f, "%.3f");
+      ImGui::SliderInt("Slices", &m_slices, 10, 1024, "%d");
+      ImGui::Checkbox("automatic slice adjustment", &m_dynamic_slices);
+      ImGui::Checkbox("Show Clock", &m_show_clock);
+
+      ImGui::SameLine(ImGui::GetWindowSize().x * 0.5f, 0);
+      ImGui::Text("FPS = %f", m_controller_app.get_fps());
+      const char* items[] = { "sliced" , "raycast" };
+      ImGui::Combo("RenderMethod", &m_rendermethod, items, IM_ARRAYSIZE(items));
+
+      const char* items_channel[] = { "based on data" , "red", "green" , "blue", "alpha", "rgba", "rgba with alpha as max rgb" };
+      ImGui::Combo("Render Channel", &m_renderchannel, items_channel, IM_ARRAYSIZE(items_channel));
+
+      ImGui::Checkbox("Render Volume data", &m_renderVolume);
+
+      int numVolumes = m_controller_app.get_num_volumes();
 
 
-    if (ImGui::SmallButton("Load Session")) {
-      m_file_load_trnsf = true;
-      m_current_load_modal = LOAD_MODAL::LOAD_SESSION;
-      m_file_extension_filter = ".usr";
-    }
-
-    if (numVolumes > 0)
-    {
-      if (ImGui::SmallButton("Add Function")) {
-        tfn_widget.push_back(TransferFunctionWidget());
-        tfn_widget_multi.push_back(TransferFunctionMultiChannelWidget());
-        int index = m_selected_volume_TrFn.size();
-        m_selected_volume_TrFn.push_back(std::vector<bool>(numVolumes));
-        for (int i = 0; i < numVolumes; i++)
-        {
-          m_selected_volume_TrFn[index][i] = false;
+      if (numVolumes > 0) {
+        if (ImGui::SmallButton("Save Session")) {
+          m_save_session_dialog_open = true;
         }
+        ImGui::SameLine();
+      }
 
-        addTransferFunction();
-        if (m_tfns.size() == 1)
-        {
-          m_trnfnc_table_selection = 0;
-        }
 
-      };
-      ImGui::SameLine();
-      if (ImGui::SmallButton("Remove Function")) {
+      if (ImGui::SmallButton("Load Session")) {
+        m_file_load_trnsf = true;
+        m_current_load_modal = LOAD_MODAL::LOAD_SESSION;
+        m_file_extension_filter = ".usr";
+      }
 
-        if (m_tfns.size() == 1)
-        {
-          //there should be one by default
+      if (numVolumes > 0)
+      {
+        if (ImGui::SmallButton("Add Function")) {
+          tfn_widget.push_back(TransferFunctionWidget());
+          tfn_widget_multi.push_back(TransferFunctionMultiChannelWidget());
+          int index = m_selected_volume_TrFn.size();
+          m_selected_volume_TrFn.push_back(std::vector<bool>(numVolumes));
+          for (int i = 0; i < numVolumes; i++)
+          {
+            m_selected_volume_TrFn[index][i] = false;
+          }
+
+          addTransferFunction();
+          if (m_tfns.size() == 1)
+          {
+            m_trnfnc_table_selection = 0;
+          }
+
+        };
+        ImGui::SameLine();
+        if (ImGui::SmallButton("Remove Function")) {
+
+          if (m_tfns.size() == 1)
+          {
+            //there should be one by default
+            tfn_widget.clear();
+            tfn_widget_multi.clear();
+            m_tfns.clear();
+            tfn_widget.push_back(TransferFunctionWidget());
+            tfn_widget_multi.push_back(TransferFunctionMultiChannelWidget());
+            addTransferFunction();
+            m_trnfnc_table_selection = 0;
+          }
+          else if (m_tfns.size() > 1 && m_trnfnc_table_selection >= 0)
+          {
+            tfn_widget.erase(tfn_widget.begin() + m_trnfnc_table_selection); ;
+            tfn_widget_multi.erase(tfn_widget_multi.begin() + m_trnfnc_table_selection);
+            m_tfns.erase(m_tfns.begin() + m_trnfnc_table_selection);
+            if (m_trnfnc_table_selection != 0)
+            {
+              m_trnfnc_table_selection = m_trnfnc_table_selection - 1;
+            }
+
+          }
+        };
+
+
+
+        if (ImGui::SmallButton("Clear All Functions")) {
           tfn_widget.clear();
           tfn_widget_multi.clear();
           m_tfns.clear();
           tfn_widget.push_back(TransferFunctionWidget());
           tfn_widget_multi.push_back(TransferFunctionMultiChannelWidget());
-          addTransferFunction();
-          m_trnfnc_table_selection = 0;
-        }
-        else if (m_tfns.size() > 1 && m_trnfnc_table_selection >= 0)
-        {
-          tfn_widget.erase(tfn_widget.begin() + m_trnfnc_table_selection); ;
-          tfn_widget_multi.erase(tfn_widget_multi.begin() + m_trnfnc_table_selection);
-          m_tfns.erase(m_tfns.begin() + m_trnfnc_table_selection);
-          if (m_trnfnc_table_selection != 0)
+          MyTransFerFunctions trfntc;
+          char label[32];
+          sprintf(label, "TF%d", (int)tfn_widget.size());
+          trfntc.ID = tfn_widget.size();
+          trfntc.Name = label;
+          for (int i = 0; i < numVolumes; i++)
           {
-            m_trnfnc_table_selection = m_trnfnc_table_selection - 1;
+            trfntc.volumes.push_back(false);
           }
+          m_tfns.push_back(trfntc);
+          m_trnfnc_table_selection = 0;
+        };
+
+        ImGui::SameLine();
+        if (ImGui::SmallButton("Save Functions")) {
+          m_save_trnfct_open = true;
+          m_non_trns_functions_selected_modal = !m_use_transferfunction;
+        };
+
+        ImGui::SameLine();
+        if (ImGui::SmallButton("Load Functions")) {
+
+          m_file_load_trnsf = true;
+          m_current_load_modal = LOAD_MODAL::LOAD_TRFR_FNC;
+          m_file_extension_filter = ".fnc";
+        };
+
+        int selection = 0;
+
+        ImGui::BeginTable("##Transfer Function Editor", numVolumes + 1, ImGuiTableFlags_Borders);
+        ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+
+        for (int column = 0; column < numVolumes; column++)
+        {
+          ImGui::TableSetupColumn(m_dataLabels[column].c_str());
+        }
+        ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+        for (int column = 1; column < numVolumes + 1; column++)
+        {
+          ImGui::TableSetColumnIndex(column);
+          const char* column_name = ImGui::TableGetColumnName(column);
+          ImGui::PushID(column);
+          ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+          ImGui::Checkbox("##checkall", &m_column_selected[column - 1]); ImGui::SameLine();
+          ImGui::PopStyleVar();
+          ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
+          ImGui::TableHeader(column_name);
+          ImGui::PopID();
 
         }
-      };
+
+        compute_new_histogram_view();
 
 
-
-      if (ImGui::SmallButton("Clear All Functions")) {
-        tfn_widget.clear();
-        tfn_widget_multi.clear();
-        m_tfns.clear();
-        tfn_widget.push_back(TransferFunctionWidget());
-        tfn_widget_multi.push_back(TransferFunctionMultiChannelWidget());
-        MyTransFerFunctions trfntc;
-        char label[32];
-        sprintf(label, "TF%d", (int)tfn_widget.size());
-        trfntc.ID = tfn_widget.size();
-        trfntc.Name = label;
-        for (int i = 0; i < numVolumes; i++)
+        /* check state of check boxes */
+        int colum_select_check_sum = 0;
+        for (int column_select = 1; column_select <= numVolumes; column_select++)
         {
-          trfntc.volumes.push_back(false);
-        }
-        m_tfns.push_back(trfntc);
-        m_trnfnc_table_selection = 0;
-      };
 
-      ImGui::SameLine();
-      if (ImGui::SmallButton("Save Functions")) {
-        m_save_trnfct_open = true;
-        m_non_trns_functions_selected_modal = !m_use_transferfunction;
-      };
-
-      ImGui::SameLine();
-      if (ImGui::SmallButton("Load Functions")) {
-
-        m_file_load_trnsf = true;
-        m_current_load_modal = LOAD_MODAL::LOAD_TRFR_FNC;
-        m_file_extension_filter = ".fnc";
-      };
-
-      int selection = 0;
-
-      ImGui::BeginTable("##Transfer Function Editor", numVolumes + 1, ImGuiTableFlags_Borders);
-      ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, 120.0f);
-
-      for (int column = 0; column < numVolumes; column++)
-      {
-        ImGui::TableSetupColumn(m_dataLabels[column].c_str());
-      }
-      ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-      for (int column = 1; column < numVolumes + 1; column++)
-      {
-        ImGui::TableSetColumnIndex(column);
-        const char* column_name = ImGui::TableGetColumnName(column);
-        ImGui::PushID(column);
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-        ImGui::Checkbox("##checkall", &m_column_selected[column - 1]); ImGui::SameLine();
-        ImGui::PopStyleVar();
-        ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
-        ImGui::TableHeader(column_name);
-        ImGui::PopID();
-
-      }
-
-      compute_new_histogram_view();
-
-
-      /* check state of check boxes */
-      int colum_select_check_sum = 0;
-      for (int column_select = 1; column_select <= numVolumes; column_select++)
-      {
-
-        if (m_column_selected[column_select - 1])
-        {
-          colum_select_check_sum |= column_select;
-        }
-      }
-
-      if (colum_select_check_sum != m_column_selection_state)
-      {
-        m_compute_new_histogram = true;
-        m_column_selection_state = colum_select_check_sum;
-      }
-      else
-      {
-        m_compute_new_histogram = false;
-      }
-
-      for (int row = 0; row < m_tfns.size(); row++)
-      {
-        ImGui::TableNextRow();
-        for (int col = 0; col < numVolumes + 1; col++)
-        {
-          ImGui::TableSetColumnIndex(col);
-
-          if (col == 0)
+          if (m_column_selected[column_select - 1])
           {
+            colum_select_check_sum |= column_select;
+          }
+        }
 
-            ImGuiSelectableFlags selectable_flags = ImGuiSelectableFlags_AllowDoubleClick;
-            bool item_is_selected = (row == m_trnfnc_table_selection) ? true : false;
-            if (ImGui::Selectable(m_tfns[row].Name.c_str(), item_is_selected, selectable_flags))
+        if (colum_select_check_sum != m_column_selection_state)
+        {
+          m_compute_new_histogram = true;
+          m_column_selection_state = colum_select_check_sum;
+        }
+        else
+        {
+          m_compute_new_histogram = false;
+        }
+
+        for (int row = 0; row < m_tfns.size(); row++)
+        {
+          ImGui::TableNextRow();
+          for (int col = 0; col < numVolumes + 1; col++)
+          {
+            ImGui::TableSetColumnIndex(col);
+
+            if (col == 0)
             {
-              m_trnfnc_table_selection = row;
-              if (ImGui::IsMouseDoubleClicked(0))
+
+              ImGuiSelectableFlags selectable_flags = ImGuiSelectableFlags_AllowDoubleClick;
+              bool item_is_selected = (row == m_trnfnc_table_selection) ? true : false;
+              if (ImGui::Selectable(m_tfns[row].Name.c_str(), item_is_selected, selectable_flags))
               {
-                m_copy_trnfnct_name = m_tfns[m_trnfnc_table_selection].Name;
-                float q_min = 0;
-                float q_max = 0;
-                tfn_widget[m_trnfnc_table_selection].get_Quantiles(q_min, q_max);
-                m_histogram_quantiles[0] = q_min;
-                m_histogram_quantiles[1] = q_max;
-                m_trn_fct_options_window = true;
+                m_trnfnc_table_selection = row;
+                if (ImGui::IsMouseDoubleClicked(0))
+                {
+                  m_copy_trnfnct_name = m_tfns[m_trnfnc_table_selection].Name;
+                  float q_min = 0;
+                  float q_max = 0;
+                  tfn_widget[m_trnfnc_table_selection].get_Quantiles(q_min, q_max);
+                  m_histogram_quantiles[0] = q_min;
+                  m_histogram_quantiles[1] = q_max;
+                  m_trn_fct_options_window = true;
+                }
+
+
               }
 
 
             }
+            else
+            {
+              char buf[32];
+              sprintf(buf, "##On%d%d", col, row);
+              bool b = m_tfns[row].volumes[col - 1];
+              ImGui::Checkbox(buf, &b);
+              m_tfns[row].volumes[col - 1] = b;
 
+            }
 
+          }
+        }
+
+        ImGui::EndTable();
+        if (m_save_session_dialog_open)
+        {
+          m_current_save_modal = SAVE_SESSION;
+          std::string save_user_session_window_id = "Save User Session";
+
+          std::string extension = ".usr";
+          auto save_funtion = std::bind(&UIView::save_user_session, this, std::placeholders::_1);
+          open_save_modal_dialog(save_user_session_window_id, m_save_session_dialog_open, save_funtion, extension);
+
+        }
+
+        if (m_save_trnfct_open)
+        {
+          m_current_save_modal = SAVE_TRFR_FNC;
+          std::string save_Trnf_window_id = "Save Transfer Functions";
+          if (m_use_transferfunction)
+          {
+            std::string extension = ".fnc";
+            auto save_funtion = std::bind(&UIView::save_trans_functions, this, std::placeholders::_1);
+            open_save_modal_dialog(save_Trnf_window_id, m_save_trnfct_open, save_funtion, extension);
           }
           else
           {
-            char buf[32];
-            sprintf(buf, "##On%d%d", col, row);
-            bool b = m_tfns[row].volumes[col - 1];
-            ImGui::Checkbox(buf, &b);
-            m_tfns[row].volumes[col - 1] = b;
-
+            ImGui::OpenPopup("No Functions Selected");
+            ImGui::SetNextWindowSize(ImVec2(150, 70), ImGuiCond_FirstUseEver);
+            if (ImGui::BeginPopupModal("No Functions Selected", &m_non_trns_functions_selected_modal))
+            {
+              ImGui::Text("Transfer functions are not enabled.");
+              ImGui::Text("Please, check the 'Use Transfer function' option.");
+              if (ImGui::Button("Close"))
+              {
+                m_non_trns_functions_selected_modal = false;
+                m_save_trnfct_open = false;
+                ImGui::CloseCurrentPopup();
+              }
+              ImGui::EndPopup();
+            }
           }
 
+
         }
-      }
 
-      ImGui::EndTable();
-      if (m_save_session_dialog_open)
-      {
-        m_current_save_modal = SAVE_SESSION;
-        std::string save_user_session_window_id = "Save User Session";
+        if (m_trn_fct_options_window)
+        {
+          ImGui::OpenPopup("Transfer Function Options");
+          ImGui::SetNextWindowSize(ImVec2(350, 400), ImGuiCond_FirstUseEver);
+          if (ImGui::BeginPopupModal("Transfer Function Options", &m_trn_fct_options_window))
+          {
+            ImGui::Text("Change Name");
+            ImGui::InputText("##text1", &m_copy_trnfnct_name);
+            ImGui::IsItemActive();
 
-        std::string extension = ".usr";
-        auto save_funtion = std::bind(&UIView::save_user_session, this, std::placeholders::_1);
-        open_save_modal_dialog(save_user_session_window_id, m_save_session_dialog_open, save_funtion, extension);
+            ImGui::Separator();
 
-      }
+            ImGui::Text("Quantiles");
+            ImGui::SliderFloat2("##Quantiles", m_histogram_quantiles, 0.05f, 0.95f);
 
-      if (m_save_trnfct_open)
-      {
-        m_current_save_modal = SAVE_TRFR_FNC;
-        std::string save_Trnf_window_id = "Save Transfer Functions";
+            if (ImGui::Button("Adjust to Histogram"))
+            {
+              adjust_transfer_function_to_histogram();
+              tfn_widget[m_trnfnc_table_selection].alpha_control_pts.clear();
+              tfn_widget[m_trnfnc_table_selection].alpha_control_pts.push_back(vec2f(0.0, 0.0));
+              tfn_widget[m_trnfnc_table_selection].alpha_control_pts.push_back(m_histogram_point_1);
+              tfn_widget[m_trnfnc_table_selection].alpha_control_pts.push_back(m_histogram_point_2);
+              tfn_widget[m_trnfnc_table_selection].alpha_control_pts.push_back(vec2f(1.0, 1.0));
+              tfn_widget[m_trnfnc_table_selection].set_Quantiles(m_histogram_quantiles[0], m_histogram_quantiles[1]);
+              ImGui::OpenPopup("Confirmation");
+              ImGui::SetNextWindowSize(ImVec2(350, 400), ImGuiCond_FirstUseEver);
+            }
+
+            bool unused_open = true;
+            if (ImGui::BeginPopupModal("Confirmation", &unused_open))
+            {
+              ImGui::Text("Change Applied");
+              if (ImGui::Button("Close"))
+              {
+                ImGui::CloseCurrentPopup();
+              }
+              ImGui::EndPopup();
+            }
+
+
+
+            if (ImGui::Button("Ok"))
+            {
+              m_tfns[m_trnfnc_table_selection].Name = m_copy_trnfnct_name;
+              m_trn_fct_options_window = false;
+              m_current_save_modal = SAVE_MODAL::SAVE_NONE;
+              ImGui::CloseCurrentPopup();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel"))
+            {
+              m_trn_fct_options_window = false;
+              m_current_save_modal = SAVE_MODAL::SAVE_NONE;
+              ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
+          }
+        }
+
+
+
+        ImGui::Checkbox("use transferfunction", &m_use_transferfunction);
         if (m_use_transferfunction)
         {
-          std::string extension = ".fnc";
-          auto save_funtion = std::bind(&UIView::save_trans_functions, this, std::placeholders::_1);
-          open_save_modal_dialog(save_Trnf_window_id, m_save_trnfct_open, save_funtion, extension);
-        }
-        else
-        {
-          ImGui::OpenPopup("No Functions Selected");
-          ImGui::SetNextWindowSize(ImVec2(150, 70), ImGuiCond_FirstUseEver);
-          if (ImGui::BeginPopupModal("No Functions Selected", &m_non_trns_functions_selected_modal))
+
+
+          bool is_multi_channel = m_controller_app.data_is_multi_channel();
+          if (is_multi_channel)
           {
-            ImGui::Text("Transfer functions are not enabled.");
-            ImGui::Text("Please, check the 'Use Transfer function' option.");
-            if (ImGui::Button("Close"))
-            {
-              m_non_trns_functions_selected_modal = false;
-              m_save_trnfct_open = false;
-              ImGui::CloseCurrentPopup();
+            for (int i = 0; i < 3; i++) {
+              if (m_animated)
+              {
+                /*
+                  frame by frame animation
+
+                  unsigned int active_volume = floor(m_frame);
+                  unsigned int active_volume2 = ceil(m_frame);
+                  double alpha = m_frame - active_volume;
+                  if (active_volume < m_volumes[m_selectedVolume].size() && active_volume2 < m_volumes[m_selectedVolume].size())
+                  {
+                    tfn_widget_multi[m_selectedVolume].setBlendedHistogram(
+                      m_volumes[m_selectedVolume][active_volume]->getTransferfunction(i),
+                      m_volumes[m_selectedVolume][active_volume2]->getTransferfunction(i), alpha, i);
+                  }*/
+
+              }
+              else {
+                /*		tfn_widget_multi[m_selectedVolume].setHistogram(m_volumes[m_selectedVolume][0]->getTransferfunction(i), i);*/
+              }
             }
-            ImGui::EndPopup();
+            m_controller_app.set_multi_transfer(true);
+            //tfn_widget_multi[m_selectedTrnFnc].draw_histogram();
+            tfn_widget_multi[m_trnfnc_table_selection].draw_ui();
           }
-        }
-
-
-      }
-
-      if (m_trn_fct_options_window)
-      {
-        ImGui::OpenPopup("Transfer Function Options");
-        ImGui::SetNextWindowSize(ImVec2(350, 400), ImGuiCond_FirstUseEver);
-        if (ImGui::BeginPopupModal("Transfer Function Options", &m_trn_fct_options_window))
-        {
-          ImGui::Text("Change Name");
-          ImGui::InputText("##text1", &m_copy_trnfnct_name);
-          ImGui::IsItemActive();
-
-          ImGui::Separator();
-
-          ImGui::Text("Quantiles");
-          ImGui::SliderFloat2("##Quantiles", m_histogram_quantiles, 0.05f, 0.95f);
-
-          if (ImGui::Button("Adjust to Histogram"))
+          else
           {
-            adjust_transfer_function_to_histogram();
-            tfn_widget[m_trnfnc_table_selection].alpha_control_pts.clear();
-            tfn_widget[m_trnfnc_table_selection].alpha_control_pts.push_back(vec2f(0.0, 0.0));
-            tfn_widget[m_trnfnc_table_selection].alpha_control_pts.push_back(m_histogram_point_1);
-            tfn_widget[m_trnfnc_table_selection].alpha_control_pts.push_back(m_histogram_point_2);
-            tfn_widget[m_trnfnc_table_selection].alpha_control_pts.push_back(vec2f(1.0, 1.0));
-            tfn_widget[m_trnfnc_table_selection].set_Quantiles(m_histogram_quantiles[0], m_histogram_quantiles[1]);
-            ImGui::OpenPopup("Confirmation");
-            ImGui::SetNextWindowSize(ImVec2(350, 400), ImGuiCond_FirstUseEver);
-          }
-
-          bool unused_open = true;
-          if (ImGui::BeginPopupModal("Confirmation", &unused_open))
-          {
-            ImGui::Text("Change Applied");
-            if (ImGui::Button("Close"))
-            {
-              ImGui::CloseCurrentPopup();
-            }
-            ImGui::EndPopup();
-          }
-
-
-
-          if (ImGui::Button("Ok"))
-          {
-            m_tfns[m_trnfnc_table_selection].Name = m_copy_trnfnct_name;
-            m_trn_fct_options_window = false;
-            m_current_save_modal = SAVE_MODAL::SAVE_NONE;
-            ImGui::CloseCurrentPopup();
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("Cancel"))
-          {
-            m_trn_fct_options_window = false;
-            m_current_save_modal = SAVE_MODAL::SAVE_NONE;
-            ImGui::CloseCurrentPopup();
-          }
-
-          ImGui::EndPopup();
-        }
-      }
-
-
-
-      ImGui::Checkbox("use transferfunction", &m_use_transferfunction);
-      if (m_use_transferfunction)
-      {
-
-
-        bool is_multi_channel = m_controller_app.data_is_multi_channel();
-        if (is_multi_channel)
-        {
-          for (int i = 0; i < 3; i++) {
             if (m_animated)
             {
               /*
-                frame by frame animation
+               frame by frame animation
 
-                unsigned int active_volume = floor(m_frame);
+              unsigned int active_volume = floor(m_frame);
                 unsigned int active_volume2 = ceil(m_frame);
                 double alpha = m_frame - active_volume;
+                tfn_widget[m_selectedVolume].setMinMax(m_volumes[m_selectedVolume][active_volume]->getMin() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMin() * (1.0 - alpha),
+                  m_volumes[m_selectedVolume][active_volume]->getMax() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMax() * (1.0 - alpha));
                 if (active_volume < m_volumes[m_selectedVolume].size() && active_volume2 < m_volumes[m_selectedVolume].size())
-                {
-                  tfn_widget_multi[m_selectedVolume].setBlendedHistogram(
-                    m_volumes[m_selectedVolume][active_volume]->getTransferfunction(i),
-                    m_volumes[m_selectedVolume][active_volume2]->getTransferfunction(i), alpha, i);
-                }*/
+                  tfn_widget[m_selectedVolume].setBlendedHistogram(m_volumes[m_selectedVolume][active_volume]->getTransferfunction(0), m_volumes[m_selectedVolume][active_volume2]->getTransferfunction(0), alpha);*/
 
             }
-            else {
-              /*		tfn_widget_multi[m_selectedVolume].setHistogram(m_volumes[m_selectedVolume][0]->getTransferfunction(i), i);*/
-            }
+
+            m_controller_app.set_multi_transfer(false);
+
+            m_histogram.draw_histogram();
+            tfn_widget[m_trnfnc_table_selection].draw_ui();
+            //tfn_widget[m_trnfnc_table_selection].setMinMax()
           }
-          m_controller_app.set_multi_transfer(true);
-          //tfn_widget_multi[m_selectedTrnFnc].draw_histogram();
-          tfn_widget_multi[m_trnfnc_table_selection].draw_ui();
+        }
+
+
+      }
+
+
+      if (m_animated) {
+        ImGui::Text("Timestep");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(-100 - ImGui::GetStyle().ItemSpacing.x);
+        float frame_tmp = m_controller_app.get_current_frame() + 1;
+        //controls animated multi datasets
+        ImGui::SliderFloat("##Timestep", &frame_tmp, 1, m_num_animation_frames);
+        m_ui_frame_controller = (frame_tmp)-1;
+        m_controller_app.set_frame(m_ui_frame_controller);
+
+
+        std::string text = m_stopped ? "Play" : "Stop";
+        if (ImGui::Button(text.c_str(), ImVec2(50, 0))) {
+          m_stopped = !m_stopped;
+        }
+        ImGui::SameLine();
+        int value = int(m_animation_speed * 100.0 + .5);
+        std::string speed_text = ">>X " + std::to_string(value / 100);
+        if (ImGui::Button(speed_text.c_str(), ImVec2(80, 0))) {
+          m_animation_speed += 0.5;
+          if (m_animation_speed > 4.0f)
+          {
+            m_animation_speed = 1.0f;
+          }
+          m_controller_app.set_animation_speed(m_animation_speed);
+        }
+
+#if (!defined(__APPLE__))
+        std::string movie_button_label = m_controller_app.get_movie_state_label();
+        if (movie_button_label == "Write Movie")
+        {
+          if (ImGui::Button(movie_button_label.c_str()))
+          {
+            m_controller_app.run_movie(false);
+          }
         }
         else
         {
-          if (m_animated)
+          if (ImGui::Button(movie_button_label.c_str()))
           {
-            /*
-             frame by frame animation
-
-            unsigned int active_volume = floor(m_frame);
-              unsigned int active_volume2 = ceil(m_frame);
-              double alpha = m_frame - active_volume;
-              tfn_widget[m_selectedVolume].setMinMax(m_volumes[m_selectedVolume][active_volume]->getMin() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMin() * (1.0 - alpha),
-                m_volumes[m_selectedVolume][active_volume]->getMax() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMax() * (1.0 - alpha));
-              if (active_volume < m_volumes[m_selectedVolume].size() && active_volume2 < m_volumes[m_selectedVolume].size())
-                tfn_widget[m_selectedVolume].setBlendedHistogram(m_volumes[m_selectedVolume][active_volume]->getTransferfunction(0), m_volumes[m_selectedVolume][active_volume2]->getTransferfunction(0), alpha);*/
-
+            m_controller_app.stop_movie();
           }
-
-          m_controller_app.set_multi_transfer(false);
-
-          m_histogram.draw_histogram();
-          tfn_widget[m_trnfnc_table_selection].draw_ui();
-          //tfn_widget[m_trnfnc_table_selection].setMinMax()
         }
+
+#endif
       }
-
-
+      ImGui::EndTabItem();
     }
 
+    if (ImGui::BeginTabItem("Clipping"))
+    {
+      ImGui::Text("Axis aligned clip");
+      glm::vec2 bound = { m_clip_min.x * 100 ,m_clip_max.x * 100 };
+      ImGui::DragFloatRange2("X", &bound.x, &bound.y, 0.1f, 0.0f, 100.0f, "Min: %.1f %%", "Max: %.1f %%");
+      m_clip_min.x = bound.x / 100;
+      m_clip_max.x = bound.y / 100;
 
-    if (m_animated) {
-      ImGui::Text("Timestep");
-      ImGui::SameLine();
-      ImGui::SetNextItemWidth(-100 - ImGui::GetStyle().ItemSpacing.x);
-      float frame_tmp = m_controller_app.get_current_frame() + 1;
-      //controls animated multi datasets
-      ImGui::SliderFloat("##Timestep", &frame_tmp, 1, m_num_animation_frames);
-      m_ui_frame_controller = (frame_tmp) - 1;
-      m_controller_app.set_frame(m_ui_frame_controller);
-      
+      bound = { m_clip_min.y * 100 ,m_clip_max.y * 100 };
+      ImGui::DragFloatRange2("Y", &bound.x, &bound.y, 0.1f, 0.0f, 100.0f, "Min: %.1f %%", "Max: %.1f %%");
+      m_clip_min.y = bound.x / 100;
+      m_clip_max.y = bound.y / 100;
 
-      std::string text = m_stopped ? "Play" : "Stop";
-      if (ImGui::Button(text.c_str(), ImVec2(50, 0))) {
-        m_stopped = !m_stopped;
+      bound = { m_clip_min.z * 100 ,m_clip_max.z * 100 };
+      ImGui::DragFloatRange2("Z", &bound.x, &bound.y, 0.1f, 0.0f, 100.0f, "Min: %.1f %%", "Max: %.1f %%");
+      m_clip_min.z = bound.x / 100;
+      m_clip_max.z = bound.y / 100;
+
+      if (ImGui::Button("Reset")) {
+        m_clip_min = glm::vec3(0.0f);
+        m_clip_max = glm::vec3(1.0f);
+      }
+
+      ImGui::Checkbox("Custom Clipping plane", &m_useCustomClipPlane);
+      if (m_useCustomClipPlane) {
+        ImGui::SliderAngle("Pitch", &m_clip_ypr.y, -90, 90);
+        ImGui::SliderAngle("Roll", &m_clip_ypr.z, -180, 180);
+
+        ImGui::SliderFloat("Position X", &m_clip_pos.x, -0.5, 0.5);
+        ImGui::SliderFloat("Position y", &m_clip_pos.y, -0.5, 0.5);
+        ImGui::SliderFloat("Position z", &m_clip_pos.z, -0.5, 0.5);
+        if (ImGui::Button("Reset##Reset2")) {
+          m_clip_ypr = glm::vec3(0.0f);
+          m_clip_pos = glm::vec3(0.0f);
+        }
+
+      }
+      ImGui::EndTabItem();
+    }
+
+    if (ImGui::BeginTabItem("Animation"))
+    {
+
+      ImGui::Text("Time Frames");
+
+      if (ImGui::Button("Add")) {
+        m_camera_name_window_open = true;
+        m_camera_button_action = BUTTON_ACTION::ADD;
+
       }
       ImGui::SameLine();
-      int value = int(m_animation_speed * 100.0 + .5);
-      std::string speed_text = ">>X "+std::to_string(value/100);
-      if (ImGui::Button(speed_text.c_str(), ImVec2(80, 0))) {
-        m_animation_speed += 0.5;
-        if (m_animation_speed > 4.0f)
+      if (ImGui::Button("Remove")) {
+        if (m_controller_app.get_simulation().get_simulation_states().size() > 0)
         {
-          m_animation_speed = 1.0f;
+          m_controller_app.get_simulation().remove_simulation_state(m_simulation_state_selection);
+          if (m_simulation_state_selection - 1 < 0)
+          {
+            m_simulation_state_selection = 0;
+          }
+          else
+          {
+            m_simulation_state_selection--;
+            SimulationState next_sim_state = m_controller_app.get_simulation().get_simulation_state_at(m_simulation_state_selection);
+            m_controller_app.get_trackball_camera().set_current_poi(next_sim_state.poi);
+          }
+
+
         }
-        m_controller_app.set_animation_speed(m_animation_speed);
+
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("Reset Camera")) {
+        m_controller_app.get_trackball_camera().reset_camera();
+      }
+      ImGui::BeginTable("##Camera Point of interest (POI) Editor", 1, ImGuiTableFlags_Borders);
+      ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+
+
+      for (int row = 0; row < m_controller_app.get_simulation().get_simulation_states().size(); ++row)
+      {
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        bool item_is_selected = (row == m_simulation_state_selection) ? true : false;
+        SimulationState sim_state = m_controller_app.get_simulation().get_simulation_state_at(row);
+        if (ImGui::Selectable(sim_state.poi.label.c_str(), item_is_selected, ImGuiSelectableFlags_AllowDoubleClick))
+        {
+          m_simulation_state_selection = row;
+          m_controller_app.get_trackball_camera().set_current_poi(sim_state.poi);
+          m_clip_min = sim_state.min_clip;
+          m_clip_max = sim_state.max_clip;
+          if (ImGui::IsMouseDoubleClicked(0))
+          {
+            m_copy_camera_name = sim_state.poi.label;
+            m_camera_name_window_open = true;
+            m_camera_button_action = BUTTON_ACTION::EDIT;
+          }
+        }
+      }
+      ImGui::EndTable();
+
+      if (m_controller_app.get_simulation().get_simulation_states().size() > 0)
+      {
+        SimulationState& sim_state = m_controller_app.get_simulation().get_simulation_state_at(m_simulation_state_selection);
+        std::string edit_text = "Edit Time Frame " + sim_state.poi.label;
+        ImGui::Text(edit_text.c_str());
+
+        ImGui::Text("Axis aligned clip");
+        glm::vec2 bound = { m_clip_min.x * 100 ,m_clip_max.x * 100 };
+        ImGui::DragFloatRange2("X", &bound.x, &bound.y, 0.1f, 0.0f, 100.0f, "Min: %.1f %%", "Max: %.1f %%");
+        m_clip_min.x = bound.x / 100;
+        m_clip_max.x = bound.y / 100;
+
+        ImGui::SameLine();
+        if (ImGui::Button("Reset##XAXIS")) {
+          m_clip_min.x = 0.0f;
+          m_clip_max.x = 1.0f;
+        }
+
+        bound = { m_clip_min.y * 100 ,m_clip_max.y * 100 };
+        ImGui::DragFloatRange2("Y", &bound.x, &bound.y, 0.1f, 0.0f, 100.0f, "Min: %.1f %%", "Max: %.1f %%");
+        m_clip_min.y = bound.x / 100;
+        m_clip_max.y = bound.y / 100;
+        ImGui::SameLine();
+        if (ImGui::Button("Reset##YAXIS")) {
+          m_clip_min.y = 0.0f;
+          m_clip_max.y = 1.0f;
+        }
+
+        bound = { m_clip_min.z * 100 ,m_clip_max.z * 100 };
+        ImGui::DragFloatRange2("Z", &bound.x, &bound.y, 0.1f, 0.0f, 100.0f, "Min: %.1f %%", "Max: %.1f %%");
+        m_clip_min.z = bound.x / 100;
+        m_clip_max.z = bound.y / 100;
+        ImGui::SameLine();
+        if (ImGui::Button("Reset##ZAXIS")) {
+          m_clip_min.z = 0.0f;
+          m_clip_max.z = 1.0f;
+        }
+
+        if (ImGui::Button("Save Changes##EDITTIMEFRAME")) {
+          sim_state.min_clip = m_clip_min;
+          sim_state.max_clip = m_clip_max;
+          sim_state.poi = m_controller_app.get_trackball_camera().get_current_poi();
+          m_time_frame_edited = true;
+        }
+
+
+      }
+
+      //Simulation animator
+      std::string is_animation_playing = m_controller_app.get_simulation().get_camera_animation_state();
+
+      if (ImGui::Button(is_animation_playing.c_str())) {
+
+        m_controller_app.get_simulation().set_animation_state();
+
+      }
+
+      ImGui::Text("Duration (seconds)");
+
+
+      std::stringstream text;
+      text << std::fixed << std::setprecision(1) << m_controller_app.get_simulation().get_animation_duration();
+      std::string str_animation_duration = text.str();
+
+      if (ImGui::Button(str_animation_duration.c_str()))
+      {
+        m_camera_animation_duration_open = true;
+        m_str_animation_duration = std::string(str_animation_duration);
       }
 
 #if (!defined(__APPLE__))
@@ -487,7 +681,8 @@ void UIView::draw_ui_callback()
       {
         if (ImGui::Button(movie_button_label.c_str()))
         {
-          m_controller_app.run_movie(false);
+          m_controller_app.get_simulation().set_animation_state();
+          m_controller_app.run_movie(true);
         }
       }
       else
@@ -497,394 +692,267 @@ void UIView::draw_ui_callback()
           m_controller_app.stop_movie();
         }
       }
-      
-#endif
-    }
-    ImGui::EndTabItem();
-  }
-
-  if (ImGui::BeginTabItem("Clipping"))
-  {
-    ImGui::Text("Axis aligned clip");
-    glm::vec2 bound = { m_clip_min.x * 100 ,m_clip_max.x * 100 };
-    ImGui::DragFloatRange2("X", &bound.x, &bound.y, 0.1f, 0.0f, 100.0f, "Min: %.1f %%", "Max: %.1f %%");
-    m_clip_min.x = bound.x / 100;
-    m_clip_max.x = bound.y / 100;
-
-    bound = { m_clip_min.y * 100 ,m_clip_max.y * 100 };
-    ImGui::DragFloatRange2("Y", &bound.x, &bound.y, 0.1f, 0.0f, 100.0f, "Min: %.1f %%", "Max: %.1f %%");
-    m_clip_min.y = bound.x / 100;
-    m_clip_max.y = bound.y / 100;
-
-    bound = { m_clip_min.z * 100 ,m_clip_max.z * 100 };
-    ImGui::DragFloatRange2("Z", &bound.x, &bound.y, 0.1f, 0.0f, 100.0f, "Min: %.1f %%", "Max: %.1f %%");
-    m_clip_min.z = bound.x / 100;
-    m_clip_max.z = bound.y / 100;
-
-    if (ImGui::Button("Reset")) {
-      m_clip_min = glm::vec3(0.0f);
-      m_clip_max = glm::vec3(1.0f);
-    }
-
-    ImGui::Checkbox("Custom Clipping plane", &m_useCustomClipPlane);
-    if (m_useCustomClipPlane) {
-      ImGui::SliderAngle("Pitch", &m_clip_ypr.y, -90, 90);
-      ImGui::SliderAngle("Roll", &m_clip_ypr.z, -180, 180);
-
-      ImGui::SliderFloat("Position X", &m_clip_pos.x, -0.5, 0.5);
-      ImGui::SliderFloat("Position y", &m_clip_pos.y, -0.5, 0.5);
-      ImGui::SliderFloat("Position z", &m_clip_pos.z, -0.5, 0.5);
-      if (ImGui::Button("Reset##Reset2")) {
-        m_clip_ypr = glm::vec3(0.0f);
-        m_clip_pos = glm::vec3(0.0f);
-      }
-
-    }
-    ImGui::EndTabItem();
-  }
-
-  if (ImGui::BeginTabItem("Camera"))
-  {
-    
-    ImGui::Text("Points of Interest");
-
-    if (ImGui::Button("Add")) {
-      m_camera_name_window_open = true;
-      m_camera_button_action = BUTTON_ACTION::ADD;
-
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Remove")) {
-      if (m_controller_app.get_trackball_camera().get_camera_poi().size() > 0)
-      {
-        m_controller_app.get_trackball_camera().remove_poi(m_camera_poi_table_selection);
-        if (m_camera_poi_table_selection - 1 < 0)
-        {
-          m_camera_poi_table_selection = 0;
-        }
-        else
-        {
-          m_camera_poi_table_selection--;
-          m_controller_app.get_trackball_camera().set_current_poi(m_camera_poi_table_selection);
-        }
-
-
-      }
-
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Reset")) {
-      m_controller_app.get_trackball_camera().reset_camera();
-    }
-    ImGui::BeginTable("##Camera Point of interest (POI) Editor", 1, ImGuiTableFlags_Borders);
-    ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, 120.0f);
-
-
-    for (int row = 0; row < m_controller_app.get_trackball_camera().get_camera_poi().size(); ++row)
-    {
-      ImGui::TableNextRow();
-      ImGui::TableSetColumnIndex(0);
-      bool item_is_selected = (row == m_camera_poi_table_selection) ? true : false;
-      if (ImGui::Selectable(m_controller_app.get_trackball_camera().get_poi_at(row).label.c_str(), item_is_selected, ImGuiSelectableFlags_AllowDoubleClick))
-      {
-        m_camera_poi_table_selection = row;
-        m_controller_app.get_trackball_camera().set_current_poi(m_camera_poi_table_selection);
-        if (ImGui::IsMouseDoubleClicked(0))
-        {
-          m_copy_camera_name = m_controller_app.get_trackball_camera().get_poi_at(m_camera_poi_table_selection).label;
-          m_camera_name_window_open = true;
-          m_camera_button_action = BUTTON_ACTION::EDIT;
-        }
-      }
-    }
-    ImGui::EndTable();
-    
-    //Camera animator
-    std::string is_animation_playing = m_controller_app.get_trackball_camera().get_camera_animation_state();
-
-    if (ImGui::Button(is_animation_playing.c_str())) {
-      
-       m_controller_app.get_trackball_camera().set_animation_state();
-        
-    }
-
-    ImGui::Text("Duration (seconds)");
-    
-    
-    std::stringstream text;
-    text << std::fixed << std::setprecision(1) << m_controller_app.get_trackball_camera().get_camera_animation_duration();
-    std::string str_animation_duration = text.str();
-
-    if (ImGui::Button(str_animation_duration.c_str()))
-    {
-      m_camera_animation_duration_open = true;
-      m_str_animation_duration= std::string( str_animation_duration);
-    }
-#if (!defined(__APPLE__))
-    std::string movie_button_label = m_controller_app.get_movie_state_label();
-    if (movie_button_label == "Write Movie")
-    {
-      if (ImGui::Button(movie_button_label.c_str()))
-      {
-        m_controller_app.get_trackball_camera().set_animation_state();
-        m_controller_app.run_movie(true);
-      }
-    }
-    else
-    {
-      if (ImGui::Button(movie_button_label.c_str()))
-      {
-        m_controller_app.stop_movie();
-      }
-    }
 #endif
 
-    ImGui::EndTabItem();
-  }
-
-
-  if (ImGui::BeginTabItem("Animation"))
-  {
-    std::string is_animation_playing = m_controller_app.get_trackball_camera().get_camera_animation_state();
-
-    if (ImGui::Button(is_animation_playing.c_str())) {
-
-      m_controller_app.get_trackball_camera().set_animation_state();
-
+      ImGui::EndTabItem();
     }
 
-    ImGui::Text("Duration (seconds)");
 
+    ImGui::EndTabBar();
 
-    std::stringstream text;
-    text << std::fixed << std::setprecision(1) << m_controller_app.get_trackball_camera().get_camera_animation_duration();
-    std::string str_animation_duration = text.str();
-
-    if (ImGui::Button(str_animation_duration.c_str()))
+    if (m_time_frame_edited)
     {
-      m_camera_animation_duration_open = true;
-      m_str_animation_duration = std::string(str_animation_duration);
+      ImGui::OpenPopup("Time frame Changed##successchange");
+      ImGui::SetNextWindowSize(ImVec2(350, 400), ImGuiCond_FirstUseEver);
+      if (ImGui::BeginPopupModal("Time frame Changed##successchange", &m_time_frame_edited))
+      {
+        ImGui::Text("Changes saved");
+        if (ImGui::Button("Ok"))
+        {
+          m_time_frame_edited = false;
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+      }
+
     }
-#if (!defined(__APPLE__))
-    if (ImGui::Button("Write Movie"))
+
+    if (m_camera_name_window_open)
     {
-      m_controller_app.get_trackball_camera().set_animation_state();
-      m_controller_app.run_movie(true);
+      std::string modal_window_name;
+
+      switch (m_camera_button_action)
+      {
+      case ADD:
+        modal_window_name = "Add Simulation State";
+        break;
+      case EDIT:
+        modal_window_name = "Edit Simulation Name";
+        break;
+      default:
+        break;
+      }
+
+      ImGui::OpenPopup(modal_window_name.c_str());
+      ImGui::SetNextWindowSize(ImVec2(350, 400), ImGuiCond_FirstUseEver);
+      if (ImGui::BeginPopupModal(modal_window_name.c_str(), &m_camera_name_window_open))
+      {
+
+        ImGui::Text("Camera Name");
+        ImGui::InputText("##textcameraname", &m_copy_camera_name);
+        if (ImGui::Button("Ok"))
+        {
+
+          if (m_camera_button_action == ADD)
+          {
+            SimulationState sim_state;
+            sim_state.poi = m_controller_app.get_trackball_camera().get_current_poi();
+            sim_state.poi.label = m_copy_camera_name;
+            sim_state.max_clip = m_clip_max;
+            sim_state.min_clip = m_clip_min;
+            m_controller_app.get_simulation().add_simulation_state(sim_state);
+
+            m_copy_camera_name.clear();
+            m_simulation_state_selection = m_controller_app.get_simulation().get_simulation_states().size() - 1;
+          }
+          else if (m_camera_button_action == EDIT)
+          {
+            m_controller_app.get_simulation().get_simulation_state_at(m_camera_poi_table_selection).poi.label = m_copy_camera_name;
+          }
+          m_camera_name_window_open = false;
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel"))
+        {
+          m_camera_name_window_open = false;
+          m_copy_camera_name.clear();
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+      }
+
     }
+
+    if (m_camera_animation_duration_open)
+    {
+      ImGui::OpenPopup("Animation Time");
+      ImGui::SetNextWindowSize(ImVec2(350, 400), ImGuiCond_FirstUseEver);
+      if (ImGui::BeginPopupModal("Animation Time", &m_camera_animation_duration_open))
+      {
+        ImGui::Text("Camera Name");
+        ImGui::InputText("##textanimationtime", &m_str_animation_duration, ImGuiInputTextFlags_CharsDecimal);
+        if (ImGui::Button("Ok"))
+        {
+          m_controller_app.get_simulation().set_camera_animation_duration(std::stof(m_str_animation_duration));
+          m_str_animation_duration.clear();
+          m_camera_animation_duration_open = false;
+          ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::Button("Cancel"))
+        {
+          m_camera_animation_duration_open = false;
+          m_str_animation_duration.clear();
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+      }
+    }
+
+
+    //file loading
+    if (m_file_dialog_open)
+    {
+      ImGui::OpenPopup("Open File");
+      m_file_dialog_open = false;
+    }
+
+
+
+
+    if (fileDialog.showFileDialog("Open File", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), m_file_extension_filter))
+    {
+
+      if (helper::ends_with_string(fileDialog.selected_fn, ".txt"))
+      {
+        //VRDataLoader* insta = VRDataLoader::get_instance();
+        //std::thread t1 ( &VRDataLoader::load_txt_file, std::ref(m_controller_app), fileDialog.selected_path);
+        //t1.join();
+        //std:thread t1([=] {VRDataLoader::load_txt_file(m_controller_app, fileDialog.selected_path); });
+        VRDataLoader::load_txt_file(m_controller_app, fileDialog.selected_path);
+
+        // m_controller_app.load_txt_file(fileDialog.GetSelected().string());
+      }
+#ifdef WITH_TEEM
+      else if (helper::ends_with_string(fileDialog.selected_fn, ".nrrd")) {
+        std::vector<std::string> vals;
+        /*	vals.push_back(fileDialog.GetSelected().string());
+          promises.push_back(new std::promise<Volume*>);
+          futures.push_back(promises.back()->get_future());
+          threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));*/
+      }
 #endif
+    }
 
-    ImGui::EndTabItem();
+
+
+
+    if (m_file_dialog_save_dir)
+    {
+      ImGui::OpenPopup("Save File");
+      m_file_dialog_save_dir = false;
+      switch (m_current_save_modal)
+      {
+      case SAVE_SESSION:
+        m_save_session_dialog_open = false;
+        break;
+      case SAVE_TRFR_FNC:
+        m_save_trnfct_open = false;
+        break;
+      default:
+        break;
+      }
+
+
+    }
+
+    if (m_file_load_trnsf)
+    {
+      ImGui::OpenPopup("Load File");
+      m_file_load_trnsf = false;
+
+    }
+    if (saveDialogLoadTrnsFnc.showFileDialog("Save File", imgui_addons::ImGuiFileBrowser::DialogMode::SELECT,
+      ImVec2(700, 310)))
+    {
+      m_dir_to_save = saveDialogLoadTrnsFnc.selected_path;
+      switch (m_current_save_modal)
+      {
+      case SAVE_SESSION:
+        m_save_session_dialog_open = true;
+        break;
+      case SAVE_TRFR_FNC:
+        m_save_trnfct_open = true;
+        break;
+      default:
+        break;
+      }
+
+    }
+
+
+    if (fileDialogLoadTrnsFnc.showFileDialog("Load File", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN,
+      ImVec2(700, 310), m_file_extension_filter))
+    {
+
+      if (m_current_load_modal == LOAD_MODAL::LOAD_TRFR_FNC)
+      {
+        if (helper::ends_with_string(fileDialogLoadTrnsFnc.selected_fn, ".fnc"))
+        {
+
+          tfn_widget.clear();
+          tfn_widget_multi.clear();
+          m_tfns.clear();
+          std::string filePath = fileDialogLoadTrnsFnc.selected_path;
+          std::ifstream fileToLoad(filePath);
+          load_trans_functions(fileToLoad);
+          m_trnfnc_table_selection = 0;
+          m_current_load_modal = LOAD_NONE;
+        }
+      }
+      if (m_current_load_modal == LOAD_MODAL::LOAD_SESSION)
+      {
+        if (helper::ends_with_string(fileDialogLoadTrnsFnc.selected_fn, ".usr"))
+        {
+
+          tfn_widget.clear();
+          tfn_widget_multi.clear();
+          m_tfns.clear();
+          load_user_session(fileDialogLoadTrnsFnc.selected_path);
+          m_trnfnc_table_selection = 0;
+          m_current_load_modal = LOAD_NONE;
+        }
+      }
+    }
+
+    ImGui::End();
+
   }
 
-  ImGui::EndTabBar();
+  if (m_show_movie_saved_pop_up)
+  {
+    ImGui::OpenPopup("Movie saved##POPUP");
+    ImGui::SetNextWindowSize(ImVec2(350, 400), ImGuiCond_FirstUseEver);
+    if (ImGui::BeginPopupModal("Movie saved##POPUP", &m_show_movie_saved_pop_up))
+    {
+      ImGui::Text("Movie saved");
+      if (ImGui::Button("Ok"))
+      {
+        m_show_movie_saved_pop_up = false;
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndPopup();
+    }
+  }
 
-
-  float width = 11.0f;
-  ImGui::SetNextWindowPos(ImVec2(m_clock_pos_x, m_clock_pos_y));
-  ImGui::SetNextWindowSize(ImVec2(m_clock_width, m_clock_height));
-  ImGui::Begin("##clock", &m_show_clock, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
-  ImGui::SetWindowFontScale(1.3f);
-  ImGui::Text(m_time_info.c_str());
-  ImGui::Text(m_day_info.c_str());
-  ImGui::End();
+  if (m_show_clock)
+  {
+    ImGui::SetNextWindowPos(ImVec2(m_clock_pos_x, m_clock_pos_y));
+    ImGui::SetNextWindowSize(ImVec2(m_clock_width, m_clock_height));
+    ImGui::Begin("##clock", &m_show_clock, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
+    ImGui::SetWindowFontScale(1.3f);
+    ImGui::Text(m_time_info.c_str());
+    ImGui::Text(m_day_info.c_str());
+    ImGui::End();
+  }
+  
 
   if (m_use_transferfunction)
   {
     tfn_widget[0].drawLegend(0, m_legend_pos_y + 80, m_clock_width + 50, m_clock_height - 140);
   }
   
-
-
-  if (m_camera_name_window_open)
-  {
-    std::string modal_window_name;
-
-    switch (m_camera_button_action)
-    {
-    case ADD:
-      modal_window_name = "Add Camera";
-      break;
-    case EDIT:
-      modal_window_name = "Edit Camera";
-      break;
-    default:
-      break;
-    }
-
-    ImGui::OpenPopup(modal_window_name.c_str());
-    ImGui::SetNextWindowSize(ImVec2(350, 400), ImGuiCond_FirstUseEver);
-    if (ImGui::BeginPopupModal(modal_window_name.c_str(), &m_camera_name_window_open))
-    {
-
-      ImGui::Text("Camera Name");
-      ImGui::InputText("##textcameraname", &m_copy_camera_name);
-      if (ImGui::Button("Ok"))
-      {
-
-        if (m_camera_button_action == ADD)
-        {
-          m_controller_app.get_trackball_camera().add_camera_poi(m_copy_camera_name, m_clip_max,m_clip_min);
-
-          m_copy_camera_name.clear();
-          m_camera_poi_table_selection = m_controller_app.get_trackball_camera().get_camera_poi().size()-1;
-        }
-        else if (m_camera_button_action == EDIT)
-        {
-          m_controller_app.get_trackball_camera().get_poi_at(m_camera_poi_table_selection).label = m_copy_camera_name;
-        }
-        m_camera_name_window_open = false;
-        ImGui::CloseCurrentPopup();
-      }
-      ImGui::SameLine();
-      if (ImGui::Button("Cancel"))
-      {
-        m_camera_name_window_open = false;
-        m_copy_camera_name.clear();
-        ImGui::CloseCurrentPopup();
-      }
-      ImGui::EndPopup();
-    }
-
-  }
-
-  if (m_camera_animation_duration_open)
-  {
-    ImGui::OpenPopup("Animation Time");
-    ImGui::SetNextWindowSize(ImVec2(350, 400), ImGuiCond_FirstUseEver);
-    if (ImGui::BeginPopupModal("Animation Time", &m_camera_animation_duration_open))
-    {
-      ImGui::Text("Camera Name");
-      ImGui::InputText("##textanimationtime", &m_str_animation_duration, ImGuiInputTextFlags_CharsDecimal);
-      if (ImGui::Button("Ok"))
-      {
-        m_controller_app.get_trackball_camera().set_camera_animation_duration(std::stof(m_str_animation_duration));
-        m_str_animation_duration.clear();
-        m_camera_animation_duration_open = false;
-        ImGui::CloseCurrentPopup();
-      }
-      if (ImGui::Button("Cancel"))
-      {
-        m_camera_animation_duration_open = false;
-        m_str_animation_duration.clear();
-        ImGui::CloseCurrentPopup();
-      }
-      ImGui::EndPopup();
-    }
-  }
-
-
-  //file loading
-  if (m_file_dialog_open)
-  {
-    ImGui::OpenPopup("Open File");
-    m_file_dialog_open = false;
-  }
-
-
-
-
-  if (fileDialog.showFileDialog("Open File", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310), m_file_extension_filter))
-  {
-
-    if (helper::ends_with_string(fileDialog.selected_fn, ".txt"))
-    {
-      VRDataLoader::get_instance()->load_txt_file(m_controller_app, fileDialog.selected_path);
-
-      // m_controller_app.load_txt_file(fileDialog.GetSelected().string());
-    }
-#ifdef WITH_TEEM
-    else if (helper::ends_with_string(fileDialog.selected_fn, ".nrrd")) {
-      std::vector<std::string> vals;
-      /*	vals.push_back(fileDialog.GetSelected().string());
-        promises.push_back(new std::promise<Volume*>);
-        futures.push_back(promises.back()->get_future());
-        threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));*/
-    }
-#endif
-  }
-
-
-
-
-  if (m_file_dialog_save_dir)
-  {
-    ImGui::OpenPopup("Save File");
-    m_file_dialog_save_dir = false;
-    switch (m_current_save_modal)
-    {
-    case SAVE_SESSION:
-      m_save_session_dialog_open = false;
-      break;
-    case SAVE_TRFR_FNC:
-      m_save_trnfct_open = false;
-      break;
-    default:
-      break;
-    }
-
-
-  }
-
-  if (m_file_load_trnsf)
-  {
-    ImGui::OpenPopup("Load File");
-    m_file_load_trnsf = false;
-
-  }
-  if (saveDialogLoadTrnsFnc.showFileDialog("Save File", imgui_addons::ImGuiFileBrowser::DialogMode::SELECT,
-    ImVec2(700, 310)))
-  {
-    m_dir_to_save = saveDialogLoadTrnsFnc.selected_path;
-    switch (m_current_save_modal)
-    {
-    case SAVE_SESSION:
-      m_save_session_dialog_open = true;
-      break;
-    case SAVE_TRFR_FNC:
-      m_save_trnfct_open = true;
-      break;
-    default:
-      break;
-    }
-
-  }
-
-
-  if (fileDialogLoadTrnsFnc.showFileDialog("Load File", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN,
-    ImVec2(700, 310), m_file_extension_filter))
-  {
-
-    if (m_current_load_modal == LOAD_MODAL::LOAD_TRFR_FNC)
-    {
-      if (helper::ends_with_string(fileDialogLoadTrnsFnc.selected_fn, ".fnc"))
-      {
-
-        tfn_widget.clear();
-        tfn_widget_multi.clear();
-        m_tfns.clear();
-        std::string filePath = fileDialogLoadTrnsFnc.selected_path;
-        std::ifstream fileToLoad(filePath);
-        load_trans_functions(fileToLoad);
-        m_trnfnc_table_selection = 0;
-        m_current_load_modal = LOAD_NONE;
-      }
-    }
-    if (m_current_load_modal == LOAD_MODAL::LOAD_SESSION)
-    {
-      if (helper::ends_with_string(fileDialogLoadTrnsFnc.selected_fn, ".usr"))
-      {
-
-        tfn_widget.clear();
-        tfn_widget_multi.clear();
-        m_tfns.clear();
-        load_user_session(fileDialogLoadTrnsFnc.selected_path);
-        m_trnfnc_table_selection = 0;
-        m_current_load_modal = LOAD_NONE;
-      }
-    }
-  }
-
-  ImGui::End();
+  
 }
 
 void UIView::init_ui(bool is2D, bool lookingGlass)
@@ -959,10 +1027,7 @@ void UIView::update_ui(int numVolumes)
 
 void UIView::render_2D(Window_Properties& window_properties)
 {
-
-  if (m_show_menu)
-  {
-
+  
     m_clock_pos_x = window_properties.window_w - m_clock_width;
     m_clock_pos_y = window_properties.window_h - m_clock_height;
     m_legend_pos_y = window_properties.window_h - m_clock_height;
@@ -971,10 +1036,6 @@ void UIView::render_2D(Window_Properties& window_properties)
     m_menu_handler->drawMenu(window_properties.window_w, window_properties.window_h,
       window_properties.framebuffer_w, window_properties.framebuffer_h);
 
-    if (m_use_transferfunction) {
-      tfn_widget[m_selectedTrnFnc].drawLegend();
-    }
-  }
 
 }
 
@@ -984,8 +1045,7 @@ void UIView::render_3D(glm::mat4& space_matrix, Window_Properties& window_proper
 
   if (m_show_menu)
   {
-    // glMatrixMode(GL_MODELVIEW);
-    // glLoadMatrixf(glm::value_ptr(space_matrix));
+    
     m_menu_handler->drawMenu(window_properties.window_w, window_properties.window_h,
       window_properties.framebuffer_w, window_properties.framebuffer_h);
   }
@@ -1379,11 +1439,11 @@ void UIView::save_user_session(std::ofstream& savefile)
     savefile << "ClipZmax " << std::to_string(m_clip_max.z) << "\n";
     savefile << "Use_transferfunction " << std::to_string(m_use_transferfunction) << "\n";
 
-    int num_camera_poi = m_controller_app.get_trackball_camera().get_camera_poi().size();
+    int num_camera_poi = m_controller_app.get_simulation().get_simulation_states().size();
     if (num_camera_poi > 0)
     {
-      savefile << "POI " << num_camera_poi << "\n";
-      save_camera_poi(savefile, num_camera_poi);
+      savefile << "SIM " << num_camera_poi << "\n";
+      save_simulation_states(savefile, num_camera_poi);
     }
 
     if (m_use_transferfunction)
@@ -1506,7 +1566,7 @@ void UIView::load_user_session(std::string filePath)
       if (tag == "volume_loaded")
       {
         std::string fileToLoad = vals[1];
-        VRDataLoader::get_instance()->load_txt_file(m_controller_app, fileToLoad);
+        VRDataLoader::load_txt_file(m_controller_app, fileToLoad);
       }
 
       else if (tag == "alpha_multiplier") {
@@ -1568,19 +1628,22 @@ void UIView::load_user_session(std::string filePath)
   }
 }
 
-void UIView::save_camera_poi(std::ofstream& saveFile, int num_camera_poi)
+void UIView::save_simulation_states(std::ofstream& saveFile, int num_camera_poi)
 {
   if (saveFile.is_open())
   {
 
-    auto poit_iterator = m_controller_app.get_trackball_camera().get_camera_poi().begin();
-    for (poit_iterator; poit_iterator != m_controller_app.get_trackball_camera().get_camera_poi().end(); poit_iterator++)
+    auto sim_iterator = m_controller_app.get_simulation().get_simulation_states().begin();
+    for (sim_iterator; sim_iterator != m_controller_app.get_simulation().get_simulation_states().end(); sim_iterator++)
     {
-      saveFile << poit_iterator->label << " "
-        << std::to_string(poit_iterator->eye.x) + " " + std::to_string(poit_iterator->eye.y) + " " + std::to_string(poit_iterator->eye.z) + " "
-        << std::to_string(poit_iterator->target.x) + " " + std::to_string(poit_iterator->target.y) + " " + std::to_string(poit_iterator->target.z) + " "
-        << std::to_string(poit_iterator->up.x) + " " + std::to_string(poit_iterator->up.y) + " " + std::to_string(poit_iterator->up.z) + " "
-        << std::to_string(poit_iterator->radius) + "\n";
+      saveFile << sim_iterator->poi.label << " "
+        << std::to_string(sim_iterator->poi.eye.x) + " " + std::to_string(sim_iterator->poi.eye.y) + " " + std::to_string(sim_iterator->poi.eye.z) + " "
+        << std::to_string(sim_iterator->poi.target.x) + " " + std::to_string(sim_iterator->poi.target.y) + " " + std::to_string(sim_iterator->poi.target.z) + " "
+        << std::to_string(sim_iterator->poi.up.x) + " " + std::to_string(sim_iterator->poi.up.y) + " " + std::to_string(sim_iterator->poi.up.z) + " "
+        << std::to_string(sim_iterator->poi.radius) + " "
+        << std::to_string(sim_iterator->min_clip.x) + " " + std::to_string(sim_iterator->min_clip.y) + " " + std::to_string(sim_iterator->min_clip.z) + " "
+        << std::to_string(sim_iterator->max_clip.x) + " " + std::to_string(sim_iterator->max_clip.y) + " " + std::to_string(sim_iterator->max_clip.z) + "\n";
+        
     }
   }
 }
@@ -1609,7 +1672,23 @@ void UIView::load_camera_poi(std::ifstream& loadFile, int num_poi)
         float up_y = std::stof(poiVals[8]);
         float up_z = std::stof(poiVals[9]);
         float radius = std::stof(poiVals[10]);
-        m_controller_app.get_trackball_camera().add_camera_poi(label, eye_x, eye_y, eye_z, target_x, target_y, target_z, up_x, up_y, up_z, radius);
+        float min_clip_x = std::stof(poiVals[11]);
+        float min_clip_y = std::stof(poiVals[12]);
+        float min_clip_z = std::stof(poiVals[13]);
+        float max_clip_x = std::stof(poiVals[14]);
+        float max_clip_y = std::stof(poiVals[15]);
+        float max_clip_z = std::stof(poiVals[16]);
+
+        SimulationState sim;
+        sim.poi.label = label;
+        sim.poi.eye = glm::vec3(eye_x, eye_y, eye_z);
+        sim.poi.target = glm::vec3(target_x, target_y, target_z);
+        sim.poi.up = glm::vec3(up_x, up_y, up_z);
+        sim.poi.radius = radius;
+        sim.min_clip = glm::vec3(min_clip_x, min_clip_y, min_clip_z);
+        sim.max_clip = glm::vec3(max_clip_x, max_clip_y, max_clip_z);
+        m_controller_app.get_simulation().add_simulation_state(sim);
+
       }
 
     }
@@ -1743,22 +1822,25 @@ void UIView::set_volume_time_info(time_t time)
 {
 
   tm* time_info = localtime(&time);
+  if (time_info)
+  {
+    bool pm = time_info->tm_hour >= 12;
+    int hour_12 = (time_info->tm_hour >= 13) ? time_info->tm_hour - 12 : time_info->tm_hour;
 
-  bool pm = time_info->tm_hour >= 12;
-  int hour_12 = (time_info->tm_hour >= 13) ? time_info->tm_hour - 12 : time_info->tm_hour;
+    std::stringstream ss_time;
+    ss_time << std::setw(2) << std::setfill('0') << hour_12 << ":";
+    ss_time << std::setw(2) << std::setfill('0') << time_info->tm_min << " ";
+    ss_time << (pm ? "PM" : "AM");
 
-  std::stringstream ss_time;
-  ss_time << std::setw(2) << std::setfill('0') << hour_12 << ":";
-  ss_time << std::setw(2) << std::setfill('0') << time_info->tm_min << " ";
-  ss_time << (pm ? "PM" : "AM");
+    std::stringstream ss_day;
+    ss_day << months[time_info->tm_mon] << " ";
+    ss_day << std::setw(2) << std::setfill('0') << time_info->tm_mday;
+    ss_day << ", " << time_info->tm_year + 1900;
 
-  std::stringstream ss_day;
-  ss_day << months[time_info->tm_mon] << " ";
-  ss_day << std::setw(2) << std::setfill('0') << time_info->tm_mday;
-  ss_day << ", " << time_info->tm_year + 1900;
-
-  m_time_info = ss_time.str();
-  m_day_info = ss_day.str();
+    m_time_info = ss_time.str();
+    m_day_info = ss_day.str();
+  }
+ 
 
 }
 

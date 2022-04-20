@@ -54,11 +54,13 @@ VRVolumeApp::VRVolumeApp() :m_mesh_model(nullptr), m_clip_max{ 1.0f }, m_clip_mi
 m_lookingGlass(false), m_isInitailized(false), m_speed(0.01f), m_movieAction(nullptr), m_moviename("movie.mp4"), m_noColor(0.0f),
 m_ambient(0.2f, 0.2f, 0.2f, 1.0f), m_diffuse(0.5f, 0.5f, 0.5f, 1.0f), m_ui_view(nullptr), m_animated(false), m_numVolumes(0), m_selectedVolume(0),
 m_multiplier(1.0f), m_threshold(0.0f), m_frame(0.0f), m_use_multi_transfer(false), m_clipping(false), m_show_menu(true),
-m_window_properties(nullptr), m_animation_speed(1.0f),m_simulation(nullptr), m_current_movie_state(MOVIE_STOP)
+m_window_properties(nullptr), m_animation_speed(1.0f), m_current_movie_state(MOVIE_STOP), m_app_mode(MANUAL), m_end_load(false)
 {
   m_renders.push_back(new VolumeSliceRenderer());
   m_renders.push_back(new VolumeRaycastRenderer());
 }
+
+
 
 VRVolumeApp::~VRVolumeApp()
 {
@@ -98,11 +100,11 @@ void VRVolumeApp::initialize()
       m_ui_view->init_ui(m_is2d, m_lookingGlass);
     }
     m_window_properties = new Window_Properties();
-    //m_simulation = new Simulation()
+    m_simulation = new Simulation(*this);
     m_labels = new Labels(m_line_shader, m_simple_texture_shader);
     m_labels->set_parent_directory(get_directory_path());
 
-    m_trackball.set_controller_application(this);
+    
     m_isInitailized = true;
     m_rendercount = 0;
     std::cout << "initialize end" << std::endl;
@@ -172,8 +174,9 @@ void VRVolumeApp::load_shaders()
 void VRVolumeApp::initialize_textures()
 {
   add_lodaded_textures();
-  for (int i = 0; i < m_volumes.size(); i++) {
-
+  
+  for (int i = 0; i < m_volumes.size(); i++) 
+  {
     std::vector< Volume* > vlm = m_volumes[i];
     for (int j = 0; j < vlm.size(); j++)
     {
@@ -232,6 +235,7 @@ void VRVolumeApp::stop_movie()
   m_current_movie_state = MOVIE_STOP;
 #ifdef _MSC_VER
   m_movieAction->save(m_moviename);
+  m_ui_view->set_show_movie_saved_pop_up(true);
 #endif
   delete m_movieAction;
   m_movieAction = nullptr;
@@ -553,6 +557,20 @@ void VRVolumeApp::load_nrrd_file(std::string& filename)
 
 void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
 {
+  m_trackball.set_app_mode(m_app_mode);
+  if (m_app_mode == SIMULATION)
+  {
+    if (m_simulation)
+    {
+      m_simulation->update_simulation();
+      SimulationState sim_state = m_simulation->get_current_simulation_state();
+      m_trackball.update_sim_poi(sim_state.poi);
+      m_ui_view->set_clip_max(sim_state.max_clip);
+      m_ui_view->set_clip_min(sim_state.min_clip);
+    }
+  }
+  
+
   if (m_is2d) {
     m_headpose = glm::make_mat4(renderState.getViewMatrix());
     m_headpose = glm::inverse(m_headpose);
@@ -569,7 +587,6 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
 
   //setup projection
   m_projection_mtrx = glm::make_mat4(renderState.getProjectionMatrix());
-  //m_projection_mtrx = m_trackball.get_projection_camera();
   m_model_view = glm::make_mat4(renderState.getViewMatrix());
 
   //overwrite MV for 2D viewing
@@ -690,17 +707,9 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
 
   render_volume(renderState);
 
-  if (m_show_menu)
-  {
-    render_ui(renderState);
-  }
+  render_ui(renderState);
   
-
-  /*if (m_ui_view && m_is2d)
-  {
-    m_ui_view->render_2D();
-  }*/
-
+ 
   
 
   glFlush();
@@ -885,8 +894,7 @@ void VRVolumeApp::animated_render(int tfn, int vol)
 void VRVolumeApp::render_ui(const MinVR::VRGraphicsState& renderState)
 {
   //render menu	
-  glm::mat4 mvMatrix = glm::make_mat4(renderState.getViewMatrix());
-
+  
   if (m_ui_view && m_window_properties)
   {
     m_window_properties->window_w = renderState.index().getValue("WindowWidth");
@@ -897,6 +905,7 @@ void VRVolumeApp::render_ui(const MinVR::VRGraphicsState& renderState)
 
     if (!m_is2d)
     {
+      glm::mat4 mvMatrix = glm::make_mat4(renderState.getViewMatrix());
       m_ui_view->render_3D(mvMatrix, *m_window_properties);
     }
     else
@@ -991,7 +1000,8 @@ void VRVolumeApp::add_lodaded_textures()
     m_threads.clear();
     m_promises.clear();
     m_futures.clear();
-    //  m_ui_view->compute_new_histogram();
+    
+    
   }
 }
 
@@ -1231,4 +1241,9 @@ std::string VRVolumeApp::get_movie_state_label()
 MovieState VRVolumeApp::get_movie_state()
 {
   return m_current_movie_state;
+}
+
+void VRVolumeApp::set_app_mode(APPMODE mode)
+{
+  m_app_mode = mode;
 }

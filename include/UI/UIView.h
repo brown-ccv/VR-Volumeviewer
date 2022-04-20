@@ -132,6 +132,10 @@ public:
 
   void set_trns_fnct_min_max(float min, float max);
 
+  bool get_show_movie_saved_pop_up() const { return m_show_movie_saved_pop_up; }
+
+  void set_show_movie_saved_pop_up(bool val) { m_show_movie_saved_pop_up = val; }
+
 private:
 
   struct MyTransFerFunctions
@@ -154,7 +158,7 @@ private:
 
   void load_user_session(std::string filePath);
 
-  void save_camera_poi(std::ofstream& loadPath, int num_poi);
+  void save_simulation_states(std::ofstream& loadPath, int num_poi);
 
   void load_camera_poi(std::ifstream& loadPath, int num_poi);
 
@@ -180,6 +184,7 @@ private:
   float m_scale;
   int m_slices;
   bool m_dynamic_slices;
+  
 
   bool m_show_menu;
   bool m_renderVolume;
@@ -281,6 +286,13 @@ private:
   std::string m_day_info;
 
   std::string months[12] = { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
+
+
+  int m_simulation_state_selection;
+  bool m_time_frame_edited;
+
+  bool m_show_movie_saved_pop_up;
+
 };
 
 

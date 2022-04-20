@@ -31,7 +31,6 @@
 
 #include "FrameBufferObject.h"
 #include "Volume.h"
-#include "choreograph/Choreograph.h"
 
 class VolumeRenderer
 	{

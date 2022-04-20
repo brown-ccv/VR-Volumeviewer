@@ -21,24 +21,33 @@
 
 
 
-VRDataLoader* VRDataLoader::m_instance = nullptr;
+//VRDataLoader* VRDataLoader::m_instance = nullptr;
 
 VRDataLoader::VRDataLoader()
 {
 
 }
 
-VRDataLoader* VRDataLoader::get_instance()
-{
-  if (!m_instance)
-  {
-    m_instance = new VRDataLoader;
-  }
-  return m_instance;
-}
+//VRDataLoader* VRDataLoader::get_instance()
+//{
+//  if (!m_instance)
+//  {
+//    m_instance = new VRDataLoader;
+//  }
+//  return m_instance;
+//}VRDataLoader* VRDataLoader::get_instance()
+//{
+//  if (!m_instance)
+//  {
+//    m_instance = new VRDataLoader;
+//  }
+//  return m_instance;
+//}
 
-void VRDataLoader::load_txt_file(VRVolumeApp& vrVolumeApp, std::string& filename)
+
+void VRDataLoader::load_txt_file( VRVolumeApp& vrVolumeApp,  std::string& filename)
 {
+  
   std::ifstream inFile;
   inFile.open(filename);
 

@@ -63,7 +63,7 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char** argv) : VRApp(ar
       else if (helper::ends_with_string(std::string(argv_int[i]), ".txt"))
       {
         std::string fileName = argv_int[i];
-        VRDataLoader::get_instance()->load_txt_file(*m_vrVolumeApp, fileName);
+        VRDataLoader::load_txt_file(*m_vrVolumeApp, fileName);
       }
       else if (helper::ends_with_string(std::string(argv_int[i]), ".nrrd")) {
 
@@ -567,19 +567,7 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState& rend
     const float duration = 10.5f;
 
 
-    auto ramp_a = ch::makeRamp(v1, v2, duration);
-    auto ramp_b = ch::makeRamp(pos1, pos2, duration);
-    auto group = std::make_shared<ch::Timeline>();
-    auto my_sequence = ch::Sequence<glm::vec3>(glm::vec3());
-    my_sequence.then<ch::RampTo>(pos1, 10.0f);
-    my_sequence.then<ch::Hold>(pos1, 5.0f);
-    my_sequence.then<ch::RampTo>(pos2, 20.0f);
-    //ch::Motion motion(&_control_b, my_sequence);
-    //group->apply<float>(&_control_a, ramp_a);
-    group->apply<glm::vec3>(&_control_b, my_sequence);
-    
-    _timeline.addShared(group);
-   
+
   }
 
 

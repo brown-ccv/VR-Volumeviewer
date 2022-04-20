@@ -31,7 +31,7 @@
 #include <string>
 #include <list>
 
-#include "choreograph/Choreograph.h"
+#include "PointOfInterests.h"
 
 enum WASD_KEYS
 {
@@ -43,38 +43,33 @@ enum WASD_KEYS
   E = 1 << 5, // binary 100000
 };
 
-struct PointOfInterest {
-  
- 
-  glm::vec3 eye = glm::vec3(0.0f, 0.0f, 1.0f);
-  glm::vec3 target = glm::vec3(0.0f, 0.0f, 0.0f);
-  glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-  float radius = 1.f;
-  glm::vec3 max_clip;
-  glm::vec3 min_clip;
+//struct PointOfInterest {
+//  
+// 
+//  glm::vec3 eye = glm::vec3(0.0f, 0.0f, 1.0f);
+//  glm::vec3 target = glm::vec3(0.0f, 0.0f, 0.0f);
+//  glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+//  float radius = 1.f;
+//  glm::vec3 max_clip;
+//  glm::vec3 min_clip;
+//
+//  std::string label;
+//
+//  glm::vec3 get_camera_position()
+//  {
+//    eye = glm::normalize(eye);
+//    return radius * eye + target;
+//  }
+//
+//};
 
-  std::string label;
 
-  glm::vec3 get_camera_position()
-  {
-    eye = glm::normalize(eye);
-    return radius * eye + target;
-  }
-
-};
-
-enum CAMERA_ANIMATION_STATE
-{
-  STOP,
-  PLAYING,
-  PAUSE
-};
 
 /** Adds a HeadMatrix to the RenderState that gets updated repeatedly based
     upon head tracking events.
  */
 
-class VRVolumeApp;
+
 class ArcBallCamera {
 public:
 
@@ -94,51 +89,33 @@ public:
     return m_viewmatrix;
   }
 
-  std::list<PointOfInterest>& get_camera_poi();
+  void updateCameraMatrix();
 
-  void add_camera_poi(std::string & label, glm::vec3& clip_max, glm::vec3& clip_min);
-  void add_camera_poi(std::string& label, float eye_x, float eye_y, float eye_z,
-    float target_x, float target_y, float target_z,
-    float up_x, float up_y, float up_z, float radius);
+  void update_sim_poi(PointOfInterest& poi);
 
-  int get_current_poi();
+  
+  PointOfInterest& get_current_poi();
 
-  void set_current_poi(int val);
-
-  void remove_poi(int val);
+  void set_current_poi(const PointOfInterest& poi);
 
   void reset_camera();
 
-  PointOfInterest& get_poi_at(int val);
-
-  void update_animation();
-
-  void set_animation_path();
-
-  void set_animation_state();
-
-  CAMERA_ANIMATION_STATE get_animation_state();
-
-  std::string get_camera_animation_state();
-
-  float get_camera_animation_duration();
-  void set_camera_animation_duration(float duration);
-
-  void set_controller_application(VRVolumeApp* vr_app);
+  void set_app_mode(unsigned int mode);
 
 protected:
   void Rotate(float dTheta, float dPhi);
   void RotateEyeAxis(float dy);
   void Zoom(float distance);
   void Pan(float dx, float dy);
-  void updateCameraMatrix();
+  
 
   float m_radius;
   glm::vec3 m_target;
   glm::vec3 m_up;
   glm::vec3 m_eye;
-  std::list<PointOfInterest> m_camera_poi;
+  
   PointOfInterest m_current_poi;
+  PointOfInterest m_simulation_poi;
 
   glm::mat4 m_viewmatrix;
   bool m_mouse_left_pressed;
@@ -150,21 +127,13 @@ protected:
   float m_cameraScrollFactor;
 
   bool m_rotate_camera_center;
-  ch::Output<glm::vec3>  m_target_animation;
-  ch::Output<glm::vec3>  m_eye_animation;
-  ch::Output<glm::vec3>  m_up_animation;
-  ch::Output<float>  m_radius_animation;
-  ch::Output<glm::vec3>  m_clip_max_animation;
-  ch::Output<glm::vec3>  m_clip_min_animation;
-  ch::Timeline     m_timeline;
-
-  bool m_is_animate_path;
-  float m_animation_duration;
   
-  CAMERA_ANIMATION_STATE m_camera_animation_state;
+
   std::string animation_button_label;
 
-  VRVolumeApp* m_controller_app;
+  
+
+  unsigned int m_aap_mode;
 };
 
 #endif

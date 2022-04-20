@@ -30,11 +30,20 @@ enum MovieState
   MOVIE_RECORD
 };
 
+enum APPMODE
+{
+  MANUAL,
+  SIMULATION
+};
+
 class VRVolumeApp
 {
 public:
 
   VRVolumeApp();
+
+  
+
   ~VRVolumeApp();
 
 
@@ -178,6 +187,8 @@ public:
 
   MovieState get_movie_state();
 
+  void set_app_mode(APPMODE );
+
 protected:
 
   glm::vec4 m_noColor;// (0.0f, 0.0f, 0.0f, 0.0f);
@@ -280,7 +291,7 @@ protected:
 
   bool m_use_multi_transfer;
   bool m_show_menu;
-
+  bool m_end_load;
 
 
   /*Input Events*/
@@ -305,6 +316,8 @@ protected:
   
   MovieState m_current_movie_state;
   bool m_stop_movie;
+
+  APPMODE m_app_mode;
 
 };
 #endif
