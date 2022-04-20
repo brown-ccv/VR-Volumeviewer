@@ -110,7 +110,7 @@ endif (WIN32)
 
 #Choreograph
 # Configure external project
-IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/Choreograph/Choreograph)
+#IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/Choreograph/Choreograph)
 execute_process(
      COMMAND ${CMAKE_COMMAND}      
      -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
@@ -129,7 +129,7 @@ execute_process( COMMAND ${CMAKE_COMMAND}
 )
 
 
-ENDIF()
+#ENDIF()
 
 find_package(Choreograph REQUIRED)
 if(Choreograph_FOUND)
@@ -676,10 +676,11 @@ add_executable(${PROJECT_NAME} ${source_files} ${header_files})
 target_link_libraries(${PROJECT_NAME}  ${LIBRARIES})
 
 file(COPY "${CMAKE_SOURCE_DIR}/../shaders" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
-file(COPY "${CMAKE_SOURCE_DIR}/../fonts/" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
-file(COPY "${CMAKE_SOURCE_DIR}/../observers/" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
+file(COPY "${CMAKE_SOURCE_DIR}/../fonts" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
+file(COPY "${CMAKE_SOURCE_DIR}/../observers" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
 file(COPY "${CMAKE_SOURCE_DIR}/../colormaps" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
-
+message(STATUS "COPY RESOURCES FOLDER")
+file(COPY "${CMAKE_SOURCE_DIR}/../Resources" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
 
 enable_testing()
 
