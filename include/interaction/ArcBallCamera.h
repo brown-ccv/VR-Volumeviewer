@@ -1,25 +1,25 @@
 //  ----------------------------------
-//  Copyright © 2017, Brown University, Providence, RI.
-//  
+//  Copyright ï¿½ 2017, Brown University, Providence, RI.
+//
 //  All Rights Reserved
-//   
-//  Use of the software is provided under the terms of the GNU General Public License version 3 
-//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
-//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
-//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//
+//  Use of the software is provided under the terms of the GNU General Public License version 3
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in
+//  advertising or publicity pertaining to the use or distribution of the software without specific written
 //  prior permission from Brown University.
-//  
+//
 //  See license.txt for further information.
-//  
-//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
-//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
-//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
-//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
-//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
-//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS
+//  PROVIDED ï¿½AS ISï¿½, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //  ----------------------------------
-//  
+//
 ///\file ArcBall.h
 ///\author Benjamin Knorlein
 ///\date 10/17/2019
@@ -43,36 +43,13 @@ enum WASD_KEYS
   E = 1 << 5, // binary 100000
 };
 
-//struct PointOfInterest {
-//  
-// 
-//  glm::vec3 eye = glm::vec3(0.0f, 0.0f, 1.0f);
-//  glm::vec3 target = glm::vec3(0.0f, 0.0f, 0.0f);
-//  glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-//  float radius = 1.f;
-//  glm::vec3 max_clip;
-//  glm::vec3 min_clip;
-//
-//  std::string label;
-//
-//  glm::vec3 get_camera_position()
-//  {
-//    eye = glm::normalize(eye);
-//    return radius * eye + target;
-//  }
-//
-//};
-
-
-
 /** Adds a HeadMatrix to the RenderState that gets updated repeatedly based
     upon head tracking events.
  */
 
-
-class ArcBallCamera {
+class ArcBallCamera
+{
 public:
-
   ArcBallCamera();
 
   virtual ~ArcBallCamera();
@@ -81,22 +58,21 @@ public:
   void mouse_move(float x, float y);
   void mouse_scroll(float dist);
   void setCameraCenterRotation(bool useCameraCenter);
-  void wasd_pressed(int awsd);
+  void wasd_pressed(int wasd);
 
-  glm::mat4& getViewmatrix()
+  glm::mat4 &get_view_matrix()
   {
-    updateCameraMatrix();
+    update_camera_matrix();
     return m_viewmatrix;
   }
 
-  void updateCameraMatrix();
+  void update_camera_matrix();
 
-  void update_sim_poi(PointOfInterest& poi);
+  void update_sim_poi(PointOfInterest &poi);
 
-  
-  PointOfInterest& get_current_poi();
+  PointOfInterest &get_current_poi();
 
-  void set_current_poi(const PointOfInterest& poi);
+  void set_current_poi(const PointOfInterest &poi);
 
   void reset_camera();
 
@@ -107,13 +83,12 @@ protected:
   void RotateEyeAxis(float dy);
   void Zoom(float distance);
   void Pan(float dx, float dy);
-  
 
   float m_radius;
   glm::vec3 m_target;
   glm::vec3 m_up;
   glm::vec3 m_eye;
-  
+
   PointOfInterest m_current_poi;
   PointOfInterest m_simulation_poi;
 
@@ -125,16 +100,9 @@ protected:
   float m_PanFactor;
   float m_RotateFactor;
   float m_cameraScrollFactor;
-
   bool m_rotate_camera_center;
-  
 
-  std::string animation_button_label;
-
-  
-
-  unsigned int m_aap_mode;
+  unsigned int m_app_mode;
 };
 
 #endif
-

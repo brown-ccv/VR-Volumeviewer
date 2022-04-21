@@ -31,9 +31,9 @@ public:
 	Texture(GLenum TextureTarget, const std::string& filename);
 	~Texture();
 
-	void Bind(GLenum TextureUnit);
+	void Bind();
 	GLuint GetTextureId();
-	void UnBind(GLenum TextureUnit);
+	void UnBind();
 
 	int LoadTexture(const std::string& fileName, int& width, int& height, unsigned char ** data, int& bbp);
 

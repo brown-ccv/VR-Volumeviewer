@@ -1,15 +1,12 @@
 #include "../include/interaction/Simulation.h"
 #include "../include/vrapp/VRVolumeApp.h"
 
-Simulation::Simulation(VRVolumeApp& controller_app,float time ):m_animation_duration(time), m_controller_app(controller_app),
-animation_button_label("ANIMATE"), m_animation_state(STOP)
+Simulation::Simulation(VRVolumeApp &controller_app, float time) : m_animation_duration(time), m_controller_app(controller_app),
+                                                                  animation_button_label("ANIMATE"), m_animation_state(STOP)
 {
-
 }
 
-
-
-void Simulation::add_simulation_state(SimulationState& simulationState)
+void Simulation::add_simulation_state(SimulationState &simulationState)
 {
   float time = m_simulation_states.size() * m_animation_duration;
 
@@ -42,7 +39,6 @@ void Simulation::create_animations()
       sequence_clip_min.then<ch::RampTo>(iterator->min_clip, m_animation_duration);
     }
 
-
     auto group = std::make_shared<ch::Timeline>();
     group->apply<glm::vec3>(&m_eye_animation, sequence_eye);
     group->apply<glm::vec3>(&m_target_animation, sequence_target);
@@ -52,7 +48,6 @@ void Simulation::create_animations()
     group->apply<glm::vec3>(&m_min_clip_animation, sequence_clip_min);
 
     m_timeline.addShared(group);
-
   }
 }
 
@@ -61,7 +56,6 @@ void Simulation::update_simulation()
   if (m_animation_state != PAUSE)
   {
     update_time_step();
-
   }
   if (m_timeline.isFinished())
   {
@@ -74,15 +68,12 @@ void Simulation::update_simulation()
       m_controller_app.stop_movie();
     }
   }
-
 }
 
 void Simulation::update_time_step()
 {
   m_timeline.step(1.0 / 30.0);
-  
 }
-
 
 void Simulation::set_animation_state()
 {
@@ -108,23 +99,29 @@ void Simulation::set_animation_state()
   }
 
   m_is_animate_path = true;
-
 }
 
 ANIMATION_STATE Simulation::get_animation_state()
 {
-  if (m_timeline.isFinished())
+  switch (m_timeline.isFinished())
   {
+  case true:
+    return STOP;
+  case false:
+  {
+    if (m_animation_state == STOP)
+    {
+      return PAUSE;
+    }
+    else
+    {
+      return PLAYING;
+    }
+  }
+  default:
     return STOP;
   }
-  else if (!m_timeline.isFinished() && m_animation_state == PLAYING)
-  {
-    return  PLAYING;
-  }
-  else if (!m_timeline.isFinished() && m_animation_state == STOP)
-  {
-    return  PAUSE;
-  }
+ 
 }
 
 std::string Simulation::get_camera_animation_state()
@@ -142,12 +139,12 @@ void Simulation::set_camera_animation_duration(float duration)
   m_animation_duration = duration;
 }
 
-const std::list<SimulationState>& Simulation::get_simulation_states()
+const std::list<SimulationState> &Simulation::get_simulation_states()
 {
   return m_simulation_states;
 }
 
-SimulationState& Simulation::get_simulation_state_at(unsigned int index)
+SimulationState &Simulation::get_simulation_state_at(unsigned int index)
 {
   auto poi_iterator = m_simulation_states.begin();
   std::advance(poi_iterator, index);
@@ -157,7 +154,6 @@ SimulationState& Simulation::get_simulation_state_at(unsigned int index)
 SimulationState Simulation::get_current_simulation_state()
 {
   PointOfInterest poi(m_eye_animation.value(), m_target_animation.value(), m_up_animation.value(), m_radius_animation.value());
-
 
   SimulationState current_state;
   current_state.poi = poi;
@@ -173,17 +169,15 @@ void Simulation::remove_simulation_state(unsigned int index)
   std::advance(poi_iterator, index);
   std::string time_label = poi_iterator->time_label;
   poi_iterator = m_simulation_states.erase(poi_iterator);
-  for (poi_iterator ; poi_iterator != m_simulation_states.end();poi_iterator++)
+  for (poi_iterator; poi_iterator != m_simulation_states.end(); poi_iterator++)
   {
     std::string current_time_label = poi_iterator->time_label;
     poi_iterator->time_label = time_label;
     time_label = current_time_label;
   }
-
 }
 
 float Simulation::get_animation_duration()
 {
   return m_animation_duration;
 }
-

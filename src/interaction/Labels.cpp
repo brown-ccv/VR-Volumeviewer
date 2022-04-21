@@ -1,25 +1,25 @@
 ﻿//  ----------------------------------
 //  Copyright © 2015, Brown University, Providence, RI.
-//  
+//
 //  All Rights Reserved
-//   
-//  Use of the software is provided under the terms of the GNU General Public License version 3 
-//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
-//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
-//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//
+//  Use of the software is provided under the terms of the GNU General Public License version 3
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in
+//  advertising or publicity pertaining to the use or distribution of the software without specific written
 //  prior permission from Brown University.
-//  
+//
 //  See license.txt for further information.
-//  
-//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
-//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
-//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
-//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
-//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
-//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //  ----------------------------------
-//  
+//
 ///\file Labels.cpp
 ///\author Benjamin Knorlein
 ///\date 6/25/2019
@@ -54,17 +54,14 @@
 #include <Model.h>
 #include <ShaderProgram.h>
 
-
-Labels::Labels( ShaderProgram& lines_shader, ShaderProgram& plane_shader):
-  m_init_plane_model(false), m_lines_shader_program(lines_shader), m_plane_shader_program(plane_shader), m_plane_model(nullptr)
+Labels::Labels(ShaderProgram &lines_shader, ShaderProgram &plane_shader) : m_init_plane_model(false), m_lines_shader_program(lines_shader), m_plane_shader_program(plane_shader), m_plane_model(nullptr)
 {
-
 }
 
 Labels::~Labels()
 {
   clear();
-  std::map<std::string, Texture*>::iterator it;
+  std::map<std::string, Texture *>::iterator it;
   for (it = m_texture_cache.begin(); it != m_texture_cache.end(); it++)
   {
     delete it->second;
@@ -72,8 +69,8 @@ Labels::~Labels()
   delete m_plane_model;
 }
 
-
-void Labels::clear() {
+void Labels::clear()
+{
   m_text.clear();
   m_position.clear();
   m_position2.clear();
@@ -81,12 +78,12 @@ void Labels::clear() {
   m_volume.clear();
 }
 
-void Labels::set_parent_directory(std::string& directory)
+void Labels::set_parent_directory(std::string &directory)
 {
   m_parent_directory = directory;
 }
 
-unsigned int Labels::create_line_vba(glm::vec3& start, glm::vec3& end)
+unsigned int Labels::create_line_vba(glm::vec3 &start, glm::vec3 &end)
 {
   unsigned int vba;
   unsigned int vbo;
@@ -100,11 +97,10 @@ unsigned int Labels::create_line_vba(glm::vec3& start, glm::vec3& end)
   glBindVertexArray(vba);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBufferData(
-    GL_ARRAY_BUFFER,
-    sizeof(glm::vec3) * 2,
-    &line[0],
-    GL_STATIC_DRAW
-  );
+      GL_ARRAY_BUFFER,
+      sizeof(glm::vec3) * 2,
+      &line[0],
+      GL_STATIC_DRAW);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
   glEnableVertexAttribArray(0);
 
@@ -114,22 +110,21 @@ unsigned int Labels::create_line_vba(glm::vec3& start, glm::vec3& end)
   return vba;
 }
 
-void Labels::add( std::string texture_path, float x, float y, float z, float textPosZ, float size, int volume)
+void Labels::add(std::string texture_path, float x, float y, float z, float textPosZ, float size, int volume)
 {
   if (!m_init_plane_model)
   {
-    std::string plane_obj_path = m_parent_directory+"Resources/Models/plane.obj";
+    std::string plane_obj_path = m_parent_directory + "Resources/Models/plane.obj";
     m_plane_model = GLMLoader::loadObjModel(plane_obj_path);
     m_init_plane_model = true;
   }
 
   if (m_texture_cache.find(texture_path) == m_texture_cache.end())
   {
-    
-    Texture* texture = new Texture(GL_TEXTURE_2D, texture_path);
+
+    Texture *texture = new Texture(GL_TEXTURE_2D, texture_path);
     m_texture_cache[texture_path] = texture;
   }
-  
 
   LabelBillboard billboard;
   glm::vec3 line_start(x, y, z);
@@ -138,20 +133,20 @@ void Labels::add( std::string texture_path, float x, float y, float z, float tex
   billboard.line_vba = line_vba;
   billboard.label_texture = m_texture_cache[texture_path];
   billboard.label_model = m_plane_model;
-  billboard.position = glm::vec3(x, y, textPosZ+250);
+  billboard.position = glm::vec3(x, y, textPosZ + 250);
   m_billboard_labels.push_back(billboard);
-  
+
   m_position.push_back(glm::vec3(x, y, z));
   m_position2.push_back(glm::vec3(x, y, textPosZ));
   m_size.push_back(size);
   m_volume.push_back(volume);
 }
 
-void Labels::drawLabels(glm::mat4 volume_mv, glm::mat4 projection_matrix, glm::mat4& headpose, float z_scale)
+void Labels::drawLabels(glm::mat4 volume_mv, glm::mat4 projection_matrix, glm::mat4 &headpose, float z_scale)
 {
   for (int i = 0; i < m_billboard_labels.size(); i++)
   {
-    //draw line
+    // draw line
     m_lines_shader_program.start();
     m_lines_shader_program.setUniform("p", projection_matrix);
     m_lines_shader_program.setUniform("mv", volume_mv);
@@ -173,9 +168,9 @@ void Labels::drawLabels(glm::mat4 volume_mv, glm::mat4 projection_matrix, glm::m
 
     label_mv = glm::translate(volume_mv, m_billboard_labels[i].position);
     label_mv = glm::scale(label_mv, glm::vec3(50.0f, 50.0f, 100.0f));
-    label_mv = glm::rotate(label_mv, glm::radians(180.0f - angle),glm::vec3(0.0f, 0.0f, 1.0f));
+    label_mv = glm::rotate(label_mv, glm::radians(180.0f - angle), glm::vec3(0.0f, 0.0f, 1.0f));
     label_mv = glm::rotate(label_mv, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    //label_mv = glm::scale(label_mv, glm::vec3(1.0f, 1.0f / z_scale, 1.0f));
+    // label_mv = glm::scale(label_mv, glm::vec3(1.0f, 1.0f / z_scale, 1.0f));
     m_plane_shader_program.start();
     m_plane_shader_program.setUniform("p", projection_matrix);
     m_plane_model->setMVMatrix(label_mv);
@@ -183,17 +178,15 @@ void Labels::drawLabels(glm::mat4 volume_mv, glm::mat4 projection_matrix, glm::m
     m_billboard_labels[i].label_model->render(m_plane_shader_program);
     m_plane_shader_program.stop();
   }
-  
 }
 
 void Labels::drawLines()
 {
-  
-  for (size_t i =0; i < m_lines_vba.size();++i)
+
+  for (size_t i = 0; i < m_lines_vba.size(); ++i)
   {
     glBindVertexArray(m_lines_vba[i]);
     glDrawArrays(GL_LINES, 0, 2);
     glBindVertexArray(0);
   }
-  
 }

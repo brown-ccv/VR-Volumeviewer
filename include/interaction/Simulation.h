@@ -1,13 +1,11 @@
-#ifndef ANIMATOR_H
-#define ANIMATOR_H
+#ifndef SIMULATION_H
+#define SIMULATION_H
 
 #include "choreograph/Choreograph.h"
 
 #include <glm/glm.hpp>
 
 #include "PointOfInterests.h"
-
-
 
 enum ANIMATION_STATE
 {
@@ -18,9 +16,9 @@ enum ANIMATION_STATE
 
 struct SimulationState
 {
-  SimulationState() {};
-  
-  SimulationState(const SimulationState& other)
+  SimulationState(){};
+
+  SimulationState(const SimulationState &other)
   {
     poi = other.poi;
     max_clip = other.max_clip;
@@ -38,10 +36,10 @@ class VRVolumeApp;
 class Simulation
 {
 public:
-  Simulation(VRVolumeApp& controller_app,float time = 10.0f);
+  Simulation(VRVolumeApp &controller_app, float time = 10.0f);
 
-  void add_simulation_state(SimulationState& simulationState);
-  
+  void add_simulation_state(SimulationState &simulationState);
+
   void create_animations();
   void update_simulation();
 
@@ -52,21 +50,20 @@ public:
   float get_camera_animation_duration();
   void set_camera_animation_duration(float duration);
 
-  const std::list<SimulationState>& get_simulation_states();
+  const std::list<SimulationState> &get_simulation_states();
 
-  SimulationState& get_simulation_state_at(unsigned int index);
+  SimulationState &get_simulation_state_at(unsigned int index);
 
   SimulationState get_current_simulation_state();
 
   void remove_simulation_state(unsigned int index);
 
   float get_animation_duration();
- 
-private:
 
+private:
   void update_time_step();
 
-  ch::Timeline     m_timeline;
+  ch::Timeline m_timeline;
   float m_animation_duration;
 
   std::list<SimulationState> m_simulation_states;
@@ -74,22 +71,19 @@ private:
   std::vector<std::vector<glm::vec3>> m_vec3_sequences;
   std::vector<std::vector<float>> m_float_sequences;
 
-  ch::Output<glm::vec3>  m_target_animation;
-  ch::Output<glm::vec3>  m_eye_animation;
-  ch::Output<glm::vec3>  m_up_animation;
-  ch::Output<float>  m_radius_animation;
-  ch::Output<glm::vec3>  m_max_clip_animation;
-  ch::Output<glm::vec3>  m_min_clip_animation;
+  ch::Output<glm::vec3> m_target_animation;
+  ch::Output<glm::vec3> m_eye_animation;
+  ch::Output<glm::vec3> m_up_animation;
+  ch::Output<float> m_radius_animation;
+  ch::Output<glm::vec3> m_max_clip_animation;
+  ch::Output<glm::vec3> m_min_clip_animation;
 
   bool m_is_animate_path;
-  
 
   ANIMATION_STATE m_animation_state;
   std::string animation_button_label;
 
-  VRVolumeApp& m_controller_app;
-
-  
+  VRVolumeApp &m_controller_app;
 };
 
 #endif

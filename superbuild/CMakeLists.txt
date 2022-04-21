@@ -420,6 +420,7 @@ endif()
 
 
 find_package(OpenCV CONFIG REQUIRED)
+set_target_properties(${OpenCV_LIBS} PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
 if(OpenCV_FOUND)
   message(STATUS "OpenCV found ${_OpenCV_LIB_PATH}")
   message(STATUS "OpenCV found ${OpenCV_INSTALL_PATH}")

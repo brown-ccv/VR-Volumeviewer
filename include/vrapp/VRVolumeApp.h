@@ -24,7 +24,7 @@ class Texture;
 class Simulation;
 class Labels;
 
-enum MovieState
+enum MOVIESTATE
 {
   MOVIE_STOP,
   MOVIE_RECORD
@@ -42,11 +42,7 @@ public:
 
   VRVolumeApp();
 
-  
-
   ~VRVolumeApp();
-
-
 
   void render(const MinVR::VRGraphicsState& renderState);
 
@@ -185,7 +181,7 @@ public:
 
   std::string get_movie_state_label();
 
-  MovieState get_movie_state();
+  MOVIESTATE get_movie_state();
 
   void set_app_mode(APPMODE );
 
@@ -314,7 +310,7 @@ protected:
 
   Simulation* m_simulation;
   
-  MovieState m_current_movie_state;
+  MOVIESTATE m_current_movie_state;
   bool m_stop_movie;
 
   APPMODE m_app_mode;
