@@ -389,7 +389,9 @@ void UIView::draw_ui_callback()
               if (m_animated)
               {
                 /*
-                  frame by frame animation
+                  TODO:
+                  
+                  Fix frame by frame animation
 
                   unsigned int active_volume = floor(m_frame);
                   unsigned int active_volume2 = ceil(m_frame);
@@ -401,13 +403,9 @@ void UIView::draw_ui_callback()
                       m_volumes[m_selectedVolume][active_volume2]->getTransferfunction(i), alpha, i);
                   }*/
               }
-              else
-              {
-                /*		tfn_widget_multi[m_selectedVolume].setHistogram(m_volumes[m_selectedVolume][0]->getTransferfunction(i), i);*/
-              }
+              
             }
             m_controller_app.set_multi_transfer(true);
-            // tfn_widget_multi[m_selectedTrnFnc].draw_histogram();
             tfn_widget_multi[m_trnfnc_table_selection].draw_ui();
           }
           else
@@ -415,7 +413,9 @@ void UIView::draw_ui_callback()
             if (m_animated)
             {
               /*
-               frame by frame animation
+              TODO:
+                  
+              Fix frame by frame animation
 
               unsigned int active_volume = floor(m_frame);
                 unsigned int active_volume2 = ceil(m_frame);
@@ -430,7 +430,7 @@ void UIView::draw_ui_callback()
 
             m_histogram.draw_histogram();
             tfn_widget[m_trnfnc_table_selection].draw_ui();
-            // tfn_widget[m_trnfnc_table_selection].setMinMax()
+            
           }
         }
       }

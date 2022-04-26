@@ -210,7 +210,6 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event)
     {
       m_vrVolumeApp->button_events_ui_handle(2, 1);
     }
-    // else if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
     else if (event.getName() == "HTC_Controller_Right_Axis0Button_Down" || event.getName() == "HTC_Controller_1_Axis0Button_Down" || event.getName() == "B08_Down")
     {
       m_vrVolumeApp->button_events_ui_handle(1, 1);
@@ -220,34 +219,31 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event)
   {
     // This routine is called for all Button_Down events.  Check event->getName()
     // to see exactly which button has been pressed down.
-    // std::cerr << "onButtonDown " << event.getName() << std::endl;
+    
     if (event.getName() == "KbdEsc_Down")
     {
       exit(0);
     }
     else if (event.getName() == "HTC_Controller_Right_Axis1Button_Down" || event.getName() == "HTC_Controller_1_Axis1Button_Down" || event.getName() == "B10_Down")
     {
-      // m_grab = true;
-      // std::cerr << "Grab ON" << std::endl;
       if (m_vrVolumeApp)
       {
         m_vrVolumeApp->enable_grab(true);
       }
     }
-    // else if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
     else if (event.getName() == "HTC_Controller_Right_Axis0Button_Down" || event.getName() == "HTC_Controller_1_Axis0Button_Down" || event.getName() == "Wand_Right_Btn_Down")
     {
-      // m_clipping = true;
+    
       if (m_vrVolumeApp)
       {
         m_vrVolumeApp->enable_clipping(true);
       }
 
-      // std::cerr << "Clipping ON" << std::endl;
+    
     }
     else if (event.getName() == "HTC_Controller_Right_GripButton_Down" || event.getName() == "HTC_Controller_1_GripButton_Down" || event.getName() == "B08_Down")
     {
-      // m_show_menu = !m_show_menu;
+      
       if (m_vrVolumeApp)
       {
         m_vrVolumeApp->enable_ui_menu();
@@ -367,7 +363,6 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event)
   }
   // This routine is called for all Button_Up events.  Check event->getName()
   // to see exactly which button has been released.
-  // std::cerr << "onButtonUp " << event.getName() << std::endl;
   if (event.getName() == "HTC_Controller_Right_Axis1Button_Up" || event.getName() == "HTC_Controller_1_Axis1Button_Up" || event.getName() == "B10_Up")
   {
 
@@ -376,7 +371,6 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event)
       m_vrVolumeApp->enable_grab(false);
     }
   }
-  // else if (event.getName() == "HTC_Controller_Right_AButton_Up" || event.getName() == "HTC_Controller_1_AButton_Up")
   else if (event.getName() == "HTC_Controller_Right_Axis0Button_Up" || event.getName() == "HTC_Controller_1_Axis0Button_Up" || event.getName() == "Wand_Right_Btn_Up")
   {
 
