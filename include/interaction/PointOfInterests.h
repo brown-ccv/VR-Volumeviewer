@@ -1,5 +1,5 @@
-#ifndef PointOfInterest_H
-#define PointOfInterest_H
+#ifndef POINTOFINTEREST_H
+#define POINTOFINTEREST_H
 
 #include <glm/glm.hpp>
 #include <string>
@@ -28,7 +28,7 @@ public :
   //The orbit camera is constrained to move around a centered point ("target"). 
   //The camera position is calculated as a linear combination between the center object 
   //and the radius of the virtual sphere that surrounds it. 
-  //This is not equals to the view matrix eye position determined by the homogeneous coordinate (4th column)
+  //This is not equal to the view matrix eye position determined by the homogeneous coordinate (4th column)
   
   glm::vec3 get_camera_position()
   {

@@ -160,13 +160,13 @@ private:
   void open_save_modal_dialog(std::string &id, bool &window_state,
                               std::function<void(std::ofstream &)> save_function, std::string &extension);
 
-  void add_trans_function();
+  void add_transfer_function();
 
-  void save_trans_functions(std::ofstream &saveFile);
+  void save_transfer_functions(std::ofstream &saveFile);
 
   void save_user_session(std::ofstream &saveFile);
 
-  void load_trans_functions(std::ifstream &loadPath);
+  void load_transfer_functions(std::ifstream &loadPath);
 
   void load_user_session(std::string filePath);
 

@@ -14,6 +14,15 @@ enum ANIMATION_STATE
   PAUSE
 };
 
+/*
+  SimulationState represents a frame in the simulation/animation
+  where the camera is set on a postion P, pointing on direction of a target T,
+  and min/max are set on a X-Y value.
+  the animation change SimulationStates by interpolating between the mentioned values.
+*/
+
+#define SIMULATION_TIME_STEP 30.0
+
 struct SimulationState
 {
   SimulationState(){};
@@ -40,15 +49,15 @@ public:
 
   void add_simulation_state(SimulationState &simulationState);
 
-  void create_animations();
+  void create_simulation_time_frames();
   void update_simulation();
 
   void set_animation_state();
 
   ANIMATION_STATE get_animation_state();
   std::string get_camera_animation_state();
-  float get_camera_animation_duration();
-  void set_camera_animation_duration(float duration);
+  float get_simulation_duration();
+  void set_simulation_duration(float duration);
 
   const std::list<SimulationState> &get_simulation_states();
 
@@ -64,7 +73,7 @@ private:
   void update_time_step();
 
   ch::Timeline m_timeline;
-  float m_animation_duration;
+  float m_simulation_duration;
 
   std::list<SimulationState> m_simulation_states;
 

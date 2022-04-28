@@ -53,7 +53,7 @@ VRVolumeApp::VRVolumeApp() : m_mesh_model(nullptr), m_clip_max{1.0f}, m_clip_min
                              m_lookingGlass(false), m_isInitailized(false), m_speed(0.01f), m_movieAction(nullptr), m_moviename("movie.mp4"), m_noColor(0.0f),
                              m_ambient(0.2f, 0.2f, 0.2f, 1.0f), m_diffuse(0.5f, 0.5f, 0.5f, 1.0f), m_ui_view(nullptr), m_animated(false), m_numVolumes(0), m_selectedVolume(0),
                              m_multiplier(1.0f), m_threshold(0.0f), m_frame(0.0f), m_use_multi_transfer(false), m_clipping(false), m_show_menu(true),
-                             m_window_properties(nullptr), m_animation_speed(1.0f), m_current_movie_state(MOVIE_STOP), m_app_mode(MANUAL), m_end_load(false)
+                             m_window_properties(nullptr), m_volume_animation_scale_factor(1.0f), m_current_movie_state(MOVIE_STOP), m_app_mode(MANUAL), m_end_load(false)
 {
   m_renders.push_back(new VolumeSliceRenderer());
   m_renders.push_back(new VolumeRaycastRenderer());
@@ -146,14 +146,14 @@ void VRVolumeApp::load_shaders()
   std::string vertexShaderFolderPath = m_shader_file_path + OS_SLASH + std::string("shader.vert");
   std::string fragmentShaderFolderPath = m_shader_file_path + OS_SLASH + std::string("shader.frag");
   m_simple_texture_shader.LoadShaders(vertexShaderFolderPath.c_str(), fragmentShaderFolderPath.c_str());
-  m_simple_texture_shader.addUniform("p");
-  m_simple_texture_shader.addUniform("mv");
+  m_simple_texture_shader.addUniform("projection_matrix");
+  m_simple_texture_shader.addUniform("model_view_matrix");
 
   std::string linesVertexShaderFolderPath = m_shader_file_path + OS_SLASH + std::string("lines_shader.vert");
   std::string linesFragmentShaderFolderPath = m_shader_file_path + OS_SLASH + std::string("lines_shader.frag");
   m_line_shader.LoadShaders(linesVertexShaderFolderPath.c_str(), linesFragmentShaderFolderPath.c_str());
-  m_line_shader.addUniform("p");
-  m_line_shader.addUniform("mv");
+  m_line_shader.addUniform("projection_matrix");
+  m_line_shader.addUniform("model_view_matrix");
 }
 
 void VRVolumeApp::initialize_textures()
@@ -189,7 +189,7 @@ void VRVolumeApp::update_animation(float fps)
   {
     if (m_volumes.size())
     {
-      // m_animation_speed = fps;
+      // m_volume_animation_multiplier = fps;
       m_ui_view->update_animation(m_speed, m_volumes[m_selectedVolume].size() - 1);
     }
   }
@@ -529,7 +529,7 @@ void VRVolumeApp::load_nrrd_file(std::string &filename)
   }
 }
 
-void VRVolumeApp::render(const MinVR::VRGraphicsState &renderState)
+void VRVolumeApp::render(const MinVR::VRGraphicsState &render_state)
 {
   m_trackball.set_app_mode(m_app_mode);
   if (m_app_mode == SIMULATION)
@@ -546,7 +546,7 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState &renderState)
 
   if (m_is2d)
   {
-    m_headpose = glm::make_mat4(renderState.getViewMatrix());
+    m_headpose = glm::make_mat4(render_state.getViewMatrix());
     m_headpose = glm::inverse(m_headpose);
   }
 
@@ -554,14 +554,14 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState &renderState)
   glClearDepth(1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  if (renderState.isInitialRenderCall())
+  if (render_state.isInitialRenderCall())
   {
     m_depthTextures.push_back(new DepthTexture);
   }
 
   // setup projection
-  m_projection_mtrx = glm::make_mat4(renderState.getProjectionMatrix());
-  m_model_view = glm::make_mat4(renderState.getViewMatrix());
+  m_projection_mtrx = glm::make_mat4(render_state.getProjectionMatrix());
+  m_model_view = glm::make_mat4(render_state.getViewMatrix());
 
   // overwrite MV for 2D viewing
   if (m_is2d)
@@ -646,24 +646,18 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState &renderState)
   if (m_mesh_model)
   {
     m_simple_texture_shader.start();
-    m_simple_texture_shader.setUniform("p", m_projection_mtrx);
+    m_simple_texture_shader.setUniform("projection_matrix", m_projection_mtrx);
     m_mesh_model->render(m_simple_texture_shader);
     m_simple_texture_shader.stop();
   }
 
   // render labels
   m_line_shader.start();
-  m_line_shader.setUniform("p", m_projection_mtrx);
-  m_line_shader.setUniform("mv", volume_mv);
-  render_labels(volume_mv, renderState);
+  m_line_shader.setUniform("projection_matrix", m_projection_mtrx);
+  m_line_shader.setUniform("model_view_matrix", volume_mv);
+  render_labels(volume_mv, render_state);
   m_line_shader.stop();
 
-  /*if (m_ui_view && !m_is2d)
-  {
-
-    glm::mat4 viewMatrix = glm::make_mat4(renderState.getViewMatrix());
-    m_ui_view->render_3D(viewMatrix);
-  }*/
 
   m_depthTextures[m_rendercount]->copyDepthbuffer();
   (static_cast<VolumeRaycastRenderer *>(m_renders[1]))->setDepthTexture(m_depthTextures[m_rendercount]);
@@ -686,9 +680,9 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState &renderState)
     }
   }
 
-  render_volume(renderState);
+  render_volume(render_state);
 
-  render_ui(renderState);
+  render_ui(render_state);
 
   glFlush();
 
@@ -874,7 +868,7 @@ void VRVolumeApp::update_frame_state()
   glLightfv(GL_LIGHT0, GL_POSITION, m_light_pos);
   if (m_animated && !m_ui_view->is_stopped())
   {
-    m_frame += (m_speed * m_animation_speed);
+    m_frame += (m_speed * m_volume_animation_scale_factor);
     if (m_frame > m_volumes[m_selectedVolume].size() - 1)
     {
       m_frame = 0.0;
@@ -1140,9 +1134,9 @@ ArcBallCamera &VRVolumeApp::get_trackball_camera()
   return m_trackball;
 }
 
-void VRVolumeApp::set_animation_speed(float time)
+void VRVolumeApp::set_volume_animation_scale_factor(float scale)
 {
-  m_animation_speed = time;
+  m_volume_animation_scale_factor = scale;
 }
 
 Simulation &VRVolumeApp::get_simulation()

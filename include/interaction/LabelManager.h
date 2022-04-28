@@ -36,7 +36,7 @@ class Texture;
 class VRVolumeApp;
 class ShaderProgram;
 
-struct LabelBillboard
+struct BillboardLabel
 {
   unsigned int line_vba;
   Texture *label_texture;
@@ -44,15 +44,15 @@ struct LabelBillboard
   glm::vec3 position;
 };
 
-class Labels
+class LabelManager
 {
 public:
-  Labels(ShaderProgram &lines_shader, ShaderProgram &plane_shader);
-  ~Labels();
+  LabelManager(ShaderProgram &lines_shader, ShaderProgram &plane_shader);
+  ~LabelManager();
 
-  void add(std::string texture, float x, float y, float z, float textPosZ, float size, int volume);
-  void drawLabels(glm::mat4 MV, glm::mat4 projection_matrix, glm::mat4 &headpose, float z_scale);
-  void drawLines();
+  void add_label(std::string texture, float x, float y, float z, float textPosZ, float size, int volume);
+  void draw_labels(glm::mat4 MV, glm::mat4 projection_matrix, glm::mat4 &headpose, float z_scale);
+  void draw_lines();
 
   void clear();
   void set_parent_directory(std::string &directory);
@@ -60,7 +60,7 @@ public:
 private:
   unsigned int create_line_vba(glm::vec3 &start, glm::vec3 &end);
 
-  std::vector<LabelBillboard> m_billboard_labels;
+  std::vector<BillboardLabel> m_billboard_labels;
 
   std::vector<std::string> m_text;
   std::vector<glm::vec3> m_position;

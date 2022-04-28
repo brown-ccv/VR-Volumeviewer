@@ -36,7 +36,7 @@ void Model::setTexture(Texture *val)
 
 void Model::render(ShaderProgram &shaderProgram)
 {
-	shaderProgram.setUniform("mv", m_model_view_mtrx);
+	shaderProgram.setUniform("model_view_matrix", m_model_view_mtrx);
 
 	assert(m_Obj_Model && "NO MODEL TO RENDER");
 	// bind texture

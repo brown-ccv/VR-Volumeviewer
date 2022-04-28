@@ -24,7 +24,6 @@
 ///\author Benjamin Knorlein
 ///\date 5/24/2019
 
-#pragma once
 
 #ifndef VOLUMERENDER_H
 #define VOLUMERENDER_H
@@ -43,23 +42,23 @@ public:
 
 	virtual void set_threshold(float threshold) = 0;
 	virtual void set_multiplier(float multiplier) = 0;
-	virtual void set_numSlices(int slices) = 0;
+	virtual void set_num_slices(int slices) = 0;
 
 	virtual void set_blending(bool useBlending, float alpha, Volume *volume) = 0;
 	virtual void useMultichannelColormap(bool useMulti) = 0;
 
-	virtual void setClipMinMax(glm::vec3 min_clip, glm::vec3 max_clip) = 0;
+	virtual void set_clip_min_max(glm::vec3 min_clip, glm::vec3 max_clip) = 0;
 
-	void setClipping(bool isClipping, glm::mat4 *clipPlane)
+	void set_clipping_plane(bool isClipping, glm::mat4 *clipPlane)
 	{
 		m_clipping = isClipping;
 		if (m_clipping)
-			m_clipPlane = *clipPlane;
+			m_clip_plane = *clipPlane;
 	};
 
 protected:
 	bool m_clipping;
-	glm::mat4 m_clipPlane;
+	glm::mat4 m_clip_plane;
 };
 
 #endif // VOLUMERENDER_H

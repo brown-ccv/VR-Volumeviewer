@@ -297,7 +297,7 @@ void UIView::draw_ui_callback()
           if (m_use_transferfunction)
           {
             std::string extension = ".fnc";
-            auto save_funtion = std::bind(&UIView::save_trans_functions, this, std::placeholders::_1);
+            auto save_funtion = std::bind(&UIView::save_transfer_functions, this, std::placeholders::_1);
             open_save_modal_dialog(save_Trnf_window_id, m_save_trnfct_open, save_funtion, extension);
           }
           else
@@ -461,7 +461,7 @@ void UIView::draw_ui_callback()
           {
             m_animation_speed = 1.0f;
           }
-          m_controller_app.set_animation_speed(m_animation_speed);
+          m_controller_app.set_volume_animation_scale_factor(m_animation_speed);
         }
 
 #if (!defined(__APPLE__))
@@ -763,7 +763,7 @@ void UIView::draw_ui_callback()
         ImGui::InputText("##textanimationtime", &m_animation_duration_to_string, ImGuiInputTextFlags_CharsDecimal);
         if (ImGui::Button("Ok"))
         {
-          m_controller_app.get_simulation().set_camera_animation_duration(std::stof(m_animation_duration_to_string));
+          m_controller_app.get_simulation().set_simulation_duration(std::stof(m_animation_duration_to_string));
           m_animation_duration_to_string.clear();
           m_camera_animation_duration_open = false;
           ImGui::CloseCurrentPopup();
@@ -857,7 +857,7 @@ void UIView::draw_ui_callback()
           m_tfns.clear();
           std::string filePath = fileDialogLoadTrnsFnc.selected_path;
           std::ifstream fileToLoad(filePath);
-          load_trans_functions(fileToLoad);
+          load_transfer_functions(fileToLoad);
           m_trnfnc_table_selection = 0;
           m_current_load_modal = LOAD_NONE;
         }
@@ -1306,11 +1306,11 @@ void UIView::open_save_modal_dialog(std::string &id, bool &window_state,
   }
 }
 
-void UIView::add_trans_function()
+void UIView::add_transfer_function()
 {
 }
 
-void UIView::save_trans_functions(std::ofstream &saveFile)
+void UIView::save_transfer_functions(std::ofstream &saveFile)
 {
   std::string pointsLine;
   if (saveFile.is_open())
@@ -1389,14 +1389,14 @@ void UIView::save_user_session(std::ofstream &savefile)
     {
       savefile << "Trnfncs"
                << "\n";
-      save_trans_functions(savefile);
+      save_transfer_functions(savefile);
     }
 
     savefile.close();
   }
 }
 
-void UIView::load_trans_functions(std::ifstream &loadFile)
+void UIView::load_transfer_functions(std::ifstream &loadFile)
 {
   std::string line;
 
@@ -1564,7 +1564,7 @@ void UIView::load_user_session(std::string filePath)
       }
       else if (tag == "Trnfncs")
       {
-        load_trans_functions(loadFile);
+        load_transfer_functions(loadFile);
       }
       else if (tag == "POI")
       {

@@ -1,14 +1,14 @@
 #include "../include/interaction/Simulation.h"
 #include "../include/vrapp/VRVolumeApp.h"
 
-Simulation::Simulation(VRVolumeApp &controller_app, float time) : m_animation_duration(time), m_controller_app(controller_app),
+Simulation::Simulation(VRVolumeApp &controller_app, float time) : m_simulation_duration(time), m_controller_app(controller_app),
                                                                   animation_button_label("ANIMATE"), m_animation_state(STOP)
 {
 }
 
 void Simulation::add_simulation_state(SimulationState &simulationState)
 {
-  float time = m_simulation_states.size() * m_animation_duration;
+  float time = m_simulation_states.size() * m_simulation_duration;
 
   int mins = (int)time / 60;
   int seconds = (int)time % 60;
@@ -17,7 +17,7 @@ void Simulation::add_simulation_state(SimulationState &simulationState)
   m_simulation_states.push_back(simulationState);
 }
 
-void Simulation::create_animations()
+void Simulation::create_simulation_time_frames()
 {
   if (m_simulation_states.size() > 1)
   {
@@ -29,14 +29,14 @@ void Simulation::create_animations()
     ch::Sequence<glm::vec3> sequence_clip_max(first_position.max_clip);
     ch::Sequence<glm::vec3> sequence_clip_min(first_position.min_clip);
 
-    for (auto iterator = std::next(m_simulation_states.begin()); iterator != m_simulation_states.end(); iterator++)
+    for (auto iterator = std::next(m_simulation_states.begin()); iterator != m_simulation_states.end(); ++iterator)
     {
-      sequence_eye.then<ch::RampTo>(iterator->poi.eye, m_animation_duration);
-      sequence_target.then<ch::RampTo>(iterator->poi.target, m_animation_duration);
-      sequence_up.then<ch::RampTo>(iterator->poi.up, m_animation_duration);
-      sequence_radius.then<ch::RampTo>(iterator->poi.radius, m_animation_duration);
-      sequence_clip_max.then<ch::RampTo>(iterator->max_clip, m_animation_duration);
-      sequence_clip_min.then<ch::RampTo>(iterator->min_clip, m_animation_duration);
+      sequence_eye.then<ch::RampTo>(iterator->poi.eye, m_simulation_duration);
+      sequence_target.then<ch::RampTo>(iterator->poi.target, m_simulation_duration);
+      sequence_up.then<ch::RampTo>(iterator->poi.up, m_simulation_duration);
+      sequence_radius.then<ch::RampTo>(iterator->poi.radius, m_simulation_duration);
+      sequence_clip_max.then<ch::RampTo>(iterator->max_clip, m_simulation_duration);
+      sequence_clip_min.then<ch::RampTo>(iterator->min_clip, m_simulation_duration);
     }
 
     auto group = std::make_shared<ch::Timeline>();
@@ -72,14 +72,14 @@ void Simulation::update_simulation()
 
 void Simulation::update_time_step()
 {
-  m_timeline.step(1.0 / 30.0);
+  m_timeline.step(1.0 / SIMULATION_TIME_STEP);
 }
 
 void Simulation::set_animation_state()
 {
   if (m_animation_state == STOP)
   {
-    create_animations();
+    create_simulation_time_frames();
     m_controller_app.set_app_mode(SIMULATION);
     m_animation_state = PLAYING;
     animation_button_label = "PAUSE";
@@ -129,14 +129,14 @@ std::string Simulation::get_camera_animation_state()
   return animation_button_label;
 }
 
-float Simulation::get_camera_animation_duration()
+float Simulation::get_simulation_duration()
 {
-  return m_animation_duration;
+  return m_simulation_duration;
 }
 
-void Simulation::set_camera_animation_duration(float duration)
+void Simulation::set_simulation_duration(float duration)
 {
-  m_animation_duration = duration;
+  m_simulation_duration = duration;
 }
 
 const std::list<SimulationState> &Simulation::get_simulation_states()
@@ -179,5 +179,5 @@ void Simulation::remove_simulation_state(unsigned int index)
 
 float Simulation::get_animation_duration()
 {
-  return m_animation_duration;
+  return m_simulation_duration;
 }

@@ -22,7 +22,7 @@ class Window_Properties;
 class Model;
 class Texture;
 class Simulation;
-class Labels;
+class LabelManager;
 
 enum MOVIESTATE
 {
@@ -172,7 +172,11 @@ public:
 
   ArcBallCamera& get_trackball_camera();
 
-  void set_animation_speed(float time);
+  /*
+    increase/decrease the step size of the volume animation by a `scale` factor.
+    It is a step unit, not related to any time unit. 
+  */
+  void set_volume_animation_scale_factor(float scale);
 
   Simulation& get_simulation();
 
@@ -210,7 +214,7 @@ protected:
 
   std::vector < std::vector< Volume* >> m_volumes;
   std::vector<std::string> m_description;
-  Labels* m_labels;
+  LabelManager* m_labels;
   std::vector <std::string> m_models_filenames;
   std::vector <unsigned int> m_models_displayLists;
   std::vector<pt> m_models_position;
@@ -239,7 +243,7 @@ protected:
   bool m_animated;
   float m_threshold;
   int m_descriptionHeight;
-  float m_animation_speed;
+  float m_volume_animation_scale_factor;
   
   float m_frame;
   float m_speed;

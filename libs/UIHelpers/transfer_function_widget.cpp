@@ -441,10 +441,10 @@ void TransferFunctionWidget::draw_legend(float legend_pos_x, float legend_pos_y,
   ImGui::Begin("##legend", &show_legend, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
   ImGuiIO &io = ImGui::GetIO();
   ImTextureID my_tex_id = io.Fonts->TexID;
-  float my_tex_w = (float)io.Fonts->TexWidth;
-  float my_tex_h = (float)io.Fonts->TexHeight;
+  float texture_width = (float)io.Fonts->TexWidth;
+  float texture_height = (float)io.Fonts->TexHeight;
   std::string max_str = std::to_string(m_min_max_val[1]);
-  float offset = 0.008 * (my_tex_w * max_str.size());
+  float offset = 0.008 * (texture_width * max_str.size());
   ImGui::Image(reinterpret_cast<void *>(colormap_img), ImVec2(legend_width, 16));
   ImGui::Text("%.0f", m_min_max_val[0]);
   ImGui::SameLine((legend_width / 2));

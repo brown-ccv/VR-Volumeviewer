@@ -219,7 +219,7 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event)
   {
     // This routine is called for all Button_Down events.  Check event->getName()
     // to see exactly which button has been pressed down.
-    
+
     if (event.getName() == "KbdEsc_Down")
     {
       exit(0);
@@ -233,17 +233,15 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event)
     }
     else if (event.getName() == "HTC_Controller_Right_Axis0Button_Down" || event.getName() == "HTC_Controller_1_Axis0Button_Down" || event.getName() == "Wand_Right_Btn_Down")
     {
-    
+
       if (m_vrVolumeApp)
       {
         m_vrVolumeApp->enable_clipping(true);
       }
-
-    
     }
     else if (event.getName() == "HTC_Controller_Right_GripButton_Down" || event.getName() == "HTC_Controller_1_GripButton_Down" || event.getName() == "B08_Down")
     {
-      
+
       if (m_vrVolumeApp)
       {
         m_vrVolumeApp->enable_ui_menu();
@@ -426,7 +424,6 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event)
 
   if (event.getName() == "KbdSpace_Up")
   {
-    // m_renderVolume = !m_renderVolume;
     if (m_vrVolumeApp)
     {
       m_vrVolumeApp->enable_render_volume();
@@ -466,7 +463,7 @@ void VolumeVisualizationApp::onTrackerMove(const VRTrackerEvent &event)
     {
       m_vrVolumeApp->update_head_pose(headPose);
     }
-    // m_headpose = glm::inverse(m_headpose);
+
     m_light_pos[0] = headPose[3][0];
     m_light_pos[1] = headPose[3][1];
     m_light_pos[2] = headPose[3][2];
@@ -540,7 +537,6 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
     glDepthFunc(GL_LEQUAL);
     glClearColor(0.0, 0.0, 0.0, 1);
     std::cout << "init vizapp end" << std::endl;
-    const float duration = 10.5f;
   }
 
   if (m_vrVolumeApp)
@@ -554,16 +550,11 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
     m_vrVolumeApp->update_3D_ui();
     m_vrVolumeApp->update_trackBall_state();
 
-    if (true)
-    {
-      m_vrVolumeApp->update_animation(delta_time.count());
-      last_Update_Time = nowTime;
-    }
+    m_vrVolumeApp->update_animation(delta_time.count());
+    last_Update_Time = nowTime;
 
     m_vrVolumeApp->set_render_count(0);
   }
-
-  // std::cout << "init vizapp loop" << std::endl;
 }
 
 void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &renderState)

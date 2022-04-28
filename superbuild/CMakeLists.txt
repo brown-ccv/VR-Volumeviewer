@@ -566,7 +566,7 @@ endif()
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/glm.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/FrameBufferObject.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/DepthTexture.cpp
- ${CMAKE_CURRENT_BINARY_DIR}/../src/interaction/Labels.cpp
+ ${CMAKE_CURRENT_BINARY_DIR}/../src/interaction/LabelManager.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/FontHandler.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/transfer_function_widget.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/transfer_function_multichannel_widget.cpp
@@ -594,7 +594,7 @@ set(header_files
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/glm.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/FrameBufferObject.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/DepthTexture.h
- ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/Labels.h
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/LabelManager.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/FontHandler.h
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/transfer_function_widget.h
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/transfer_function_multichannel_widget.h
