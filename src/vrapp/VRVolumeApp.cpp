@@ -67,11 +67,9 @@ m_global_min(std::numeric_limits<float>::max()), m_global_max(std::numeric_limit
 
 VRVolumeApp::~VRVolumeApp()
 {
-  if (m_ui_view)
-  {
-    delete m_ui_view;
-  }
-
+  std::cerr << "~VRVolumeApp  1" << std::endl;
+  
+  std::cerr << "~VRVolumeApp  2" << std::endl;
   for (int i = 0; i < m_volumes.size(); i++) {
     std::vector< Volume* > v = m_volumes[i];
     for (int j = 0; j < v.size(); j++)
@@ -82,12 +80,16 @@ VRVolumeApp::~VRVolumeApp()
   }
   m_volumes.clear();
 
-  delete m_window_properties;
-
-  for (Mesh* mesh : get_mesh_models())
+  for (Mesh* mesh : m_mesh_models)
   {
     delete mesh;
   }
+  
+  if (m_ui_view)
+  {
+    delete m_ui_view;
+  }
+  delete m_window_properties;
 }
 
 
@@ -97,10 +99,10 @@ void VRVolumeApp::initialize()
 
   if (!m_isInitailized)
   {
-    // std::cout << "initialize  1" << std::endl;
+   
     m_object_pose = glm::mat4(1.0f);
     initialize_GL();
-    //   std::cout << "initialize  2" << std::endl;
+   
     if (!m_ui_view)
     {
       std::cout << "initialize UI " << std::endl;
@@ -340,25 +342,19 @@ void VRVolumeApp::set_mesh(int volume_id, std::string& mesh_file_path, std::stri
 
 }
 
-void VRVolumeApp::set_texture(std::string& fileNamePath)
-{
-  std::cerr << "Load texture " << fileNamePath << std::endl;
-  //m_texture = new Texture(GL_TEXTURE_2D, fileNamePath);
-}
-
 void VRVolumeApp::init_num_volumes(int nVolumes)
 {
+ 
   m_numVolumes = nVolumes;
-  //m_data_labels.resize(m_numVolumes);
   m_volumes.resize(m_numVolumes);
   m_promises.resize(m_numVolumes);
   m_futures.resize(m_numVolumes);
   m_threads.resize(m_numVolumes);
+ 
   if (m_ui_view)
   {
-
     m_ui_view->init_ui(m_is2d, m_lookingGlass);
-    m_ui_view->update_ui(m_numVolumes);
+    m_ui_view->update_ui(m_numVolumes); 
   }
 
 
@@ -607,8 +603,8 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
   for (int i = 0; i < m_volumes.size(); i++) {
     for (int j = 0; j < m_volumes[i].size(); j++) {
       
-      //glm::mat4 volume_matrix = m_view_matrix * m_object_pose * glm::scale(general_model_view, glm::vec3(1.0, 1.0, m_ui_view->get_z_scale()));
-      glm::mat4 volume_matrix = m_view_matrix * m_object_pose * glm::scale(general_model_view, glm::vec3(1.0, 1.0, m_volumes[i][j]->get_volume_scale().x/ m_volumes[i][j]->get_volume_scale().z));
+      glm::mat4 volume_matrix = m_view_matrix * m_object_pose * glm::scale(general_model_view, glm::vec3(1.0, 1.0, m_ui_view->get_z_scale()));
+      //glm::mat4 volume_matrix = m_view_matrix * m_object_pose * glm::scale(general_model_view, glm::vec3(1.0, 1.0, m_volumes[i][j]->get_volume_scale().x/ m_volumes[i][j]->get_volume_scale().z));
       if (!m_animated)
       {
         volume_matrix = glm::translate(volume_matrix, glm::vec3(m_volumes[i][j]->get_volume_position().x, m_volumes[i][j]->get_volume_position().y, m_volumes[i][j]->get_volume_position().z));

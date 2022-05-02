@@ -22,7 +22,7 @@
 #include <thread>
 
 UIView::UIView(VRVolumeApp& controllerApp) :m_controller_app(controllerApp), m_multiplier(1.0f), m_threshold(0.0f),
-m_z_scale(0.16f), m_scale{ 1.0f }, m_slices(56), m_dynamic_slices(false), m_renderVolume(true), m_selectedTrnFnc(0),
+m_z_scale(0.16f), m_scale{ 1.0f }, m_slices(0), m_dynamic_slices(false), m_renderVolume(true), m_selectedTrnFnc(0),
 m_animated(false), m_ui_frame_controller(0.0f), m_menu_handler(nullptr), m_initialized(false), m_use_transferfunction(false),
 m_clip_max(1.0), m_clip_min(0.0), m_clip_ypr(0.0), m_clip_pos(0.0), m_useCustomClipPlane(false), m_rendermethod(1), m_renderchannel(0),
 m_trnfnc_table_selection(-1), m_trn_fct_options_window(false), m_save_trnfct_open(false), m_trnfnct_counter(1), m_file_dialog_open(false),
@@ -36,16 +36,16 @@ m_time_info(""),m_day_info(""), m_time_frame_edited(false), m_show_movie_saved_p
 {
   m_ocean_color_maps_names = { "algae.png","amp.png","balance.png","curl.png","deep.png","delta.png","dense.png",
 "diff.png","gray.png","haline.png","ice.png","matter.png","oxy.png","phase.png","rain.png","solar.png","speed.png","tarn.png","tempo.png",
-"thermal.png","thermal2.png","topo.png","turbid.png" };
-  //m_ocean_color_maps_names = { "thermal2.png" };
+"thermal.png","topo.png","turbid.png" };
+  
   m_histogram_quantiles[0] = 0.05;
   m_histogram_quantiles[1] = 0.95;
 }
 
 UIView::~UIView()
 {
+  //TO DO: FIX Memory leak on this call
   delete m_menu_handler;
-
 }
 
 void UIView::draw_ui_callback()
@@ -95,7 +95,7 @@ void UIView::draw_ui_callback()
       ImGui::SliderFloat("scale", &m_scale, 0.001f, 5.0f, "%.3f");
       ImGui::SliderFloat("z - scale", &m_z_scale, 0.001f, 5.0f, "%.3f");
       ImGui::SliderInt("Slices", &m_slices, 10, 1024, "%d");
-      //ImGui::Checkbox("automatic slice adjustment", &m_dynamic_slices);
+      ImGui::Checkbox("automatic slice adjustment", &m_dynamic_slices);
       ImGui::Checkbox("Show Clock", &m_show_clock);
 
       ImGui::SameLine(ImGui::GetWindowSize().x * 0.5f, 0);
@@ -968,9 +968,10 @@ void UIView::draw_ui_callback()
 
 void UIView::init_ui(bool is2D, bool lookingGlass)
 {
-
+  std::cerr << "init_ui 1: "  << std::endl;
   if (!m_initialized)
   {
+    std::cerr << "init_ui 2: "  << std::endl;
     //fileDialog.SetTitle("load data");
 #ifdef WITH_NRRD
     fileDialog.SetTypeFilters({ ".txt", ".nrrd" });
@@ -987,15 +988,16 @@ void UIView::init_ui(bool is2D, bool lookingGlass)
     }
     std::cout << "is2d: " << (is2D ? "true" : "false") << std::endl;
     m_menu_handler = new VRMenuHandler(is2D);
+    std::cerr << "init_ui 3: " << std::endl;
     if (!m_menu_handler)
     {
-      std::cout << "m_menu_handler: " << "NULL" << std::endl;
+      std::cerr << "m_menu_handler: " << "NULL" << std::endl;
 
     }
     VRMenu* menu = m_menu_handler->addNewMenu(std::bind(&UIView::draw_ui_callback, this), 1024, 1024, 1, 1, fontsize);
     menu->setMenuPose(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 2, -1, 1));
     m_dir_to_save = m_controller_app.get_directory_path().c_str();
-
+    std::cerr << "init_ui 4: " << std::endl;
     for (int i = 0; i < MAX_COLUMS; ++i)
     {
       m_column_selected[i] = false;
@@ -1006,11 +1008,12 @@ void UIView::init_ui(bool is2D, bool lookingGlass)
 
   }
 
-
+  std::cerr << "init_ui end: " << std::endl;
 }
 
 void UIView::update_ui(int numVolumes)
 {
+  
   tfn_widget_multi.resize(1);
   tfn_widget.resize(1);
   m_use_transferfunction = true;
@@ -1020,10 +1023,11 @@ void UIView::update_ui(int numVolumes)
    {
      m_selected_volume_TrFn[0][i] = false;
    }
-
+  
   MyTransFerFunctions trfntc;
   char label[32];
   sprintf(label, "TF%d", m_trnfnct_counter++);
+  
   trfntc.ID = tfn_widget.size();
   trfntc.Name = label;
   for (int i = 0; i < numVolumes; i++)
@@ -1032,8 +1036,9 @@ void UIView::update_ui(int numVolumes)
   }
   m_tfns.push_back(trfntc);
   m_trnfnc_table_selection = 0;
-
+  
   load_ocean_color_maps();
+  
 }
 
 void UIView::render_2D(Window_Properties& window_properties)
@@ -1436,7 +1441,8 @@ void UIView::save_user_session(std::ofstream& savefile)
     savefile << "threshold " << std::to_string(m_threshold) << "\n";
     savefile << "scale " << std::to_string(m_scale) << "\n";
     savefile << "z-scale " << std::to_string(m_z_scale) << "\n";
-    savefile << "Slices " << std::to_string(m_slices) << "\n";
+    // this needs rework. It has nothing to do with slices, it is the ray step size.
+    //savefile << "Slices " << std::to_string(m_slices) << "\n";
     savefile << "automatic _slice adjustment " << std::to_string(m_dynamic_slices) << "\n";
     savefile << "RenderMethod " << std::to_string(m_rendermethod) << "\n";
     savefile << "Render_Channel " << std::to_string(m_renderchannel) << "\n";
@@ -1878,12 +1884,14 @@ void UIView::set_trns_fnct_min_max(float min, float max)
 
 void UIView::load_ocean_color_maps()
 {
+  
   int w, h, n;
   int comp;
 
   for (std::string color_map_name : m_ocean_color_maps_names)
   {
     std::string file_name_path = m_controller_app.get_directory_path() + OS_SLASH + m_color_map_directory + OS_SLASH + color_map_name;
+    std::cerr << "load_ocean_color_maps : " << file_name_path << std::endl;
     uint8_t* img_data = stbi_load(file_name_path.c_str(), &w, &h, &comp, 4);
     auto img = std::vector<uint8_t>(img_data, img_data + w * 1 * 4);
     stbi_image_free(img_data);

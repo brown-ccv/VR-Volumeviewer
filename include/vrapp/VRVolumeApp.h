@@ -145,8 +145,6 @@ public:
 
   void set_mesh(int volume_id, std::string& mesh_file_path, std::string& texture_file_path);
 
-  void set_texture(std::string& fileNamePath);
-
   void init_num_volumes(int);
 
   void add_data_label(std::string&);

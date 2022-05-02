@@ -83,38 +83,25 @@ void VRDataLoader::load_txt_file( VRVolumeApp& vrVolumeApp,  std::string& filena
           vrVolumeApp.set_mesh(stoi(vals[3]), mesh_file_full_path, texture_file_full_path);
 
         }
-        if (tag == "texture")
-        {
-
-          //std::cerr << "for Volume " << vals[2] << std::endl;
-          std::string fullPath = p_filename.directoryPath() + OS_SLASH + vals[1];
-          vrVolumeApp.set_texture(fullPath);
-
-
-        }
         if (tag == "numVolumes")
         {
-
+          std::cerr << "numVolumes " << vals[1] << std::endl;
           int numVolumes = std::stoi(vals[1]);
           vrVolumeApp.init_num_volumes(numVolumes);
           for (int i = 0; i < numVolumes; i++)
           {
             vrVolumeApp.add_data_label(vals[i + 2]);
           }
-
         }
         else if (tag.rfind("volume") == 0)
         {
           char str[3];
           int i;
-
+         
           std::string strVolumeIndex = tag.substr(6);
           size_t volumeIndex = std::stoi(strVolumeIndex);
 
-
           vals[1] = p_filename.directoryPath() + OS_SLASH + vals[1];
-
-
 
           std::vector<std::promise<Volume*>*>& v = vrVolumeApp.get_promise(volumeIndex);
           std::promise<Volume*>* pm = new std::promise<Volume*>();
