@@ -28,7 +28,7 @@ UIView::UIView(VRVolumeApp &controllerApp) : m_controller_app(controllerApp), m_
                                              m_current_load_modal(LOAD_NONE), m_file_extension_filter(".txt"), m_non_trns_functions_selected_modal(false),
                                              m_ui_background(false), m_column_selection_state(0), m_compute_new_histogram(true), m_histogram_point_1(0.0),
                                              m_histogram_point_2(1.1), m_stopped(false), m_color_map_directory("colormaps"), m_show_menu(true), m_camera_poi_table_selection(0),
-                                             m_camera_name_window_open(false), m_camera_button_action(BUTTON_ACTION::NONE), m_num_animation_frames(0), m_animation_speed(1.0f),
+                                             m_camera_name_window_open(false), m_camera_button_action(BUTTON_ACTION::NONE), m_num_animation_frames(0), m_animation_step(1.0f),
                                              m_camera_animation_duration_open(false), m_show_clock(false), m_clock_width(250), m_clock_height(200),
                                              m_time_info(""), m_day_info(""), m_time_frame_edited(false), m_show_movie_saved_pop_up(false)
 {
@@ -452,16 +452,16 @@ void UIView::draw_ui_callback()
           m_stopped = !m_stopped;
         }
         ImGui::SameLine();
-        int value = int(m_animation_speed * 100.0 + .5);
+        int value = int(m_animation_step * 100.0 + .5);
         std::string speed_text = ">>X " + std::to_string(value / 100);
         if (ImGui::Button(speed_text.c_str(), ImVec2(80, 0)))
         {
-          m_animation_speed += 0.5;
-          if (m_animation_speed > 4.0f)
+          m_animation_step += 0.5;
+          if (m_animation_step > 4.0f)
           {
-            m_animation_speed = 1.0f;
+            m_animation_step = 1.0f;
           }
-          m_controller_app.set_volume_animation_scale_factor(m_animation_speed);
+          m_controller_app.set_volume_animation_scale_factor(m_animation_step);
         }
 
 #if (!defined(__APPLE__))
@@ -654,7 +654,7 @@ void UIView::draw_ui_callback()
       if (ImGui::Button(str_animation_duration.c_str()))
       {
         m_camera_animation_duration_open = true;
-        m_animation_duration_to_string = std::string(str_animation_duration);
+        m_string_animation_duration = str_animation_duration;
       }
 
 #if (!defined(__APPLE__))
@@ -760,18 +760,18 @@ void UIView::draw_ui_callback()
       if (ImGui::BeginPopupModal("Animation Time", &m_camera_animation_duration_open))
       {
         ImGui::Text("Camera Name");
-        ImGui::InputText("##textanimationtime", &m_animation_duration_to_string, ImGuiInputTextFlags_CharsDecimal);
+        ImGui::InputText("##textanimationtime", &m_string_animation_duration, ImGuiInputTextFlags_CharsDecimal);
         if (ImGui::Button("Ok"))
         {
-          m_controller_app.get_simulation().set_simulation_duration(std::stof(m_animation_duration_to_string));
-          m_animation_duration_to_string.clear();
+          m_controller_app.get_simulation().set_simulation_duration(std::stof(m_string_animation_duration));
+          m_string_animation_duration.clear();
           m_camera_animation_duration_open = false;
           ImGui::CloseCurrentPopup();
         }
         if (ImGui::Button("Cancel"))
         {
           m_camera_animation_duration_open = false;
-          m_animation_duration_to_string.clear();
+          m_string_animation_duration.clear();
           ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
@@ -1229,7 +1229,7 @@ void UIView::add_character(char c)
     ImGui::ClearActiveID();
     if ((c >= '0' && c <= '9') || (c == '.'))
     {
-      m_animation_duration_to_string += c;
+      m_string_animation_duration += c;
     }
   }
 }
@@ -1262,10 +1262,10 @@ void UIView::remove_character()
 
   if (m_camera_animation_duration_open)
   {
-    if (!m_animation_duration_to_string.empty())
+    if (!m_string_animation_duration.empty())
     {
       ImGui::ClearActiveID();
-      m_animation_duration_to_string.pop_back();
+      m_string_animation_duration.pop_back();
     }
   }
 }

@@ -273,8 +273,8 @@ private:
 
   std::string m_color_map_directory;
 
-  float m_animation_speed;
-  std::string m_animation_duration_to_string;
+  float m_animation_step;
+  std::string m_string_animation_duration;
 
   bool m_camera_animation_duration_open;
 
