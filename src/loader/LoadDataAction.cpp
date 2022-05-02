@@ -113,93 +113,93 @@ LoadDataAction::LoadDataAction(std::string folder, float* res) : m_folder(folder
 //	cv::imwrite(last_dir->filename().string() + "_slices" + std::to_string(z_slices) + resolution + ".png", image_out, compression_params);
 //}
 
-//void equalizeHistogram(std::vector <cv::Mat>& images, unsigned short min_value) {
-//	if (images.empty())
-//	{
-//		return;
-//	}
-//	int total = 0;
-//	int n_bins = std::numeric_limits<unsigned short>::max() + 1;
-//	int max_val = std::numeric_limits<unsigned short>::max();
-//
-//	// Compute histogram
-//	std::vector<long long> hist(n_bins, 0);
-//	
-//	for (auto& im : images) {
-//		int nRows = im.rows;
-//		int nCols = im.cols;
-//
-//		if (im.isContinuous())
-//		{
-//			nCols *= nRows;
-//			nRows = 1;
-//		}
-//
-//		int i, j;
-//		unsigned short* p;
-//		for (i = 0; i < nRows; ++i)
-//		{
-//			p = im.ptr<unsigned short>(i);
-//			for (j = 0; j < nCols; ++j)
-//			{
-//				if (p[j] >= min_value) {
-//					hist[p[j]]++;
-//					total++;
-//				}
-//			}
-//		}
-//	}
-//	//std::cerr << "Total Pixel " << total << std::endl;
-//
-//	
-//	// Find first non-zero bin
-//	int i = 1;
-//	while (!hist[i]) ++i;
-//
-//	//std::cerr << "Minimum is" << i << std::endl;
-//	
-//	// Compute scale
-//	float scale = (n_bins - 1.f) / (total - hist[i]);
-//
-//	// Initialize lut
-//	std::vector<int> lut(n_bins, 0);
-//	i++;
-//
-//	int sum = 0;
-//	for (; i < hist.size(); ++i) {
-//		sum += hist[i];
-//		// the value is saturated in range [0, max_val]
-//		lut[i] = std::max(0, std::min(int(round(sum * scale)), max_val));
-//	}
-//
-//
-//	for (auto& im : images) {
-//		int nRows = im.rows;
-//		int nCols = im.cols;
-//
-//		if (im.isContinuous())
-//		{
-//			nCols *= nRows;
-//			nRows = 1;
-//		}
-//
-//		int i, j;
-//		unsigned short* p;
-//		for (i = 0; i < nRows; ++i)
-//		{
-//			p = im.ptr<unsigned short>(i);
-//			for (j = 0; j < nCols; ++j)
-//			{
-//				if (p[j] >= min_value) {
-//					p[j] = lut[p[j]];
-//				}else
-//				{
-//					p[j] = 0;
-//				}
-//			}
-//		}
-//	}
-//}
+void equalizeHistogram(std::vector <cv::Mat>& images, unsigned short min_value) {
+	if (images.empty())
+	{
+		return;
+	}
+	int total = 0;
+	int n_bins = std::numeric_limits<unsigned short>::max() + 1;
+	int max_val = std::numeric_limits<unsigned short>::max();
+
+	// Compute histogram
+	std::vector<long long> hist(n_bins, 0);
+	
+	for (auto& im : images) {
+		int nRows = im.rows;
+		int nCols = im.cols;
+
+		if (im.isContinuous())
+		{
+			nCols *= nRows;
+			nRows = 1;
+		}
+
+		int i, j;
+		unsigned short* p;
+		for (i = 0; i < nRows; ++i)
+		{
+			p = im.ptr<unsigned short>(i);
+			for (j = 0; j < nCols; ++j)
+			{
+				if (p[j] >= min_value) {
+					hist[p[j]]++;
+					total++;
+				}
+			}
+		}
+	}
+	//std::cerr << "Total Pixel " << total << std::endl;
+
+	
+	// Find first non-zero bin
+	int i = 1;
+	while (!hist[i]) ++i;
+
+	//std::cerr << "Minimum is" << i << std::endl;
+	
+	// Compute scale
+	float scale = (n_bins - 1.f) / (total - hist[i]);
+
+	// Initialize lut
+	std::vector<int> lut(n_bins, 0);
+	i++;
+
+	int sum = 0;
+	for (; i < hist.size(); ++i) {
+		sum += hist[i];
+		// the value is saturated in range [0, max_val]
+		lut[i] = std::max(0, std::min(int(round(sum * scale)), max_val));
+	}
+
+
+	for (auto& im : images) {
+		int nRows = im.rows;
+		int nCols = im.cols;
+
+		if (im.isContinuous())
+		{
+			nCols *= nRows;
+			nRows = 1;
+		}
+
+		int i, j;
+		unsigned short* p;
+		for (i = 0; i < nRows; ++i)
+		{
+			p = im.ptr<unsigned short>(i);
+			for (j = 0; j < nCols; ++j)
+			{
+				if (p[j] >= min_value) {
+					p[j] = lut[p[j]];
+				}else
+				{
+					p[j] = 0;
+				}
+			}
+		}
+	}
+}
 
 
 Volume* LoadDataAction::run(bool convert)
@@ -259,12 +259,12 @@ Volume* LoadDataAction::run(bool convert)
 
     //needs adjustement of min and max value
     //for now disabled
-    //if ( !image_r.empty() ) 
-    //	equalizeHistogram(image_r, 15 * 256);
-    //if (!image_g.empty())
-    //	equalizeHistogram(image_g, 15 * 256);
-    //if (!image_b.empty())
-    //	equalizeHistogram(image_b, 15 * 256);
+   /* if (!image_r.empty())
+      equalizeHistogram(image_r, 15 * 256);
+    if (!image_g.empty())
+      equalizeHistogram(image_g, 15 * 256);
+    if (!image_b.empty())
+      equalizeHistogram(image_b, 15 * 256);*/
 
     if (!image_r.empty() || !image_g.empty() || !image_b.empty())
     {

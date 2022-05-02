@@ -11,7 +11,8 @@
 #include "render/FontHandler.h"
 #include "interaction/CreateMovieAction.h"
 #include "interaction/Simulation.h"
-#include "interaction/Labels.h"
+#include "interaction/LabelsManager.h"
+#include "render/Mesh.h"
 
 #ifdef _WIN32
 #include "GL/glew.h"
@@ -45,16 +46,18 @@
 #include <algorithm>
 
 #include <glm/gtx/euler_angles.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 
 #include "Model.h"
 #include "Texture.h"
 
 
-VRVolumeApp::VRVolumeApp() :m_mesh_model(nullptr), m_clip_max{ 1.0f }, m_clip_min{ 0.0f }, m_clip_ypr{ 0.0f }, m_clip_pos{ 0.0 }, m_wasd_pressed(0),
+VRVolumeApp::VRVolumeApp() : m_clip_max{ 1.0f }, m_clip_min{ 0.0f }, m_clip_ypr{ 0.0f }, m_clip_pos{ 0.0 }, m_wasd_pressed(0),
 m_lookingGlass(false), m_isInitailized(false), m_speed(0.01f), m_movieAction(nullptr), m_moviename("movie.mp4"), m_noColor(0.0f),
 m_ambient(0.2f, 0.2f, 0.2f, 1.0f), m_diffuse(0.5f, 0.5f, 0.5f, 1.0f), m_ui_view(nullptr), m_animated(false), m_numVolumes(0), m_selectedVolume(0),
 m_multiplier(1.0f), m_threshold(0.0f), m_frame(0.0f), m_use_multi_transfer(false), m_clipping(false), m_show_menu(true),
-m_window_properties(nullptr), m_animation_speed(1.0f), m_current_movie_state(MOVIE_STOP), m_app_mode(MANUAL), m_end_load(false)
+m_window_properties(nullptr), m_animation_speed(1.0f), m_current_movie_state(MOVIE_STOP), m_app_mode(MANUAL), m_end_load(false),
+m_global_min(std::numeric_limits<float>::max()), m_global_max(std::numeric_limits<float>::min())
 {
   m_renders.push_back(new VolumeSliceRenderer());
   m_renders.push_back(new VolumeRaycastRenderer());
@@ -80,6 +83,11 @@ VRVolumeApp::~VRVolumeApp()
   m_volumes.clear();
 
   delete m_window_properties;
+
+  for (Mesh* mesh : get_mesh_models())
+  {
+    delete mesh;
+  }
 }
 
 
@@ -101,8 +109,8 @@ void VRVolumeApp::initialize()
     }
     m_window_properties = new Window_Properties();
     m_simulation = new Simulation(*this);
-    m_labels = new Labels(m_line_shader, m_simple_texture_shader);
-    m_labels->set_parent_directory(get_directory_path());
+    m_label_manager = new LabelsManager(*this,m_line_shader, m_simple_texture_shader);
+    m_label_manager->set_parent_directory(get_directory_path());
 
     
     m_isInitailized = true;
@@ -137,21 +145,17 @@ void VRVolumeApp::initialize_GL()
 
 
 
-void VRVolumeApp::load_mesh_model()
+void VRVolumeApp::load_mesh_models()
 {
-  for (std::string filename : m_models_filenames) {
+  for (MeshData mesh_data: m_mesh_models_data) {
 
-    m_mesh_model = GLMLoader::loadObjModel(filename);
-
-
-    if (m_texture)
-    {
-      m_mesh_model->setTexture(m_texture);
-    }
-
-
+    Model* mesh_model = GLMLoader::loadObjModel(mesh_data.mesh_file_path);
+    Texture* texture = new Texture(GL_TEXTURE_2D, mesh_data.texture_file_path);
+    mesh_model->setTexture(texture);
+    Mesh* mesh = new Mesh(mesh_model, mesh_data.volume_id);
+    get_mesh_models().push_back(mesh);
   }
-  m_models_filenames.clear();
+  m_mesh_models_data.clear();
 }
 
 void VRVolumeApp::load_shaders()
@@ -188,7 +192,7 @@ void VRVolumeApp::initialize_textures()
 
 bool VRVolumeApp::pending_models_to_load()
 {
-  return m_models_filenames.size() > 0;
+  return m_mesh_models_data.size() > 0;
 }
 
 void VRVolumeApp::update_trackBall_state()
@@ -309,11 +313,11 @@ void VRVolumeApp::set_threshold(float threshold)
   m_threshold = threshold;
 }
 
-void VRVolumeApp::add_label(std::string& text, float x, float y, float z, float textPosZ, float size, int volume)
+void VRVolumeApp::add_label(std::string& text, float x, float y, float z, float textPosZ, float size, float offet, int volume)
 {
-  if (m_labels)
+  if (m_label_manager)
   {
-    m_labels->add(text, x, y, z, textPosZ, size, volume);
+    m_label_manager->add(text, x, y, z, textPosZ, size, offet, volume);
   }
 }
 
@@ -325,20 +329,21 @@ void VRVolumeApp::set_description(int descriptionHeight, std::string& descriptio
   // std::cerr << m_description[0] << std::endl;
 }
 
-void VRVolumeApp::set_mesh(int volumeId, std::string& fileName, std::string& shaderFilePath)
+void VRVolumeApp::set_mesh(int volume_id, std::string& mesh_file_path, std::string& texture_file_path)
 {
 
-  m_models_volumeID.push_back(volumeId - 1);
-  m_models_filenames.push_back(fileName);
+  //m_models_volumeID.push_back(volume_id - 1);
+  MeshData mesh_data= { volume_id - 1,  mesh_file_path , texture_file_path   } ;
+  m_mesh_models_data.push_back(mesh_data);
   m_models_MV.push_back(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
-  m_shader_file_path = shaderFilePath;
+  //m_shader_file_path = shader_file_path;
 
 }
 
 void VRVolumeApp::set_texture(std::string& fileNamePath)
 {
   std::cerr << "Load texture " << fileNamePath << std::endl;
-  m_texture = new Texture(GL_TEXTURE_2D, fileNamePath);
+  //m_texture = new Texture(GL_TEXTURE_2D, fileNamePath);
 }
 
 void VRVolumeApp::init_num_volumes(int nVolumes)
@@ -587,64 +592,63 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
 
   //setup projection
   m_projection_mtrx = glm::make_mat4(renderState.getProjectionMatrix());
-  m_model_view = glm::make_mat4(renderState.getViewMatrix());
+  m_view_matrix = glm::make_mat4(renderState.getViewMatrix());
 
   //overwrite MV for 2D viewing
   if (m_is2d)
-    m_model_view = m_trackball.getViewmatrix();
+    m_view_matrix = m_trackball.getViewmatrix();
 
   glMatrixMode(GL_PROJECTION);
   glLoadMatrixf(glm::value_ptr(m_projection_mtrx));
 
+  glm::mat4 general_model_view =  glm::scale(glm::mat4(1.0), glm::vec3(m_ui_view->get_scale(), m_ui_view->get_scale(), m_ui_view->get_scale()));
+
   //setup Modelview for volumes
   for (int i = 0; i < m_volumes.size(); i++) {
     for (int j = 0; j < m_volumes[i].size(); j++) {
-      glm::mat4 tmp = m_model_view;
-      tmp = tmp * m_object_pose;
-      tmp = glm::scale(tmp, glm::vec3(m_ui_view->get_scale(), m_ui_view->get_scale(), m_ui_view->get_scale() * m_ui_view->get_z_scale()));
+      
+      //glm::mat4 volume_matrix = m_view_matrix * m_object_pose * glm::scale(general_model_view, glm::vec3(1.0, 1.0, m_ui_view->get_z_scale()));
+      glm::mat4 volume_matrix = m_view_matrix * m_object_pose * glm::scale(general_model_view, glm::vec3(1.0, 1.0, m_volumes[i][j]->get_volume_scale().x/ m_volumes[i][j]->get_volume_scale().z));
       if (!m_animated)
-        tmp = glm::translate(tmp, glm::vec3(m_volumes[i][j]->get_volume_position().x, m_volumes[i][j]->get_volume_position().y, m_volumes[i][j]->get_volume_position().z));
-      m_volumes[i][j]->set_volume_mv(tmp);
+      {
+        volume_matrix = glm::translate(volume_matrix, glm::vec3(m_volumes[i][j]->get_volume_position().x, m_volumes[i][j]->get_volume_position().y, m_volumes[i][j]->get_volume_position().z));
+      }       
+      m_volumes[i][j]->set_volume_mv(volume_matrix);
     }
   }
-
+  
   //setup Modelview for meshes
-  glm::mat4 volume_mv;
-  if (m_mesh_model)
+  for(Mesh* mesh: get_mesh_models())
   {
-    int i = 0;
-    if (m_volumes.size() > m_models_volumeID[i]) {
-      volume_mv = m_volumes[0][m_models_volumeID[i]]->get_volume_mv();
-      volume_mv = glm::translate(volume_mv, glm::vec3(-0.5f, -0.5f, -0.5f * m_volumes[0][m_models_volumeID[i]]->get_volume_scale().x / (m_volumes[0][m_models_volumeID[i]]->get_volume_scale().z)));
-      volume_mv = glm::scale(volume_mv, glm::vec3(m_volumes[0][m_models_volumeID[i]]->get_volume_scale().x, m_volumes[0][m_models_volumeID[i]]->get_volume_scale().y, m_volumes[0][m_models_volumeID[i]]->get_volume_scale().x));
+   
+    Volume* volume = m_volumes[mesh->get_volume_id()][0];
+    glm::mat4 volume_mv = volume->get_volume_mv();
+    float px = volume->get_volume_scale().x;
+    float py = volume->get_volume_scale().y;
+    float pz = volume->get_volume_scale().z;
 
-      m_mesh_model->setMVMatrix(volume_mv);
-      m_models_MV[i] = volume_mv;
+   /* 
+   * TO DO: Fix parent child relationship to not affect the mesh with z-scale
+   * 
+    glm::vec3 volume_position = volume_mv[3];
+    glm::mat4 mesh_model_matrix =  glm::translate(general_model_view, volume_position);
+    mesh_model_matrix = glm::translate(mesh_model_matrix, glm::vec3(-0.5f, -0.5f, -0.5f * px/pz));
+    mesh_model_matrix = glm::scale(mesh_model_matrix, glm::vec3(px, py, px));
+   */
 
-      /*Original transformations of the model - DO NOT REMOVE YET*/
-      //mesh_model->setPosition(glm::vec3(-0.5f, -0.5f, 
-      //	-0.5f * m_volumes[m_models_volumeID[i]]->get_volume_scale().x / (m_volumes[m_models_volumeID[i]]->get_volume_scale().z)));
-      //mesh_model->setScale(glm::vec3(m_volumes[m_models_volumeID[i]]->get_volume_scale().x, m_volumes[m_models_volumeID[i]]->get_volume_scale().y, m_volumes[m_models_volumeID[i]]->get_volume_scale().x));
-    }
+    glm::mat4 mesh_model_matrix = glm::translate(volume_mv, glm::vec3(-0.5f, -0.5f, -0.5f * px / pz));
+    mesh_model_matrix = glm::scale(mesh_model_matrix, glm::vec3(px, py, px));
+    mesh->get_model().setMVMatrix(mesh_model_matrix);
+
   }
-
-  /* SOriginal transformations of the volumes - DO NOT REMOVE YET */
-  //for (int i = 0; i < m_models_displayLists.size(); i++) {
-  //	if (m_volumes.size() > m_models_volumeID[i]) {
-  //		m_models_MV[i] = m_volumes[m_models_volumeID[i]]->get_volume_mv();
-  //		m_models_MV[i] = glm::translate(m_models_MV[i], glm::vec3(-0.5f, -0.5f, -0.5f * m_volumes[m_models_volumeID[i]]->get_volume_scale().x / (m_volumes[m_models_volumeID[i]]->get_volume_scale().z)));
-  //		m_models_MV[i] = glm::scale(m_models_MV[i], glm::vec3(m_volumes[m_models_volumeID[i]]->get_volume_scale().x, m_volumes[m_models_volumeID[i]]->get_volume_scale().y, m_volumes[m_models_volumeID[i]]->get_volume_scale().x));
-  //		//m_models_MV[i] = glm::scale(m_models_MV[i], glm::vec3(10,10,10));
-  //	}
-  //}
 
   if (m_clipping || m_ui_view->is_use_custom_clip_plane()) {
-    glm::mat4 clipPlane = glm::inverse(m_controller_pose) * glm::inverse(m_model_view);
+    glm::mat4 clipPlane = glm::inverse(m_controller_pose) * glm::inverse(m_view_matrix);
 
     if (m_use_custom_clip_plane) {
       clipPlane = glm::eulerAngleYXZ(m_clip_ypr.x, m_clip_ypr.y, m_clip_ypr.z);
       clipPlane = glm::translate(clipPlane, m_clip_pos);
-      clipPlane = clipPlane * glm::inverse(m_model_view);
+      clipPlane = clipPlane * glm::inverse(m_view_matrix);
     }
 
     for (auto ren : m_renders)
@@ -664,20 +668,17 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
   }
 
 
-  if (m_mesh_model)
+  for (Mesh* mesh: m_mesh_models)
   {
     m_simple_texture_shader.start();
     m_simple_texture_shader.setUniform("p", m_projection_mtrx);
-    m_mesh_model->render(m_simple_texture_shader);
+    mesh->get_model().render(m_simple_texture_shader);
     m_simple_texture_shader.stop();
   }
 
   //render labels
-  m_line_shader.start();
-  m_line_shader.setUniform("p", m_projection_mtrx);
-  m_line_shader.setUniform("mv", volume_mv);
-  render_labels(volume_mv, renderState);
-  m_line_shader.stop();
+  render_labels( renderState);
+  
 
   /*if (m_ui_view && !m_is2d)
   {
@@ -738,47 +739,28 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& renderState)
 
 }
 
-void VRVolumeApp::render_labels(glm::mat4& volume_mv, const MinVR::VRGraphicsState& renderState)
+void VRVolumeApp::render_labels( const MinVR::VRGraphicsState& renderState)
 {
   //render labels
-  if (m_labels)
+  if (m_label_manager)
   {
-    m_labels->drawLabels(volume_mv, m_projection_mtrx, m_headpose, m_ui_view->get_z_scale());
-    
+    m_line_shader.start();
+    m_line_shader.setUniform("p", m_projection_mtrx);
+    for (int i = 0 ; i < m_label_manager->get_labels().size();++i)
+    {
+      //glm::mat4 volume_mv = m_volumes[m_label_manager->get_labels()[i].volume_id][0]->get_volume_mv();
+      m_label_manager->drawLabels(  m_projection_mtrx, m_headpose, m_ui_view->get_z_scale());
+    }  
+    m_line_shader.stop();
   }
   
-
-  /*if (m_is2d && !m_description.empty())
-    FontHandler::getInstance()->renderMultiLineTextBox2D(m_description, 50, 950, 200, m_descriptionHeight);*/
 }
 
-void VRVolumeApp::render_mesh(const MinVR::VRGraphicsState& renderState)
-{
-  /*Original render Mesh using Fixed pipeline -  DO NOT REMOVE YET*/
-  //Render meshes
-  /*for (int i = 0; i < m_models_displayLists.size(); i++) {
-   if (m_volumes.size() > m_models_volumeID[i]) {
-     glMatrixMode(GL_MODELVIEW);
-     glPushMatrix();
-     glLoadMatrixf(glm::value_ptr(m_models_MV[i]));
-     glColor3f(1.0f, 1.0f, 1.0f);
-     glCallList(m_models_displayLists[i]);
-     glPopMatrix();
-   }
-  }*/
-  if (m_mesh_model)
-  {
-    m_simple_texture_shader.start();
-    m_simple_texture_shader.setUniform("p", m_projection_mtrx);
-    m_mesh_model->render(m_simple_texture_shader);
-    m_simple_texture_shader.stop();
-  }
-}
 
 void VRVolumeApp::render_volume(const MinVR::VRGraphicsState& renderState)
 {
   //render volumes
- // renderState->getProjectionMatrix();
+ 
   for (auto ren : m_renders) {
     ren->set_multiplier(m_ui_view->get_multiplier());
     ren->set_threshold(m_ui_view->get_threshold());
@@ -842,15 +824,15 @@ void VRVolumeApp::animated_render(int tfn, int vol)
   //bool useMultitransferFunction = m_ui_view->isUseMultiTransfer();
 
   size_t max_animation_length = 0;
-  float global_min = std::numeric_limits<float>::max();
-  float global_max = std::numeric_limits<float>::min();
+  float volume_min = std::numeric_limits<float>::max();
+  float volume_max = std::numeric_limits<float>::min();
   bool dirty = false;
   if (m_ui_view && m_ui_view->is_transfer_function_enabled(tfn, vol))
   {
     dirty = true;
     max_animation_length = std::max(max_animation_length, m_volumes[vol].size());
-    global_min = std::min(global_min, m_volumes[vol][active_volume]->getMin());
-    global_max = std::max(global_max, m_volumes[vol][active_volume]->getMax());
+    volume_min = std::min(volume_min, m_volumes[vol][active_volume]->getMin());
+    volume_max = std::max(volume_max, m_volumes[vol][active_volume]->getMax());
 
     if (active_volume < m_volumes[vol].size() && active_volume2 < m_volumes[vol].size() && m_volumes[vol][active_volume]->texture_initialized() && m_volumes[vol][active_volume2]->texture_initialized())
     {
@@ -885,7 +867,9 @@ void VRVolumeApp::animated_render(int tfn, int vol)
 
   if (dirty)
   {
-    m_ui_view->set_trns_fnct_min_max(global_min, global_max);
+    m_global_min = std::min(m_global_min, volume_min);
+    m_global_max = std::max(m_global_max, volume_max);
+    m_ui_view->set_trns_fnct_min_max(m_global_min, m_global_max);
   }
  
 
@@ -987,6 +971,7 @@ void VRVolumeApp::add_lodaded_textures()
 
         Volume* vlm = value.get();
         m_volumes[i].push_back(vlm);
+        //m_global_min = std::min(m_global_min,vlm->getMax();
         m_threads[i][counter]->join();
         delete m_threads[i][counter];
         delete m_promises[i][counter];
@@ -1017,13 +1002,13 @@ void VRVolumeApp::clear_data()
   }
   m_volumes.clear();
   m_description.clear();
-  if (m_labels)
+  if (m_label_manager)
   {
-    m_labels->clear();
+    m_label_manager->clear();
   }
   
 
-  m_models_filenames.clear();
+  m_mesh_models_data.clear();
   m_models_displayLists.clear();
   m_models_position.clear();
   m_models_volumeID.clear();
@@ -1246,4 +1231,14 @@ MovieState VRVolumeApp::get_movie_state()
 void VRVolumeApp::set_app_mode(APPMODE mode)
 {
   m_app_mode = mode;
+}
+
+std::vector<std::vector<Volume*>>& VRVolumeApp::get_volumes()
+{ 
+  return m_volumes; 
+}
+
+std::vector<Mesh*>& VRVolumeApp::get_mesh_models()
+{ 
+  return m_mesh_models; 
 }

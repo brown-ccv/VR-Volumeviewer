@@ -433,15 +433,6 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent& event) {
     }
   }
 
-  if (event.getName() == "KbdSpace_Up") {
-    //m_renderVolume = !m_renderVolume;
-    if (m_vrVolumeApp)
-    {
-      m_vrVolumeApp->enable_render_volume();
-    }
-  }
-
-
 
 }
 
@@ -589,7 +580,7 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState& rend
   {
     if (m_vrVolumeApp->pending_models_to_load())
     {
-      m_vrVolumeApp->load_mesh_model();
+      m_vrVolumeApp->load_mesh_models();
     }
 
     m_vrVolumeApp->initialize_textures();

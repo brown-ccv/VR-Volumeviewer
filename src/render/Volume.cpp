@@ -108,13 +108,13 @@ void Volume::computeHistogram()
   m_histogram.clear();
 
   for (int c = 0; c < m_channels; c++) {
-    unsigned int nbVoxel = get_depth() * get_width() * get_height() - m_histogram_tmp[c][0];
+    unsigned int non_black_voxels = get_depth() * get_width() * get_height() - m_histogram_tmp[c][0];
 
     m_histogram.push_back(std::vector<float>(m_histogram_tmp[c].size()));
     m_histogram[c][0] = 0;
     for (int i = 1; i < m_histogram_tmp[c].size(); i++)
     {
-      m_histogram[c][i] = ((float)m_histogram_tmp[c][i]) / nbVoxel * 30;
+      m_histogram[c][i] = ((float)m_histogram_tmp[c][i]) / non_black_voxels * 40;
     }
   }
 }
@@ -186,9 +186,9 @@ void Volume::initGL()
 
   glGenerateMipmap(GL_TEXTURE_3D);
   set_volume_scale({
-    static_cast<float>(1.0f / (get_x_scale() * get_width())),
-    static_cast<float>(1.0f / (get_y_scale() * get_height())),
-    static_cast<float>(1.0f / (get_z_scale() * get_depth()))
+    static_cast<float>(1.0f / (m_x_scale * m_width)),
+    static_cast<float>(1.0f / (m_y_scale * m_height)),
+    static_cast<float>(1.0f / (m_z_scale * m_depth))
     });
 
   delete[] data;

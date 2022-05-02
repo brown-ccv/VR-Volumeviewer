@@ -202,7 +202,7 @@ void VolumeRaycastRenderer::set_multiplier(float multiplier)
 
 void VolumeRaycastRenderer::set_numSlices(int slices)
 {
-  shader.set_stepSize(1.0f / slices, 1.0f / slices, 1.0f / slices);
+  shader.set_stepSize(0.01, 0.01, 0.01);
 }
 
 void VolumeRaycastRenderer::set_blending(bool useBlending, float alpha, Volume* volume)

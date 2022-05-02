@@ -29,7 +29,7 @@
 #include <api/MinVR.h>
 #include "render/FrameBufferObject.h"
 #include "render/Volume.h"
-#include "interaction/Labels.h"
+#include "interaction/LabelsManager.h"
 #include "render/VolumeRaycastRenderer.h"
 #include "render/DepthTexture.h"
 #include <future>

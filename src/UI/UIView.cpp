@@ -22,7 +22,7 @@
 #include <thread>
 
 UIView::UIView(VRVolumeApp& controllerApp) :m_controller_app(controllerApp), m_multiplier(1.0f), m_threshold(0.0f),
-m_z_scale(0.16f), m_scale{ 1.0f }, m_slices(256), m_dynamic_slices(false), m_renderVolume(true), m_selectedTrnFnc(0),
+m_z_scale(0.16f), m_scale{ 1.0f }, m_slices(56), m_dynamic_slices(false), m_renderVolume(true), m_selectedTrnFnc(0),
 m_animated(false), m_ui_frame_controller(0.0f), m_menu_handler(nullptr), m_initialized(false), m_use_transferfunction(false),
 m_clip_max(1.0), m_clip_min(0.0), m_clip_ypr(0.0), m_clip_pos(0.0), m_useCustomClipPlane(false), m_rendermethod(1), m_renderchannel(0),
 m_trnfnc_table_selection(-1), m_trn_fct_options_window(false), m_save_trnfct_open(false), m_trnfnct_counter(1), m_file_dialog_open(false),
@@ -36,7 +36,8 @@ m_time_info(""),m_day_info(""), m_time_frame_edited(false), m_show_movie_saved_p
 {
   m_ocean_color_maps_names = { "algae.png","amp.png","balance.png","curl.png","deep.png","delta.png","dense.png",
 "diff.png","gray.png","haline.png","ice.png","matter.png","oxy.png","phase.png","rain.png","solar.png","speed.png","tarn.png","tempo.png",
-"thermal.png","topo.png","turbid.png" };
+"thermal.png","thermal2.png","topo.png","turbid.png" };
+  //m_ocean_color_maps_names = { "thermal2.png" };
   m_histogram_quantiles[0] = 0.05;
   m_histogram_quantiles[1] = 0.95;
 }
@@ -82,11 +83,19 @@ void UIView::draw_ui_callback()
       }
 
       ImGui::SliderFloat("alpha multiplier", &m_multiplier, 0.0f, 1.0f, "%.3f");
+      if (ImGui::IsItemHovered())
+      {
+        ImGui::SetTooltip("Pixel's alpha * alpha multiplier");
+      }
       ImGui::SliderFloat("threshold", &m_threshold, 0.0f, 1.0f, "%.3f");
+      if (ImGui::IsItemHovered())
+      {
+        ImGui::SetTooltip("Pixels with Alpha values below the threshold will be set to 0");
+      }
       ImGui::SliderFloat("scale", &m_scale, 0.001f, 5.0f, "%.3f");
       ImGui::SliderFloat("z - scale", &m_z_scale, 0.001f, 5.0f, "%.3f");
       ImGui::SliderInt("Slices", &m_slices, 10, 1024, "%d");
-      ImGui::Checkbox("automatic slice adjustment", &m_dynamic_slices);
+      //ImGui::Checkbox("automatic slice adjustment", &m_dynamic_slices);
       ImGui::Checkbox("Show Clock", &m_show_clock);
 
       ImGui::SameLine(ImGui::GetWindowSize().x * 0.5f, 0);
@@ -646,7 +655,9 @@ void UIView::draw_ui_callback()
         if (ImGui::Button("Save Changes##EDITTIMEFRAME")) {
           sim_state.min_clip = m_clip_min;
           sim_state.max_clip = m_clip_max;
+          std::string state_name_tmp = sim_state.poi.label;
           sim_state.poi = m_controller_app.get_trackball_camera().get_current_poi();
+          sim_state.poi.label = state_name_tmp;
           m_time_frame_edited = true;
         }
 
@@ -757,7 +768,7 @@ void UIView::draw_ui_callback()
           }
           else if (m_camera_button_action == EDIT)
           {
-            m_controller_app.get_simulation().get_simulation_state_at(m_camera_poi_table_selection).poi.label = m_copy_camera_name;
+            m_controller_app.get_simulation().get_simulation_state_at(m_simulation_state_selection).poi.label = m_copy_camera_name;
           }
           m_camera_name_window_open = false;
           ImGui::CloseCurrentPopup();
@@ -946,7 +957,7 @@ void UIView::draw_ui_callback()
     ImGui::End();
   }
   
-
+  // draw transfer legend
   if (m_use_transferfunction)
   {
     tfn_widget[0].drawLegend(0, m_legend_pos_y + 80, m_clock_width + 50, m_clock_height - 140);
@@ -1759,7 +1770,7 @@ void UIView::compute_new_histogram_view()
 
   std::vector<float> histogram(256, 0.f);
   float global_min = std::numeric_limits<float>::max();
-  float global_max = 0.f;
+  float global_max = std::numeric_limits<float>::min();
   for (int i = 0; i < m_controller_app.get_num_volumes(); i++)
   {
 
@@ -1768,11 +1779,11 @@ void UIView::compute_new_histogram_view()
     {
       if (m_controller_app.get_volume(i)[0]->getMin() < global_min)
       {
-        global_min = m_controller_app.get_volume(i)[0]->getMin();
+        global_min = std::min(global_min,m_controller_app.get_volume(i)[0]->getMin());
       }
       if (m_controller_app.get_volume(i)[0]->getMax() > global_max)
       {
-        global_max = m_controller_app.get_volume(i)[0]->getMax();
+        global_max = std::max(global_max,m_controller_app.get_volume(i)[0]->getMax());
       }
 
       m_histogram.setMinMax(global_min, global_max);
@@ -1857,6 +1868,7 @@ void UIView::set_trns_fnct_min_max(float min, float max)
 {
   /*tfn_widget[0].setMinMax(m_volumes[m_selectedVolume][active_volume]->getMin() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMin() * (1.0 - alpha),
     m_volumes[m_selectedVolume][active_volume]->getMax() * alpha + m_volumes[m_selectedVolume][active_volume2]->getMax() * (1.0 - alpha));*/
+
   if (m_use_transferfunction)
   {
     tfn_widget[0].setMinMax(min, max);

@@ -24,44 +24,22 @@
 ///\author Benjamin Knorlein
 ///\date 6/25/2019
 
-#pragma once
-
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-#define M_PI 3.14159265358979323846
-#define MARKER_HEIGHT 0.05
-
-#if defined(WIN32)
-#define NOMINMAX
-#include <windows.h>
-#include "GL/glew.h"
-#include "GL/wglew.h"
-#elif defined(__APPLE__)
-#include <OpenGL/OpenGL.h>
-#include <OpenGL/glu.h>
-#else
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
-
-#include "../../include/interaction/Labels.h"
-#include <string>
-#include <math/VRMath.h>
-#include "../../include/render/FontHandler.h"
+#include "../../include/interaction/LabelsManager.h"
+#include "../../include/vrapp/VRVolumeApp.h"
 #include "GLMLoader.h"
-#include <Model.h>
+#include "../../include/render/Mesh.h"
 #include <ShaderProgram.h>
 
 
-Labels::Labels( ShaderProgram& lines_shader, ShaderProgram& plane_shader):
-  m_init_plane_model(false), m_lines_shader_program(lines_shader), m_plane_shader_program(plane_shader), m_plane_model(nullptr)
+
+
+LabelsManager::LabelsManager( VRVolumeApp& vrapp, ShaderProgram& lines_shader, ShaderProgram& plane_shader):
+  m_controller_app(vrapp), m_init_plane_model(false), m_lines_shader_program(lines_shader), m_plane_shader_program(plane_shader), m_plane_model(nullptr)
 {
 
 }
 
-Labels::~Labels()
+LabelsManager::~LabelsManager()
 {
   clear();
   std::map<std::string, Texture*>::iterator it;
@@ -73,7 +51,7 @@ Labels::~Labels()
 }
 
 
-void Labels::clear() {
+void LabelsManager::clear() {
   m_text.clear();
   m_position.clear();
   m_position2.clear();
@@ -81,12 +59,12 @@ void Labels::clear() {
   m_volume.clear();
 }
 
-void Labels::set_parent_directory(std::string& directory)
+void LabelsManager::set_parent_directory(std::string& directory)
 {
   m_parent_directory = directory;
 }
 
-unsigned int Labels::create_line_vba(glm::vec3& start, glm::vec3& end)
+unsigned int LabelsManager::create_line_vba(glm::vec3& start, glm::vec3& end)
 {
   unsigned int vba;
   unsigned int vbo;
@@ -114,7 +92,7 @@ unsigned int Labels::create_line_vba(glm::vec3& start, glm::vec3& end)
   return vba;
 }
 
-void Labels::add( std::string texture_path, float x, float y, float z, float textPosZ, float size, int volume)
+void LabelsManager::add( std::string texture_path, float x, float y, float z, float textPosZ, float size, float off_set, int volume)
 {
   if (!m_init_plane_model)
   {
@@ -131,27 +109,27 @@ void Labels::add( std::string texture_path, float x, float y, float z, float tex
   }
   
 
-  LabelBillboard billboard;
+  
   glm::vec3 line_start(x, y, z);
   glm::vec3 line_end(x, y, textPosZ + 200);
   unsigned int line_vba = create_line_vba(line_start, line_end);
-  billboard.line_vba = line_vba;
-  billboard.label_texture = m_texture_cache[texture_path];
-  billboard.label_model = m_plane_model;
-  billboard.position = glm::vec3(x, y, textPosZ+250);
-  m_billboard_labels.push_back(billboard);
-  
+
+  LabelBillboard billboard = { line_vba , m_texture_cache[texture_path] , m_plane_model, glm::vec3(x, y, textPosZ + off_set), volume };
+  get_labels().push_back(billboard);
+
   m_position.push_back(glm::vec3(x, y, z));
   m_position2.push_back(glm::vec3(x, y, textPosZ));
   m_size.push_back(size);
   m_volume.push_back(volume);
 }
 
-void Labels::drawLabels(glm::mat4 volume_mv, glm::mat4 projection_matrix, glm::mat4& headpose, float z_scale)
+void LabelsManager::drawLabels(glm::mat4 projection_matrix, glm::mat4& headpose, float z_scale)
 {
-  for (int i = 0; i < m_billboard_labels.size(); i++)
+  for (int i = 0; i < m_billboard_labels.size(); ++i)
   {
     //draw line
+    
+    glm::mat4 volume_mv = m_controller_app.get_mesh_models()[m_billboard_labels[i].volume_id]->get_model().modelViewM();
     m_lines_shader_program.start();
     m_lines_shader_program.setUniform("p", projection_matrix);
     m_lines_shader_program.setUniform("mv", volume_mv);
@@ -186,7 +164,7 @@ void Labels::drawLabels(glm::mat4 volume_mv, glm::mat4 projection_matrix, glm::m
   
 }
 
-void Labels::drawLines()
+void LabelsManager::drawLines()
 {
   
   for (size_t i =0; i < m_lines_vba.size();++i)
@@ -197,3 +175,9 @@ void Labels::drawLines()
   }
   
 }
+
+std::vector<LabelBillboard>& LabelsManager::get_labels()
+{ 
+  return m_billboard_labels; 
+}
+

@@ -561,11 +561,12 @@ endif()
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/VolumeSliceShader.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/VolumeRaycastRenderer.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/VolumeRaycastShader.cpp
+ ${CMAKE_CURRENT_BINARY_DIR}/../src/render/Mesh.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/UI/UIView.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/glm.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/FrameBufferObject.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/DepthTexture.cpp
- ${CMAKE_CURRENT_BINARY_DIR}/../src/interaction/Labels.cpp
+ ${CMAKE_CURRENT_BINARY_DIR}/../src/interaction/LabelsManager.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/FontHandler.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/transfer_function_widget.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/transfer_function_multichannel_widget.cpp
@@ -580,20 +581,24 @@ endif()
 )
 
 set(header_files
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/common/common.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/vrapp/VolumeVisualizationApp.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/vrapp/VRVolumeApp.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/loader/LoadDataAction.h
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/loader/MeshData.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/Shader.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/Volume.h
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/render/Mesh.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeSliceRenderer.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeSliceShader.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeRaycastRenderer.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeRaycastShader.h
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/render/Mesh.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/UI/UIView.h
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/glm.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/FrameBufferObject.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/DepthTexture.h
- ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/Labels.h
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/LabelsManager.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/FontHandler.h
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/transfer_function_widget.h
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/transfer_function_multichannel_widget.h

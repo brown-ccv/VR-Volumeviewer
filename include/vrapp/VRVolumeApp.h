@@ -9,7 +9,7 @@
 
 #include "interaction/ArcBallCamera.h"
 #include "render/Volume.h"
-
+#include "loader/MeshData.h"
 
 #include "ShaderProgram.h"
 
@@ -18,11 +18,10 @@ class UIView;
 class CreateMovieAction;
 class VolumeRenderer;
 class DepthTexture;
+class Mesh;
 class Window_Properties;
-class Model;
-class Texture;
 class Simulation;
-class Labels;
+class LabelsManager;
 
 enum MovieState
 {
@@ -101,7 +100,7 @@ public:
 
   void intialize_ui();
 
-  void load_mesh_model();
+  void load_mesh_models();
 
   void load_shaders();
 
@@ -140,11 +139,11 @@ public:
 
   void set_threshold(float);
 
-  void add_label(std::string& text, float x, float y, float z, float textPosZ, float size, int volume);
+  void add_label(std::string& text, float x, float y, float z, float textPosZ, float size, float offset,int volume);
 
   void set_description(int, std::string& text);
 
-  void set_mesh(int volumeId, std::string& fileName, std::string& shaderFilePath);
+  void set_mesh(int volume_id, std::string& mesh_file_path, std::string& texture_file_path);
 
   void set_texture(std::string& fileNamePath);
 
@@ -189,6 +188,10 @@ public:
 
   void set_app_mode(APPMODE );
 
+  std::vector<std::vector<Volume*>>& get_volumes();
+
+  std::vector<Mesh*>& get_mesh_models(); 
+
 protected:
 
   glm::vec4 m_noColor;// (0.0f, 0.0f, 0.0f, 0.0f);
@@ -202,8 +205,8 @@ protected:
 
 
 
-  void render_labels(glm::mat4& volume_mv, const MinVR::VRGraphicsState& renderState);
-  void render_mesh(const MinVR::VRGraphicsState& renderState);
+  void render_labels( const MinVR::VRGraphicsState& renderState);
+  
   void render_volume(const MinVR::VRGraphicsState& renderState);
   void render_ui(const MinVR::VRGraphicsState& renderState);
 
@@ -214,8 +217,8 @@ protected:
 
   std::vector < std::vector< Volume* >> m_volumes;
   std::vector<std::string> m_description;
-  Labels* m_labels;
-  std::vector <std::string> m_models_filenames;
+  LabelsManager* m_label_manager;
+  std::vector <MeshData> m_mesh_models_data;
   std::vector <unsigned int> m_models_displayLists;
   std::vector<pt> m_models_position;
   std::vector<int> m_models_volumeID;
@@ -231,13 +234,13 @@ protected:
   std::vector< std::vector <std::future<Volume*>>*> m_futures;
   std::vector< std::vector <std::thread*>> m_threads;
 
-  Model* m_mesh_model;
+  std::vector<Mesh*> m_mesh_models;
   ShaderProgram m_simple_texture_shader;
   ShaderProgram m_line_shader;
 
   std::string m_shader_file_path;
   std::string m_texture_filePath;
-  Texture* m_texture;
+  
 
   bool m_isInitailized;
   bool m_animated;
@@ -265,7 +268,7 @@ protected:
 
 
   glm::mat4 m_projection_mtrx;
-  glm::mat4 m_model_view;
+  glm::mat4 m_view_matrix;
 
 
   ArcBallCamera m_trackball;
@@ -273,8 +276,6 @@ protected:
 
   glm::mat4 m_object_pose;
 
-
-  Model* mesh_model;
 
   bool m_clipping;
   bool m_use_custom_clip_plane;
@@ -318,6 +319,9 @@ protected:
   bool m_stop_movie;
 
   APPMODE m_app_mode;
+
+  float m_global_min;
+  float m_global_max;
 
 };
 #endif

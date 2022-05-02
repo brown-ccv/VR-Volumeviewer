@@ -32,9 +32,11 @@
 
 #ifndef TFN_WIDGET_NO_STB_IMAGE_IMPL
 #define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
 #endif
 
 #include "stb_image.h"
+#include "stb_image_resize.h"
 
 template <typename T>
 T clamp(T x, T min, T max)
@@ -70,7 +72,7 @@ TransferFunctionWidget::TransferFunctionWidget()
   load_embedded_preset(blue_gold, sizeof(blue_gold), "Blue Gold");
   load_embedded_preset(ice_fire, sizeof(ice_fire), "Ice Fire");
   load_embedded_preset(nic_edge, sizeof(nic_edge), "nic Edge");
-  //load_embedded_preset(Algae, sizeof(Algae), "Algae");
+  
 
   // Initialize the colormap alpha channel w/ a linear ramp
   update_colormap();
@@ -551,8 +553,17 @@ void TransferFunctionWidget::load_embedded_preset(const uint8_t* buf,
 {
   int w, h, n;
   uint8_t* img_data = stbi_load_from_memory(buf, size, &w, &h, &n, 4);
-  auto img = std::vector<uint8_t>(img_data, img_data + w * 1 * 4);
+  
+
+  int out_w = 256;
+  uint8_t*  output_pixels = (unsigned char*)malloc(out_w * h * n);
+
+  stbir_resize_uint8(img_data, w, h, 0, output_pixels, out_w, h, 0, n);
+  auto img = std::vector<uint8_t>(output_pixels, output_pixels + out_w * 1 * 4);
+
   stbi_image_free(img_data);
+  stbi_image_free(output_pixels);
+
   colormaps.emplace_back(name, img);
 }
 

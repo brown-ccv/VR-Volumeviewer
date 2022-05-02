@@ -9,40 +9,14 @@
 #include <sstream>  
 #include "vrapp/VRVolumeApp.h"
 
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#include <windows.h>
-#define OS_SLASH_LOCAL "\\"
-#include "../../external/msvc/dirent.h"
-#else
-#define OS_SLASH_LOCAL "//"
-#include <dirent.h>
-#endif
+#include "common/common.h"
 
 
-
-//VRDataLoader* VRDataLoader::m_instance = nullptr;
 
 VRDataLoader::VRDataLoader()
 {
 
 }
-
-//VRDataLoader* VRDataLoader::get_instance()
-//{
-//  if (!m_instance)
-//  {
-//    m_instance = new VRDataLoader;
-//  }
-//  return m_instance;
-//}VRDataLoader* VRDataLoader::get_instance()
-//{
-//  if (!m_instance)
-//  {
-//    m_instance = new VRDataLoader;
-//  }
-//  return m_instance;
-//}
 
 
 void VRDataLoader::load_txt_file( VRVolumeApp& vrVolumeApp,  std::string& filename)
@@ -81,9 +55,10 @@ void VRDataLoader::load_txt_file( VRVolumeApp& vrVolumeApp,  std::string& filena
           std::cerr << "at position " << vals[2] << " , " << vals[3] << " , " << vals[4] << std::endl;
           std::cerr << "text at position " << vals[2] << " , " << vals[3] << " , " << vals[5] << std::endl;
           std::cerr << "text Size " << vals[6] << std::endl;
-          std::cerr << "for Volume " << vals[7] << std::endl;
-          std::string label = p_filename.directoryPath() + OS_SLASH_LOCAL +  vals[1];
-          vrVolumeApp.add_label(label, stof(vals[2]), stof(vals[3]), stof(vals[4]), stof(vals[5]), stof(vals[6]), stoi(vals[7]) - 1);
+          std::cerr << "text offset " << vals[7] << std::endl;
+          std::cerr << "for Volume " << vals[8] << std::endl;
+          std::string label = p_filename.directoryPath() + OS_SLASH +  vals[1];
+          vrVolumeApp.add_label(label, stof(vals[2]), stof(vals[3]), stof(vals[4]), stof(vals[5]), stof(vals[6]), stof(vals[7]), stoi(vals[8]) - 1);
         }
         if (tag == "desc")
         {
@@ -96,22 +71,23 @@ void VRDataLoader::load_txt_file( VRVolumeApp& vrVolumeApp,  std::string& filena
         }
         if (tag == "mesh")
         {
-          //	std::cerr << "Load Mesh " << vals[1] << std::endl;
-          //	std::cerr << "for Volume " << vals[2] << std::endl;
+          
+          assert(vals.size() == 4 && "Check mesh initialization parameters in the volume configuration file");
+          
+          std::string mesh_file_full_path = p_filename.directoryPath() + OS_SLASH + vals[1];
+          std::string texture_file_full_path = p_filename.directoryPath() + OS_SLASH + vals[2];
 
-          //std::string fullPath = p_filename.parent_path().string() + OS_SLASH_LOCAL + vals[1];
-          std::string fullPath = p_filename.directoryPath() + OS_SLASH_LOCAL + vals[1];
-          std::cerr << "Load Mesh " << fullPath << std::endl;
-          std::string shaderFilePath = p_filename.directoryPath() + OS_SLASH_LOCAL + "shaders";
+          //std::cerr << "Load Mesh " << mesh_file_full_path << std::endl;
+          //std::string shaderFilePath = p_filename.directoryPath() + OS_SLASH + "shaders";
 
-          vrVolumeApp.set_mesh(stoi(vals[2]), fullPath, shaderFilePath);
+          vrVolumeApp.set_mesh(stoi(vals[3]), mesh_file_full_path, texture_file_full_path);
 
         }
         if (tag == "texture")
         {
 
           //std::cerr << "for Volume " << vals[2] << std::endl;
-          std::string fullPath = p_filename.directoryPath() + OS_SLASH_LOCAL + vals[1];
+          std::string fullPath = p_filename.directoryPath() + OS_SLASH + vals[1];
           vrVolumeApp.set_texture(fullPath);
 
 
@@ -136,7 +112,7 @@ void VRDataLoader::load_txt_file( VRVolumeApp& vrVolumeApp,  std::string& filena
           size_t volumeIndex = std::stoi(strVolumeIndex);
 
 
-          vals[1] = p_filename.directoryPath() + OS_SLASH_LOCAL + vals[1];
+          vals[1] = p_filename.directoryPath() + OS_SLASH + vals[1];
 
 
 

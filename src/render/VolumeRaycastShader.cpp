@@ -162,7 +162,7 @@ VolumeRaycastShader::VolumeRaycastShader() : m_use_blending{ false }, m_blend_vo
     // Step 4: Starting from the entry point, march the ray through the volume
     // and sample it
     "dataPos = dataPos + t_hit.x * geomDir; \n"
-    "for (float t = t_hit.x; t < t_hit.y; t += dt) {\n"
+    "for (float step = t_hit.x; step < t_hit.y; step += dt) {\n"
     // data fetching from the red channel of volume texture
     "vec4 sample; \n"
     "if (channel == 1){ \n"
@@ -212,7 +212,7 @@ VolumeRaycastShader::VolumeRaycastShader() : m_use_blending{ false }, m_blend_vo
     "sample.b = texture(lut, vec2(sample.b,0.5)).b;"
     "sample.a = max(sample.r, max(sample.g,sample.b)) ; "
     "}else{\n"
-    "sample = texture(lut, vec2(sample.a,0.5));"
+    "sample = texture(lut, vec2(clamp(sample.a,0.0,1.0),0.5));"
     "}\n"
     "}\n"
 
@@ -233,7 +233,7 @@ VolumeRaycastShader::VolumeRaycastShader() : m_use_blending{ false }, m_blend_vo
     "} \n"
 
     //remove fragments for correct depthbuffer
-    "if (vFragColor.a == 0.0f)"
+    "if (vFragColor.a < 0.001f)"
     "discard;"
     "}\n";
 }
