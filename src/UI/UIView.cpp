@@ -297,8 +297,8 @@ void UIView::draw_ui_callback()
 
           }
         }
-
         ImGui::EndTable();
+
         if (m_save_session_dialog_open)
         {
           m_current_save_modal = SAVE_SESSION;
@@ -826,13 +826,13 @@ void UIView::draw_ui_callback()
 
       if (helper::ends_with_string(fileDialog.selected_fn, ".txt"))
       {
-        //VRDataLoader* insta = VRDataLoader::get_instance();
+        //  TO DO:  Thread the data loading process to run in the background and implement loading UI component
+        //  VRDataLoader* insta = VRDataLoader::get_instance();
         //std::thread t1 ( &VRDataLoader::load_txt_file, std::ref(m_controller_app), fileDialog.selected_path);
         //t1.join();
         //std:thread t1([=] {VRDataLoader::load_txt_file(m_controller_app, fileDialog.selected_path); });
         VRDataLoader::load_txt_file(m_controller_app, fileDialog.selected_path);
 
-        // m_controller_app.load_txt_file(fileDialog.GetSelected().string());
       }
 #ifdef WITH_TEEM
       else if (helper::ends_with_string(fileDialog.selected_fn, ".nrrd")) {

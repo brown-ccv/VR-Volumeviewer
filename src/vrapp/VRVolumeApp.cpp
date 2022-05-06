@@ -67,9 +67,7 @@ m_global_min(std::numeric_limits<float>::max()), m_global_max(std::numeric_limit
 
 VRVolumeApp::~VRVolumeApp()
 {
-  std::cerr << "~VRVolumeApp  1" << std::endl;
   
-  std::cerr << "~VRVolumeApp  2" << std::endl;
   for (int i = 0; i < m_volumes.size(); i++) {
     std::vector< Volume* > v = m_volumes[i];
     for (int j = 0; j < v.size(); j++)
@@ -89,6 +87,7 @@ VRVolumeApp::~VRVolumeApp()
   {
     delete m_ui_view;
   }
+  
   delete m_window_properties;
 }
 
