@@ -352,8 +352,7 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event)
     else if (event.getName() == "HTC_Controller_Right_GripButton_Up" || event.getName() == "HTC_Controller_1_GripButton_Up" || event.getName() == "Wand_Right_Btn_Up")
     {
       m_vrVolumeApp->button_events_ui_handle(2, 0);
-    }
-    // else if (event.getName() == "HTC_Controller_Right_AButton_Down" || event.getName() == "HTC_Controller_1_AButton_Down")
+    }    
     else if (event.getName() == "HTC_Controller_Right_Axis0Button_Up" || event.getName() == "HTC_Controller_1_Axis0Button_Up" || event.getName() == "B08_Up")
     {
       m_vrVolumeApp->button_events_ui_handle(1, 0);

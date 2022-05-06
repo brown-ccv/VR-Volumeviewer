@@ -53,7 +53,10 @@ public:
 	{
 		m_clipping = isClipping;
 		if (m_clipping)
+		{
 			m_clip_plane = *clipPlane;
+		}
+			
 	};
 
 protected:

@@ -189,7 +189,6 @@ void VRVolumeApp::update_animation(float fps)
   {
     if (m_volumes.size())
     {
-      // m_volume_animation_multiplier = fps;
       m_ui_view->update_animation(m_speed, m_volumes[m_selectedVolume].size() - 1);
     }
   }
