@@ -231,7 +231,7 @@ private:
 
   bool m_transfer_function_options_window;
 
-  bool m_save_trnfct_open;
+  bool m_save_transfer_function_open;
 
   bool m_save_session_dialog_open;
 
