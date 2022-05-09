@@ -399,13 +399,6 @@ void VRVolumeApp::set_character_state(std::string &eventName, int state)
           m_ui_view->add_character(keyStr[0]);
         }
       }
-      /*   if (std::isalpha(keyStr[0], loc) || isdigit(keyStr[0]))
-         {
-           if (m_ui_view)
-           {
-             m_ui_view->set_chracter(keyStr[0]);
-           }
-         }*/
     }
     else
     {
@@ -414,13 +407,10 @@ void VRVolumeApp::set_character_state(std::string &eventName, int state)
         if (keyStr == "Backspace" || keyStr == "Del")
         {
           m_ui_view->remove_character();
-          //_keyBoardInputText->deleteCharacters(_keyBoardInputText->getTextSize() - 1, 1);
         }
         else if (keyStr == "Space")
         {
           m_ui_view->add_character(32);
-          /*std::string space(" ");
-          addTextToInputField(space);*/
         }
       }
     }
@@ -595,11 +585,6 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState &render_state)
 
       m_mesh_model->setMVMatrix(volume_mv);
       m_models_MV[i] = volume_mv;
-
-      /*Original transformations of the model - DO NOT REMOVE YET*/
-      // mesh_model->setPosition(glm::vec3(-0.5f, -0.5f,
-      //	-0.5f * m_volumes[m_models_volumeID[i]]->get_volume_scale().x / (m_volumes[m_models_volumeID[i]]->get_volume_scale().z)));
-      // mesh_model->setScale(glm::vec3(m_volumes[m_models_volumeID[i]]->get_volume_scale().x, m_volumes[m_models_volumeID[i]]->get_volume_scale().y, m_volumes[m_models_volumeID[i]]->get_volume_scale().x));
     }
   }
 
@@ -696,18 +681,6 @@ void VRVolumeApp::render_labels(glm::mat4 &volume_mv, const MinVR::VRGraphicsSta
 
 void VRVolumeApp::render_mesh(const MinVR::VRGraphicsState &renderState)
 {
-  /*Original render Mesh using Fixed pipeline -  DO NOT REMOVE YET*/
-  // Render meshes
-  /*for (int i = 0; i < m_models_displayLists.size(); i++) {
-   if (m_volumes.size() > m_models_volumeID[i]) {
-     glMatrixMode(GL_MODELVIEW);
-     glPushMatrix();
-     glLoadMatrixf(glm::value_ptr(m_models_MV[i]));
-     glColor3f(1.0f, 1.0f, 1.0f);
-     glCallList(m_models_displayLists[i]);
-     glPopMatrix();
-   }
-  }*/
   if (m_mesh_model)
   {
     m_simple_texture_shader.start();

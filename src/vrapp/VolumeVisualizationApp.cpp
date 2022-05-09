@@ -45,7 +45,6 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char **argv) : VRApp(ar
 
       if (std::string(argv_int[i]) == std::string("use2DUI"))
       {
-
         m_vrVolumeApp->set_is_2D(true);
       }
       if (std::string(argv_int[i]) == std::string("useHolo"))
@@ -127,7 +126,6 @@ void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event)
       m_vrVolumeApp->update_ui_events(event.getValue());
     if (event.getName() == "MouseWheel_Spin")
     {
-      std::cerr << event.getValue() << std::endl;
       m_vrVolumeApp->update_ui_events(event.getValue() * 10);
     }
   }
