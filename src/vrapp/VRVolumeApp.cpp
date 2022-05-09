@@ -82,10 +82,10 @@ void VRVolumeApp::initialize()
 
   if (!m_isInitailized)
   {
-    // std::cout << "initialize  1" << std::endl;
+
     m_object_pose = glm::mat4(1.0f);
     initialize_GL();
-    //   std::cout << "initialize  2" << std::endl;
+
     if (!m_ui_view)
     {
       std::cout << "initialize UI " << std::endl;
@@ -325,7 +325,6 @@ void VRVolumeApp::set_texture(std::string &fileNamePath)
 void VRVolumeApp::init_num_volumes(int nVolumes)
 {
   m_numVolumes = nVolumes;
-  // m_data_labels.resize(m_numVolumes);
   m_volumes.resize(m_numVolumes);
   m_promises.resize(m_numVolumes);
   m_futures.resize(m_numVolumes);
@@ -604,16 +603,6 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState &render_state)
     }
   }
 
-  /* SOriginal transformations of the volumes - DO NOT REMOVE YET */
-  // for (int i = 0; i < m_models_displayLists.size(); i++) {
-  //	if (m_volumes.size() > m_models_volumeID[i]) {
-  //		m_models_MV[i] = m_volumes[m_models_volumeID[i]]->get_volume_mv();
-  //		m_models_MV[i] = glm::translate(m_models_MV[i], glm::vec3(-0.5f, -0.5f, -0.5f * m_volumes[m_models_volumeID[i]]->get_volume_scale().x / (m_volumes[m_models_volumeID[i]]->get_volume_scale().z)));
-  //		m_models_MV[i] = glm::scale(m_models_MV[i], glm::vec3(m_volumes[m_models_volumeID[i]]->get_volume_scale().x, m_volumes[m_models_volumeID[i]]->get_volume_scale().y, m_volumes[m_models_volumeID[i]]->get_volume_scale().x));
-  //		//m_models_MV[i] = glm::scale(m_models_MV[i], glm::vec3(10,10,10));
-  //	}
-  // }
-
   if (m_clipping || m_ui_view->is_use_custom_clip_plane())
   {
     glm::mat4 clipPlane = glm::inverse(m_controller_pose) * glm::inverse(m_model_view);
@@ -656,7 +645,6 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState &render_state)
   m_line_shader.setUniform("model_view_matrix", volume_mv);
   render_labels(volume_mv, render_state);
   m_line_shader.stop();
-
 
   m_depthTextures[m_rendercount]->copyDepthbuffer();
   (static_cast<VolumeRaycastRenderer *>(m_renders[1]))->setDepthTexture(m_depthTextures[m_rendercount]);
@@ -731,8 +719,7 @@ void VRVolumeApp::render_mesh(const MinVR::VRGraphicsState &renderState)
 
 void VRVolumeApp::render_volume(const MinVR::VRGraphicsState &renderState)
 {
-  // render volumes
-  // renderState->getProjectionMatrix();
+
   for (auto ren : m_renders)
   {
     ren->set_multiplier(m_ui_view->get_multiplier());
@@ -970,6 +957,9 @@ bool VRVolumeApp::data_is_multi_channel()
     int renderchannel = m_ui_view->get_render_channel();
     for (int i = 0; i < m_volumes.size(); i++)
     {
+      // renderchannel[0] = "based on data"
+      // renderchannel[5] =  "rgba"
+      // renderchannel[6] = "rgba with alpha as max rgb";
       if (m_volumes.size() > 0 && m_volumes[i][0]->get_channels() > 1 &&
           (renderchannel == 0 || renderchannel == 5 || renderchannel == 6))
       {

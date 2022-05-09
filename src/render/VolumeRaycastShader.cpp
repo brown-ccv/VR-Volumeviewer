@@ -111,6 +111,8 @@ VolumeRaycastShader::VolumeRaycastShader() : m_use_blending{false}, m_blend_volu
       // To ensure we update dataPos and t_hit to reflect a ray from entry point to exit
       "dataPos = camPos + t_hit.x * geomDir;\n"
       "t_hit.y = t_hit.y-t_hit.x; \n"
+
+      // slightly move the ray to not collide with viewport culling front plane.
       "t_hit.x = 0.0001f; \n"
 
       // get t for the clipping plane and overwrite the entry point

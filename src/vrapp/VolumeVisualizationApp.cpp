@@ -45,18 +45,15 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char **argv) : VRApp(ar
 
       if (std::string(argv_int[i]) == std::string("use2DUI"))
       {
-        // m_is2d = true;
+
         m_vrVolumeApp->set_is_2D(true);
       }
       if (std::string(argv_int[i]) == std::string("useHolo"))
       {
-        // m_lookingGlass = true;
-        // m_speed = 0.5;
         m_vrVolumeApp->set_looking_glass(true);
       }
       else if (std::string(argv_int[i]) == std::string("convert"))
       {
-        // convert = true;
         m_vrVolumeApp->set_convert(true);
       }
       else if (helper::ends_with_string(std::string(argv_int[i]), ".txt"))
@@ -67,27 +64,27 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char **argv) : VRApp(ar
       else if (helper::ends_with_string(std::string(argv_int[i]), ".nrrd"))
       {
 
-        /*
-          NRRD LOADING
-          std::vector<std::string> vals;
-          vals.push_back(std::string(argv_int[i]));
-          std::vector<std::promise<Volume*>*> v;
-          std::promise<Volume*>* pm = new std::promise<Volume*>();
+        NRRD LOADING
+            std::vector<std::string>
+                vals;
+        vals.push_back(std::string(argv_int[i]));
+        std::vector<std::promise<Volume *> *> v;
+        std::promise<Volume *> *pm = new std::promise<Volume *>();
 
-          v.push_back(pm);
-          promises.push_back(v);
+        v.push_back(pm);
+        promises.push_back(v);
 
-          std::vector<std::future<Volume*>>* fut = new std::vector<std::future<Volume*>>;
-          fut->push_back(pm->get_future());
-          futures.push_back(fut);
+        std::vector<std::future<Volume *>> *fut = new std::vector<std::future<Volume *>>;
+        fut->push_back(pm->get_future());
+        futures.push_back(fut);
 
-          std::vector <std::thread*> ths;
-          std::vector<std::promise<Volume*>*> v2= promises.back();
-          ths.emplace_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, v2.back()));
-          threads.push_back(ths);*/
+        std::vector<std::thread *> ths;
+        std::vector<std::promise<Volume *> *> v2 = promises.back();
+        ths.emplace_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, v2.back()));
+        threads.push_back(ths);
         std::string nrrdFileName(argv_int[i]);
         m_vrVolumeApp->load_nrrd_file(nrrdFileName);
-        // m_vrVolumeApp->initialize();
+        m_vrVolumeApp->initialize();
       }
     }
   }
@@ -127,12 +124,10 @@ void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event)
   if (m_vrVolumeApp && m_vrVolumeApp->is_show_menu() && m_vrVolumeApp->is_ui_event())
   {
     if (event.getName() == "HTC_Controller_Right_TrackPad0_Y" || event.getName() == "HTC_Controller_1_TrackPad0_Y" || (event.getName() == "Wand_Joystick_Y_Update" && !(event.getValue() > -0.1 && event.getValue() < 0.1)))
-      // m_menu_handler->setAnalogValue(event.getValue());
       m_vrVolumeApp->update_ui_events(event.getValue());
     if (event.getName() == "MouseWheel_Spin")
     {
       std::cerr << event.getValue() << std::endl;
-      // m_menu_handler->setAnalogValue(event.getValue() * 10);
       m_vrVolumeApp->update_ui_events(event.getValue() * 10);
     }
   }
@@ -352,7 +347,7 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event)
     else if (event.getName() == "HTC_Controller_Right_GripButton_Up" || event.getName() == "HTC_Controller_1_GripButton_Up" || event.getName() == "Wand_Right_Btn_Up")
     {
       m_vrVolumeApp->button_events_ui_handle(2, 0);
-    }    
+    }
     else if (event.getName() == "HTC_Controller_Right_Axis0Button_Up" || event.getName() == "HTC_Controller_1_Axis0Button_Up" || event.getName() == "B08_Up")
     {
       m_vrVolumeApp->button_events_ui_handle(1, 0);

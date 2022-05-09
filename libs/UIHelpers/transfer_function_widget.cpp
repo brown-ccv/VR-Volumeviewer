@@ -69,14 +69,12 @@ TransferFunctionWidget::TransferFunctionWidget()
   load_embedded_preset(blue_gold, sizeof(blue_gold), "Blue Gold");
   load_embedded_preset(ice_fire, sizeof(ice_fire), "Ice Fire");
   load_embedded_preset(nic_edge, sizeof(nic_edge), "nic Edge");
-  // load_embedded_preset(Algae, sizeof(Algae), "Algae");
-
+  
   // Initialize the colormap alpha channel w/ a linear ramp
   update_colormap();
 
   for (int i = 0; i < 256; i++)
   {
-    // current_histogram.push_back(static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
     current_histogram.push_back(0);
   }
 

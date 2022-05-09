@@ -586,6 +586,7 @@ set(header_files
  ${CMAKE_CURRENT_BINARY_DIR}/../include/loader/LoadDataAction.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/Shader.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/Volume.h
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeRenderer.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeSliceRenderer.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeSliceShader.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeRaycastRenderer.h

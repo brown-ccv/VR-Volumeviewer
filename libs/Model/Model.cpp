@@ -40,6 +40,7 @@ void Model::render(ShaderProgram &shaderProgram)
 
 	assert(m_Obj_Model && "NO MODEL TO RENDER");
 	// bind texture
+	// Always load texture id 0. The model doesnt support multi texturing.
 	m_texture->Bind(0);
 
 	// render geometry

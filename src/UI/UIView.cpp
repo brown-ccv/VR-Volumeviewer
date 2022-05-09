@@ -23,7 +23,7 @@ UIView::UIView(VRVolumeApp &controllerApp) : m_controller_app(controllerApp), m_
                                              m_z_scale(0.16f), m_scale{1.0f}, m_slices(256), m_dynamic_slices(false), m_renderVolume(true), m_selectedTrnFnc(0),
                                              m_animated(false), m_ui_frame_controller(0.0f), m_menu_handler(nullptr), m_initialized(false), m_use_transferfunction(false),
                                              m_clip_max(1.0), m_clip_min(0.0), m_clip_ypr(0.0), m_clip_pos(0.0), m_useCustomClipPlane(false), m_rendermethod(1), m_renderchannel(0),
-                                             m_trnfnc_table_selection(-1), m_transfer_function_options_window(false), m_save_trnfct_open(false), m_trnfnct_counter(1), m_file_dialog_open(false),
+                                             m_trnfnc_table_selection(-1), m_transfer_function_options_window(false), m_save_transfer_function_open(false), m_trnfnct_counter(1), m_file_dialog_open(false),
                                              m_file_load_trnsf(false), m_file_dialog_save_dir(false), m_save_session_dialog_open(false), m_current_save_modal(SAVE_NONE),
                                              m_current_load_modal(LOAD_NONE), m_file_extension_filter(".txt"), m_non_trns_functions_selected_modal(false),
                                              m_ui_background(false), m_column_selection_state(0), m_compute_new_histogram(true), m_histogram_point_1(0.0),
@@ -181,7 +181,7 @@ void UIView::draw_ui_callback()
         ImGui::SameLine();
         if (ImGui::SmallButton("Save Functions"))
         {
-          m_save_trnfct_open = true;
+          m_save_transfer_function_open = true;
           m_non_trns_functions_selected_modal = !m_use_transferfunction;
         };
 
@@ -290,7 +290,7 @@ void UIView::draw_ui_callback()
           open_save_modal_dialog(save_user_session_window_id, m_save_session_dialog_open, save_funtion, extension);
         }
 
-        if (m_save_trnfct_open)
+        if (m_save_transfer_function_open)
         {
           m_current_save_modal = SAVE_TRFR_FNC;
           std::string save_Trnf_window_id = "Save Transfer Functions";
@@ -298,7 +298,7 @@ void UIView::draw_ui_callback()
           {
             std::string extension = ".fnc";
             auto save_funtion = std::bind(&UIView::save_transfer_functions, this, std::placeholders::_1);
-            open_save_modal_dialog(save_Trnf_window_id, m_save_trnfct_open, save_funtion, extension);
+            open_save_modal_dialog(save_Trnf_window_id, m_save_transfer_function_open, save_funtion, extension);
           }
           else
           {
@@ -311,7 +311,7 @@ void UIView::draw_ui_callback()
               if (ImGui::Button("Close"))
               {
                 m_non_trns_functions_selected_modal = false;
-                m_save_trnfct_open = false;
+                m_save_transfer_function_open = false;
                 ImGui::CloseCurrentPopup();
               }
               ImGui::EndPopup();
@@ -415,7 +415,7 @@ void UIView::draw_ui_callback()
               /*
               TODO:
                   
-              Fix frame by frame animation
+              The base code to fix frame by frame animation
 
               unsigned int active_volume = floor(m_frame);
                 unsigned int active_volume2 = ceil(m_frame);
@@ -796,10 +796,10 @@ void UIView::draw_ui_callback()
       else if (helper::ends_with_string(fileDialog.selected_fn, ".nrrd"))
       {
         std::vector<std::string> vals;
-        /*	vals.push_back(fileDialog.GetSelected().string());
+        vals.push_back(fileDialog.GetSelected().string());
           promises.push_back(new std::promise<Volume*>);
           futures.push_back(promises.back()->get_future());
-          threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));*/
+          threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
       }
 #endif
     }
@@ -814,7 +814,7 @@ void UIView::draw_ui_callback()
         m_save_session_dialog_open = false;
         break;
       case SAVE_TRFR_FNC:
-        m_save_trnfct_open = false;
+        m_save_transfer_function_open = false;
         break;
       default:
         break;
@@ -836,7 +836,7 @@ void UIView::draw_ui_callback()
         m_save_session_dialog_open = true;
         break;
       case SAVE_TRFR_FNC:
-        m_save_trnfct_open = true;
+        m_save_transfer_function_open = true;
         break;
       default:
         break;
@@ -918,7 +918,6 @@ void UIView::init_ui(bool is2D, bool lookingGlass)
 
   if (!m_initialized)
   {
-    // fileDialog.SetTitle("load data");
 #ifdef WITH_NRRD
     fileDialog.SetTypeFilters({".txt", ".nrrd"});
 #elseif
@@ -1212,7 +1211,7 @@ void UIView::add_character(char c)
     ImGui::ClearActiveID();
     m_copy_trnfnct_name += c;
   }
-  if (m_save_trnfct_open || m_save_session_dialog_open)
+  if (m_save_transfer_function_open || m_save_session_dialog_open)
   {
     ImGui::ClearActiveID();
     m_save_file_name += c;
@@ -1244,7 +1243,7 @@ void UIView::remove_character()
     }
   }
 
-  if (m_save_trnfct_open || m_save_session_dialog_open)
+  if (m_save_transfer_function_open || m_save_session_dialog_open)
   {
     if (!m_save_file_name.empty())
     {
@@ -1318,22 +1317,9 @@ void UIView::save_transfer_functions(std::ofstream &saveFile)
     saveFile << "numFunction " << std::to_string(m_tfns.size()) << "\n";
     for (int i = 0; i < m_tfns.size(); i++)
     {
-      // savefile << m_tfns[i].ID + ",";
+      
       saveFile << "FuncName " + std::to_string(i + 1) + " " + m_tfns[i].Name + " " + std::to_string(tfn_widget[i].get_colormap_gpu()) + "\n";
-      /*   for (int j = 0; j < tfn_widget_multi[i].alpha_control_pts.size(); j++)
-         {
-           if (j != tfn_widget_multi[i].alpha_control_pts.size()-1)
-           {
-             savefile << std::to_string(tfn_widget_multi[i].alpha_control_pts[j][0].x) +","+ std::to_string(tfn_widget_multi[i].alpha_control_pts[j][0].y) +
-               std::to_string(tfn_widget_multi[i].alpha_control_pts[j][1].x) + "," + std::to_string(tfn_widget_multi[i].alpha_control_pts[j][1].y);
-           }
-           else
-           {
-             savefile << std::to_string(tfn_widget_multi[i].alpha_control_pts[j][0].x) + "," + std::to_string(tfn_widget_multi[i].alpha_control_pts[j][0].y )+
-               std::to_string(tfn_widget_multi[i].alpha_control_pts[j][1].x) + "," + std::to_string(tfn_widget_multi[i].alpha_control_pts[j][1].y) +";";
-           }
-
-         }*/
+      
       saveFile << "FuncPoints " << std::to_string(i + 1) << " ";
       for (int j = 0; j < tfn_widget[i].alpha_control_pts.size(); j++)
       {

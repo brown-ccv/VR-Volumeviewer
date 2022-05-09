@@ -24,7 +24,6 @@
 ///\author Benjamin Knorlein
 ///\date 5/24/2019
 
-
 #ifndef VOLUMERENDER_H
 #define VOLUMERENDER_H
 
@@ -56,7 +55,6 @@ public:
 		{
 			m_clip_plane = *clipPlane;
 		}
-			
 	};
 
 protected:

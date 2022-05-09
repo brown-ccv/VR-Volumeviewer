@@ -127,17 +127,15 @@ int Texture::LoadTexture(const std::string &fileName,
 	if (data)
 	{
 		if (bbp == 3)
-		{
-			// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, *data);
+		{			
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, *data);
 		}
 		else if (bbp == 4)
 		{
-			// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, *data);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, *data);
 		}
 
-		// glGenerateMipmap(GL_TEXTURE_2D);
+		
 	}
 	else
 	{
