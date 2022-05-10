@@ -292,7 +292,7 @@ void UIView::draw_ui_callback()
 
         if (m_save_transfer_function_open)
         {
-          m_current_save_modal = SAVE_TRFR_FNC;
+          m_current_save_modal = SAVE_TRANSFER_FUNCTION;
           std::string save_Trnf_window_id = "Save Transfer Functions";
           if (m_use_transferfunction)
           {
@@ -813,7 +813,7 @@ void UIView::draw_ui_callback()
       case SAVE_SESSION:
         m_save_session_dialog_open = false;
         break;
-      case SAVE_TRFR_FNC:
+      case SAVE_TRANSFER_FUNCTION:
         m_save_transfer_function_open = false;
         break;
       default:
@@ -835,7 +835,7 @@ void UIView::draw_ui_callback()
       case SAVE_SESSION:
         m_save_session_dialog_open = true;
         break;
-      case SAVE_TRFR_FNC:
+      case SAVE_TRANSFER_FUNCTION:
         m_save_transfer_function_open = true;
         break;
       default:
@@ -1031,7 +1031,6 @@ int UIView::get_num_transfer_functions()
 
 bool UIView::is_transfer_function_enabled(int tfn, int vol)
 {
-  // return m_selected_volume_TrFn[tfn][vol];
   return m_tfns[tfn].volumes[vol];
 }
 

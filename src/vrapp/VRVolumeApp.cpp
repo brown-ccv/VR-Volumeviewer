@@ -303,8 +303,7 @@ void VRVolumeApp::set_description(int descriptionHeight, std::string &descriptio
 {
   m_descriptionHeight = descriptionHeight;
   m_descriptionFilename = descriptionFilename;
-  m_description = LoadDescriptionAction(m_descriptionFilename).run();
-  // std::cerr << m_description[0] << std::endl;
+  m_description = LoadDescriptionAction(m_descriptionFilename).run();  
 }
 
 void VRVolumeApp::set_mesh(int volumeId, std::string &fileName, std::string &shaderFilePath)

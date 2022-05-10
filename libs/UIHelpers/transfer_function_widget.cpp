@@ -462,7 +462,7 @@ void TransferFunctionWidget::draw_histogram()
   vec2f canvas_size = ImGui::GetContentRegionAvail();
   // Note: If you're not using OpenGL for rendering your UI, the setup for
   // displaying the colormap texture in the UI will need to be updated.
-  // ImGui::Image(reinterpret_cast<void*>(colormap_img), ImVec2(canvas_size.x, 16));
+  // TODO(#45) ImGui::Image(reinterpret_cast<void*>(colormap_img), ImVec2(canvas_size.x, 16));
   vec2f canvas_pos = ImGui::GetCursorScreenPos();
   canvas_size.y -= 250;
 

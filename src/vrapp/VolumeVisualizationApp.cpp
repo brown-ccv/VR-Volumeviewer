@@ -63,9 +63,9 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char **argv) : VRApp(ar
       else if (helper::ends_with_string(std::string(argv_int[i]), ".nrrd"))
       {
 
-        NRRD LOADING
-            std::vector<std::string>
-                vals;
+        // NRRD LOADING
+        std::vector<std::string>
+            vals;
         vals.push_back(std::string(argv_int[i]));
         std::vector<std::promise<Volume *> *> v;
         std::promise<Volume *> *pm = new std::promise<Volume *>();

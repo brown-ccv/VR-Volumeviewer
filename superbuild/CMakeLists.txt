@@ -110,7 +110,6 @@ endif (WIN32)
 
 #Choreograph
 # Configure external project
-#IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/Choreograph/Choreograph)
 execute_process(
      COMMAND ${CMAKE_COMMAND}      
      -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
@@ -128,8 +127,6 @@ execute_process( COMMAND ${CMAKE_COMMAND}
   --config ${CMAKE_BUILD_TYPE} 
 )
 
-
-#ENDIF()
 
 find_package(Choreograph REQUIRED)
 if(Choreograph_FOUND)
