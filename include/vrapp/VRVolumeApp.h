@@ -1,15 +1,17 @@
 #ifndef VRVOLUMEAPP_H
 #define VRVOLUMEAPP_H
 
+
 #include <string>
 #include <vector>
 #include <future>
 #include <api/MinVR.h>
-#include "interaction/Labels.h"
-#include "interaction/ArcBall.h"
+
+#include "interaction/ArcBallCamera.h"
 #include "render/Volume.h"
 
-#include "Model.h"
+
+#include "ShaderProgram.h"
 
 
 class UIView;
@@ -17,15 +19,30 @@ class CreateMovieAction;
 class VolumeRenderer;
 class DepthTexture;
 class Window_Properties;
+class Model;
+class Texture;
+class Simulation;
+class LabelManager;
+
+enum MOVIESTATE
+{
+  MOVIE_STOP,
+  MOVIE_RECORD
+};
+
+enum APPMODE
+{
+  MANUAL,
+  SIMULATION
+};
 
 class VRVolumeApp
 {
 public:
 
   VRVolumeApp();
+
   ~VRVolumeApp();
-
-
 
   void render(const MinVR::VRGraphicsState& renderState);
 
@@ -90,10 +107,11 @@ public:
 
   void update_trackBall_state();
 
-  void update_animation();
+  void update_animation(float fps);
 
 #if (!defined(__APPLE__))
- void run_movie();
+ void run_movie(bool is_animation);
+ void stop_movie();
 #endif
  
 
@@ -152,7 +170,24 @@ public:
 
   std::vector< Volume* >& get_volume(int volume);
 
-  
+  ArcBallCamera& get_trackball_camera();
+
+  /*
+    increase/decrease the step size of the volume animation by a `scale` factor.
+    It is a step unit, not related to any time unit. 
+  */
+  void set_volume_animation_scale_factor(float scale);
+
+  Simulation& get_simulation();
+
+  void set_clip_min(glm::vec3 clip_min);
+  void set_clip_max(glm::vec3 clip_max);
+
+  std::string get_movie_state_label();
+
+  MOVIESTATE get_movie_state();
+
+  void set_app_mode(APPMODE );
 
 protected:
 
@@ -167,7 +202,7 @@ protected:
 
 
 
-  void render_labels(const MinVR::VRGraphicsState& renderState);
+  void render_labels(glm::mat4& volume_mv, const MinVR::VRGraphicsState& renderState);
   void render_mesh(const MinVR::VRGraphicsState& renderState);
   void render_volume(const MinVR::VRGraphicsState& renderState);
   void render_ui(const MinVR::VRGraphicsState& renderState);
@@ -179,7 +214,7 @@ protected:
 
   std::vector < std::vector< Volume* >> m_volumes;
   std::vector<std::string> m_description;
-  Labels m_labels;
+  LabelManager* m_labels;
   std::vector <std::string> m_models_filenames;
   std::vector <unsigned int> m_models_displayLists;
   std::vector<pt> m_models_position;
@@ -198,6 +233,8 @@ protected:
 
   Model* m_mesh_model;
   ShaderProgram m_simple_texture_shader;
+  ShaderProgram m_line_shader;
+
   std::string m_shader_file_path;
   std::string m_texture_filePath;
   Texture* m_texture;
@@ -206,6 +243,7 @@ protected:
   bool m_animated;
   float m_threshold;
   int m_descriptionHeight;
+  float m_volume_animation_scale_factor;
   
   float m_frame;
   float m_speed;
@@ -230,7 +268,7 @@ protected:
   glm::mat4 m_model_view;
 
 
-  ArcBall m_trackball;
+  ArcBallCamera m_trackball;
   bool m_lookingGlass;
 
   glm::mat4 m_object_pose;
@@ -253,7 +291,7 @@ protected:
 
   bool m_use_multi_transfer;
   bool m_show_menu;
-
+  bool m_end_load;
 
 
   /*Input Events*/
@@ -273,5 +311,13 @@ protected:
   std::string m_current_file_loaded;
 
   Window_Properties* m_window_properties;
+
+  Simulation* m_simulation;
+  
+  MOVIESTATE m_current_movie_state;
+  bool m_stop_movie;
+
+  APPMODE m_app_mode;
+
 };
 #endif

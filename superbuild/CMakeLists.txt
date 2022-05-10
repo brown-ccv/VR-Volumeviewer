@@ -45,7 +45,7 @@ endif()
 message("CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
 
 if(NOT DEBUG_SUFFIX AND CMAKE_BUILD_TYPE MATCHES "Debug")
- set(DEBUG_SUFFIX "d")
+ set(CMAKE_DEBUG_SUFFIX "d")
 endif()
 
 message("DEBUG_SUFFIX ${DEBUG_SUFFIX}")
@@ -106,6 +106,37 @@ if (WIN32)
 else()
  message("====== MINVR IS NOT WIN 32")
 endif (WIN32)
+
+
+#Choreograph
+# Configure external project
+execute_process(
+     COMMAND ${CMAKE_COMMAND}      
+     -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
+     -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} 
+     -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} 
+     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+     ${CMAKE_SOURCE_DIR}/Choreograph
+     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/Choreograph
+ )
+
+ 
+#Build external project
+execute_process( COMMAND ${CMAKE_COMMAND} 
+  --build ${CMAKE_BINARY_DIR}/Choreograph 
+  --config ${CMAKE_BUILD_TYPE} 
+)
+
+
+find_package(Choreograph REQUIRED)
+if(Choreograph_FOUND)
+  message(STATUS "Choreograph found")
+  message(STATUS "CHOREOGRAPH_INCLUDE_DIR ${CHOREOGRAPH_INCLUDE_DIR}")
+  message(STATUS "CHOREOGRAPH_LIBRARY ${CHOREOGRAPH_LIBRARY}")
+else()
+  message(STATUS "Choreograph NOT found" )
+endif()
+
 
 #MinVR
 # Configure external project
@@ -386,12 +417,13 @@ endif()
 
 
 find_package(OpenCV CONFIG REQUIRED)
+set_target_properties(${OpenCV_LIBS} PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
 if(OpenCV_FOUND)
   message(STATUS "OpenCV found ${_OpenCV_LIB_PATH}")
   message(STATUS "OpenCV found ${OpenCV_INSTALL_PATH}")
   if(WIN32)
    set(OPENCV_PATH ${_OpenCV_LIB_PATH} )
-   set(OPENCV_SUFIX "454" )
+   set(OPENCV_SUFIX "455" )
   elseif(APPLE)
    set(OPENCV_PATH "${CMAKE_BINARY_DIR}/install_${CMAKE_SYSTEM_NAME}/lib")
    set(OPENCV_PREFIX "lib" )
@@ -399,10 +431,10 @@ if(OpenCV_FOUND)
    #set(OPENCV_SUFIX "4.5.3" )
   endif()
 
-  file(COPY "${OPENCV_PATH}/${OPENCV_PREFIX}opencv_videoio${OPENCV_SUFIX}${DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
-  file(COPY "${OPENCV_PATH}/${OPENCV_PREFIX}opencv_imgcodecs${OPENCV_SUFIX}${DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
-  file(COPY "${OPENCV_PATH}/${OPENCV_PREFIX}opencv_imgproc${OPENCV_SUFIX}${DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
-  file(COPY "${OPENCV_PATH}/${OPENCV_PREFIX}opencv_core${OPENCV_SUFIX}${DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
+  file(COPY "${OPENCV_PATH}/${OPENCV_PREFIX}opencv_videoio${OPENCV_SUFIX}${CMAKE_DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
+  file(COPY "${OPENCV_PATH}/${OPENCV_PREFIX}opencv_imgcodecs${OPENCV_SUFIX}${CMAKE_DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
+  file(COPY "${OPENCV_PATH}/${OPENCV_PREFIX}opencv_imgproc${OPENCV_SUFIX}${CMAKE_DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
+  file(COPY "${OPENCV_PATH}/${OPENCV_PREFIX}opencv_core${OPENCV_SUFIX}${CMAKE_DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
   
 endif()
 
@@ -531,15 +563,16 @@ endif()
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/glm.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/FrameBufferObject.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/DepthTexture.cpp
- ${CMAKE_CURRENT_BINARY_DIR}/../src/interaction/Labels.cpp
+ ${CMAKE_CURRENT_BINARY_DIR}/../src/interaction/LabelManager.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/FontHandler.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/transfer_function_widget.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/transfer_function_multichannel_widget.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/histogram.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/Vec2.cpp
- ${CMAKE_CURRENT_BINARY_DIR}/../src/interaction/ArcBall.cpp
+ ${CMAKE_CURRENT_BINARY_DIR}/../src/interaction/ArcBallCamera.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/interaction/HelperFunctions.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/interaction/CreateMovieAction.cpp
+ ${CMAKE_CURRENT_BINARY_DIR}/../src/interaction/Simulation.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/loader/LoadDescriptionAction.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/loader/VRDataLoader.cpp
 )
@@ -550,6 +583,7 @@ set(header_files
  ${CMAKE_CURRENT_BINARY_DIR}/../include/loader/LoadDataAction.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/Shader.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/Volume.h
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeRenderer.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeSliceRenderer.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeSliceShader.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeRaycastRenderer.h
@@ -558,16 +592,18 @@ set(header_files
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/glm.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/FrameBufferObject.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/DepthTexture.h
- ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/Labels.h
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/LabelManager.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/FontHandler.h
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/transfer_function_widget.h
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/transfer_function_multichannel_widget.h
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/embedded_colormaps.h
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/histogram.h
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/Vec2.h
- ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/ArcBall.h
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/ArcBallCamera.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/HelperFunctions.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/CreateMovieAction.h
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/PointOfInterests.h
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/Simulation.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/loader/LoadDescriptionAction.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/loader/VRDataLoader.h
  
@@ -585,6 +621,7 @@ set(header_files
   ${CPPFS_INCLUDE_DIRS}
   ${Imgui_INCLUDE_DIR}
   ${IMGUIVR_INCLUDE_DIR}
+  ${CHOREOGRAPH_INCLUDE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/../libs/
   ${CMAKE_CURRENT_SOURCE_DIR}/../include/
   ${Model_INCLUDE_DIR}
@@ -596,6 +633,7 @@ set(header_files
 
 set(LIBRARIES
   ${OPENGL_LIBRARY}
+  ${CHOREOGRAPH_LIBRARY}
 	${OpenCV_LIBS}
 	${GLM_LIBRARIES}
 	${GLEW_LIBRARY}
@@ -637,10 +675,11 @@ add_executable(${PROJECT_NAME} ${source_files} ${header_files})
 target_link_libraries(${PROJECT_NAME}  ${LIBRARIES})
 
 file(COPY "${CMAKE_SOURCE_DIR}/../shaders" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
-file(COPY "${CMAKE_SOURCE_DIR}/../fonts/" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
-file(COPY "${CMAKE_SOURCE_DIR}/../observers/" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
+file(COPY "${CMAKE_SOURCE_DIR}/../fonts" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
+file(COPY "${CMAKE_SOURCE_DIR}/../observers" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
 file(COPY "${CMAKE_SOURCE_DIR}/../colormaps" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
-
+message(STATUS "COPY RESOURCES FOLDER")
+file(COPY "${CMAKE_SOURCE_DIR}/../Resources" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
 
 enable_testing()
 

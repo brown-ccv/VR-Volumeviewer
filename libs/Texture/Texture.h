@@ -23,6 +23,7 @@
 #endif
 
 #include <string>
+#include <vector>
 
 class Texture
 {
@@ -30,8 +31,9 @@ public:
 	Texture(GLenum TextureTarget, const std::string& filename);
 	~Texture();
 
-	void Bind(GLenum TextureUnit);
+	void Bind();
 	GLuint GetTextureId();
+	void UnBind();
 
 	int LoadTexture(const std::string& fileName, int& width, int& height, unsigned char ** data, int& bbp);
 
@@ -48,7 +50,7 @@ private:
 	};
 
 	int Load2DTexture();
-
+	int Load3DTexture(const std::vector<std::string>& paths);
 	
 
 	GLuint m_texture_id;

@@ -66,7 +66,7 @@ public:
 
   virtual void set_threshold(float threshold) override;
   virtual void set_multiplier(float multiplier) override;
-  virtual void set_numSlices(int slices) override;
+  virtual void set_num_slices(int slices) override;
   virtual void useMultichannelColormap(bool useMulti);
 
   virtual void set_blending(bool useBlending, float alpha, Volume* volume) override
@@ -74,7 +74,7 @@ public:
     //unsupported for now
   }
 
-  virtual void setClipMinMax(glm::vec3 min_clip, glm::vec3 max_clip);
+  virtual void set_clip_min_max(glm::vec3 min_clip, glm::vec3 max_clip);
 
 private:
   //function to get the max (abs) dimension of the given vertex v
