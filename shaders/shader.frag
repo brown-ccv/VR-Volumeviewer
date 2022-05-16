@@ -1,20 +1,15 @@
 #version 330
 
-const vec4 lightPos = vec4(0.0, 2.0, 2.0, 1.0);
-const vec4 color = vec4(0.5, 0.5, 0.5, 1.0);
+in vec4 vertex_pos;
+in vec2 text_coord;
 
-in vec4 pos;
-in vec2 TexCoord;
-
-out vec4 fragColor;
-uniform sampler2D myTextureSampler;
+out vec4 frag_color;
+uniform sampler2D texture_sampler;
 
 void main() {
-
-	fragColor = vec4(texture( myTextureSampler, TexCoord ));
-      if(fragColor.a < 0.1)
+	frag_color = vec4(texture( texture_sampler, text_coord ));
+    if(frag_color.a < 0.1)
 	{
       	discard;
-	}
-	
+	}	
 }

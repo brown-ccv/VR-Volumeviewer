@@ -110,7 +110,6 @@ endif (WIN32)
 
 #Choreograph
 # Configure external project
-IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/Choreograph/Choreograph)
 execute_process(
      COMMAND ${CMAKE_COMMAND}      
      -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
@@ -128,8 +127,6 @@ execute_process( COMMAND ${CMAKE_COMMAND}
   --config ${CMAKE_BUILD_TYPE} 
 )
 
-
-ENDIF()
 
 find_package(Choreograph REQUIRED)
 if(Choreograph_FOUND)
@@ -420,6 +417,7 @@ endif()
 
 
 find_package(OpenCV CONFIG REQUIRED)
+set_target_properties(${OpenCV_LIBS} PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
 if(OpenCV_FOUND)
   message(STATUS "OpenCV found ${_OpenCV_LIB_PATH}")
   message(STATUS "OpenCV found ${OpenCV_INSTALL_PATH}")
@@ -588,7 +586,7 @@ set(header_files
  ${CMAKE_CURRENT_BINARY_DIR}/../include/loader/MeshData.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/Shader.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/Volume.h
- ${CMAKE_CURRENT_BINARY_DIR}/../include/render/Mesh.h
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeRenderer.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeSliceRenderer.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeSliceShader.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeRaycastRenderer.h
@@ -681,10 +679,11 @@ add_executable(${PROJECT_NAME} ${source_files} ${header_files})
 target_link_libraries(${PROJECT_NAME}  ${LIBRARIES})
 
 file(COPY "${CMAKE_SOURCE_DIR}/../shaders" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
-file(COPY "${CMAKE_SOURCE_DIR}/../fonts/" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
-file(COPY "${CMAKE_SOURCE_DIR}/../observers/" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
+file(COPY "${CMAKE_SOURCE_DIR}/../fonts" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
+file(COPY "${CMAKE_SOURCE_DIR}/../observers" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
 file(COPY "${CMAKE_SOURCE_DIR}/../colormaps" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
-
+message(STATUS "COPY RESOURCES FOLDER")
+file(COPY "${CMAKE_SOURCE_DIR}/../Resources" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
 
 enable_testing()
 

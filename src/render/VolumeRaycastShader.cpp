@@ -1,26 +1,26 @@
 ﻿//  ----------------------------------.
 
 //  Copyright © 2015, Brown University, Providence, RI.
-//  
+//
 //  All Rights Reserved
-//   
-//  Use of the software is provided under the terms of the GNU General Public License version 3 
-//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
-//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
-//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//
+//  Use of the software is provided under the terms of the GNU General Public License version 3
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in
+//  advertising or publicity pertaining to the use or distribution of the software without specific written
 //  prior permission from Brown University.
-//  
+//
 //  See license.txt for further information.
-//  
-//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
-//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
-//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
-//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
-//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
-//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //  ----------------------------------
-//  
+//
 ///\file VolumeRaycastShader.cpp
 ///\author Benjamin Knorlein
 ///\date 11/30/2017
@@ -31,32 +31,27 @@
 
 #include "render/VolumeRaycastShader.h"
 
-
 #include <glm/gtc/type_ptr.hpp>
 
-VolumeRaycastShader::VolumeRaycastShader() : m_use_blending{ false }, m_blend_volume{ 0 }, m_blending_alpha{ 0 }, m_clip_min{ 0.0 }, m_clip_max{ 1.0 }
-//: m_threshold{ 0.0f }, m_multiplier{ 0.5 }
+VolumeRaycastShader::VolumeRaycastShader() : m_use_blending{false}, m_blend_volume{0}, m_blending_alpha{0}, m_clip_min{0.0}, m_clip_max{1.0}
 {
-
-  /*m_viewport[0] = 1.0;
-  m_viewport[1] = 1.0;*/
 
   m_shader = "VolumeRaycastShader";
 
   m_vertexShader = "#version 330 core\n"
-    "layout(location = 0) in vec3 vVertex;\n" //object space vertex position
-    "uniform mat4 MVP; \n"   //combined modelview projection matrix
-    "smooth out vec3 vUV; \n" //3D texture coordinates for texture lookup in the fragment shader
-    "void main()\n"
-    "{\n"
-    //get the clipspace position 
-    "gl_Position = MVP*vec4(vVertex, 1); \n"
-    //get the 3D texture coordinates by adding (0.5,0.5,0.5) to the object space 
-    //vertex position. Since the unit cube is at origin (min: (-0.5,-0.5,-0.5) and max: (0.5,0.5,0.5))
-    //adding (0.5,0.5,0.5) to the unit cube object space position gives us values from (0,0,0) to 
-    //(1,1,1)
-    "vUV = vVertex + vec3(0.5001); \n"
-    "}\n";
+                   "layout(location = 0) in vec3 vVertex;\n" // object space vertex position
+                   "uniform mat4 MVP; \n"                    // combined modelview projection matrix
+                   "smooth out vec3 vUV; \n"                 // 3D texture coordinates for texture lookup in the fragment shader
+                   "void main()\n"
+                   "{\n"
+                   // get the clipspace position
+                   "gl_Position = MVP*vec4(vVertex, 1); \n"
+                   // get the 3D texture coordinates by adding (0.5,0.5,0.5) to the object space
+                   // vertex position. Since the unit cube is at origin (min: (-0.5,-0.5,-0.5) and max: (0.5,0.5,0.5))
+                   // adding (0.5,0.5,0.5) to the unit cube object space position gives us values from (0,0,0) to
+                   //(1,1,1)
+                   "vUV = vVertex + vec3(0.5); \n"
+                   "}\n";
 
   m_fragmentShader =
     "#version 330 core\n"
@@ -242,7 +237,7 @@ VolumeRaycastShader::~VolumeRaycastShader()
 {
 }
 
-void VolumeRaycastShader::render(glm::mat4& MVP, glm::mat4& clipPlane, glm::vec3& camPos)
+void VolumeRaycastShader::render(glm::mat4 &MVP, glm::mat4 &clipPlane, glm::vec3 &camPos)
 {
   if (m_use_blending)
   {
@@ -292,7 +287,7 @@ void VolumeRaycastShader::initGL()
 
   bindProgram();
 
-  //add attributes and uniforms
+  // add attributes and uniforms
   m_volume_uniform = glGetUniformLocation(m_programID, "volume");
   m_MVP_uniform = glGetUniformLocation(m_programID, "MVP");
   m_clipPlane_uniform = glGetUniformLocation(m_programID, "clipPlane");
@@ -318,7 +313,6 @@ void VolumeRaycastShader::initGL()
   m_clip_min_uniform = glGetUniformLocation(m_programID, "clip_min");
   m_clip_max_uniform = glGetUniformLocation(m_programID, "clip_max");
 
-
   ////pass constant uniforms at initialization
   glUniform1i(m_volume_uniform, 0);
   glUniform1i(m_lut_uniform, 1);
@@ -326,5 +320,4 @@ void VolumeRaycastShader::initGL()
   glUniform1i(m_blendVolume_uniform, 3);
 
   unbindProgram();
-
 }

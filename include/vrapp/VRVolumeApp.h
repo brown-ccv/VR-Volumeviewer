@@ -23,7 +23,8 @@ class Window_Properties;
 class Simulation;
 class LabelsManager;
 
-enum MovieState
+
+enum MOVIESTATE
 {
   MOVIE_STOP,
   MOVIE_RECORD
@@ -41,11 +42,7 @@ public:
 
   VRVolumeApp();
 
-  
-
   ~VRVolumeApp();
-
-
 
   void render(const MinVR::VRGraphicsState& renderState);
 
@@ -173,7 +170,11 @@ public:
 
   ArcBallCamera& get_trackball_camera();
 
-  void set_animation_speed(float time);
+  /*
+    increase/decrease the step size of the volume animation by a `scale` factor.
+    It is a step unit, not related to any time unit. 
+  */
+  void set_volume_animation_scale_factor(float scale);
 
   Simulation& get_simulation();
 
@@ -182,7 +183,7 @@ public:
 
   std::string get_movie_state_label();
 
-  MovieState get_movie_state();
+  MOVIESTATE get_movie_state();
 
   void set_app_mode(APPMODE );
 
@@ -244,7 +245,7 @@ protected:
   bool m_animated;
   float m_threshold;
   int m_descriptionHeight;
-  float m_animation_speed;
+  float m_volume_animation_scale_factor;
   
   float m_frame;
   float m_speed;
@@ -313,7 +314,7 @@ protected:
 
   Simulation* m_simulation;
   
-  MovieState m_current_movie_state;
+  MOVIESTATE m_current_movie_state;
   bool m_stop_movie;
 
   APPMODE m_app_mode;

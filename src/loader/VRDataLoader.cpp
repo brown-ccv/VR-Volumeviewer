@@ -1,12 +1,11 @@
 #include "loader/VRDataLoader.h"
 #include <fstream>
 
-
 //#include <filesystem>
 #include <cppfs/fs.h>
 #include <cppfs/FilePath.h>
 
-#include <sstream>  
+#include <sstream>
 #include "vrapp/VRVolumeApp.h"
 
 #include "common/common.h"
@@ -15,31 +14,33 @@
 
 VRDataLoader::VRDataLoader()
 {
-
 }
 
 
-void VRDataLoader::load_txt_file( VRVolumeApp& vrVolumeApp,  std::string& filename)
+void VRDataLoader::load_txt_file(VRVolumeApp &vrVolumeApp, std::string &filename)
 {
-  
+
   std::ifstream inFile;
   inFile.open(filename);
 
   std::string line;
 
-  //std::filesystem::path p_filename(filename);
   cppfs::FilePath p_filename(filename);
 
-  while (getline(inFile, line)) {
-    if (line[0] != '#') {
+  while (getline(inFile, line))
+  {
+    if (line[0] != '#')
+    {
       std::vector<std::string> vals; // Create vector to hold our words
       std::stringstream ss(line);
       std::string buf;
 
-      while (ss >> buf) {
+      while (ss >> buf)
+      {
         vals.push_back(buf);
       }
-      if (vals.size() > 0) {
+      if (vals.size() > 0)
+      {
         std::string tag = vals[0];
         if (tag == "animated")
         {
@@ -67,19 +68,12 @@ void VRDataLoader::load_txt_file( VRVolumeApp& vrVolumeApp,  std::string& filena
           int descHeight = stoi(vals[2]);
           std::string fileName = vals[1];
           vrVolumeApp.set_description(descHeight, fileName);
-
         }
         if (tag == "mesh")
-        {
-          
+        { 
           assert(vals.size() == 4 && "Check mesh initialization parameters in the volume configuration file");
-          
           std::string mesh_file_full_path = p_filename.directoryPath() + OS_SLASH + vals[1];
           std::string texture_file_full_path = p_filename.directoryPath() + OS_SLASH + vals[2];
-
-          //std::cerr << "Load Mesh " << mesh_file_full_path << std::endl;
-          //std::string shaderFilePath = p_filename.directoryPath() + OS_SLASH + "shaders";
-
           vrVolumeApp.set_mesh(stoi(vals[3]), mesh_file_full_path, texture_file_full_path);
 
         }
@@ -100,18 +94,16 @@ void VRDataLoader::load_txt_file( VRVolumeApp& vrVolumeApp,  std::string& filena
          
           std::string strVolumeIndex = tag.substr(6);
           size_t volumeIndex = std::stoi(strVolumeIndex);
-
           vals[1] = p_filename.directoryPath() + OS_SLASH + vals[1];
 
           std::vector<std::promise<Volume*>*>& v = vrVolumeApp.get_promise(volumeIndex);
           std::promise<Volume*>* pm = new std::promise<Volume*>();
-
           v.push_back(pm);
 
-          std::vector<std::future<Volume*>>* fut;
+          std::vector<std::future<Volume *>> *fut;
           if (!vrVolumeApp.get_future(volumeIndex))
           {
-            vrVolumeApp.set_future(volumeIndex, new std::vector<std::future<Volume*>>);
+            vrVolumeApp.set_future(volumeIndex, new std::vector<std::future<Volume *>>);
           }
 
           fut = vrVolumeApp.get_future(volumeIndex);
@@ -121,12 +113,9 @@ void VRDataLoader::load_txt_file( VRVolumeApp& vrVolumeApp,  std::string& filena
           vrVolumeApp.set_future(volumeIndex, fut);
 
           vrVolumeApp.init_volume_loading(volumeIndex, vals);
-
-
         }
       }
     }
-
   }
   inFile.close();
   vrVolumeApp.set_loaded_file(filename);
