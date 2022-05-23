@@ -56,7 +56,7 @@ VRVolumeApp::VRVolumeApp() : m_clip_max{ 1.0f }, m_clip_min{ 0.0f }, m_clip_ypr{
 m_lookingGlass(false), m_isInitailized(false), m_speed(0.01f), m_movieAction(nullptr), m_moviename("movie.mp4"), m_noColor(0.0f),
 m_ambient(0.2f, 0.2f, 0.2f, 1.0f), m_diffuse(0.5f, 0.5f, 0.5f, 1.0f), m_ui_view(nullptr), m_animated(false), m_numVolumes(0), m_selectedVolume(0),
 m_multiplier(1.0f), m_threshold(0.0f), m_frame(0.0f), m_use_multi_transfer(false), m_clipping(false), m_show_menu(true),
-m_window_properties(nullptr), m_animation_speed(1.0f), m_current_movie_state(MOVIE_STOP), m_app_mode(MANUAL), m_end_load(false),
+m_window_properties(nullptr), m_volume_animation_scale_factor(1.0f), m_current_movie_state(MOVIE_STOP), m_app_mode(MANUAL), m_end_load(false),
 m_global_min(std::numeric_limits<float>::max()), m_global_max(std::numeric_limits<float>::min())
 {
   m_renders.push_back(new VolumeSliceRenderer());
@@ -550,11 +550,11 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState &render_state)
     m_depthTextures.push_back(new DepthTexture);
   }
 
-  m_projection_mtrx = glm::make_mat4(renderState.getProjectionMatrix());
-  m_view_matrix = glm::make_mat4(renderState.getViewMatrix());
+  m_projection_mtrx = glm::make_mat4(render_state.getProjectionMatrix());
+  m_view_matrix = glm::make_mat4(render_state.getViewMatrix());
   // overwrite MV for 2D viewing
   if (m_is2d)
-    m_view_matrix = m_trackball.getViewmatrix();
+    m_view_matrix = m_trackball.get_view_matrix();
 
   glMatrixMode(GL_PROJECTION);
   glLoadMatrixf(glm::value_ptr(m_projection_mtrx));
@@ -585,16 +585,16 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState &render_state)
 
    /* 
    * TO DO: Fix parent child relationship to not affect the mesh with z-scale
-   * 
+   **/ 
     glm::vec3 volume_position = volume_mv[3];
     glm::mat4 mesh_model_matrix =  glm::translate(general_model_view, volume_position);
     mesh_model_matrix = glm::translate(mesh_model_matrix, glm::vec3(-0.5f, -0.5f, -0.5f * px/pz));
     mesh_model_matrix = glm::scale(mesh_model_matrix, glm::vec3(px, py, px));
-   */
+   
 
-    glm::mat4 mesh_model_matrix = glm::translate(volume_mv, glm::vec3(-0.5f, -0.5f, -0.5f * px / pz));
-    mesh_model_matrix = glm::scale(mesh_model_matrix, glm::vec3(px, py, px));
-    mesh->get_model().setMVMatrix(mesh_model_matrix);
+	//glm::mat4 mesh_model_matrix = glm::translate(volume_mv, glm::vec3(-0.5f, -0.5f, -0.5f * px / pz));
+	////mesh_model_matrix = glm::scale(mesh_model_matrix, glm::vec3(px, py, px));
+	//mesh->get_model().setMVMatrix(volume_mv);
 
   }
 
@@ -609,19 +609,19 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState &render_state)
     }
 
     for (auto ren : m_renders)
-      ren->setClipping(true, &clipPlane);
+      ren->set_clipping_plane(true, &clipPlane);
   }
   else
   {
     for (auto ren : m_renders)
-      ren->setClipping(false, nullptr);
+      ren->set_clipping_plane(false, nullptr);
   }
 
   for (auto ren : m_renders)
   {
     if (m_ui_view)
     {
-      ren->setClipMinMax(m_ui_view->get_clip_min(), m_ui_view->get_clip_max());
+      ren->set_clip_min_max(m_ui_view->get_clip_min(), m_ui_view->get_clip_max());
     }
   }
 
@@ -634,7 +634,7 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState &render_state)
   }
 
   //render labels
-  render_labels( renderState);
+  render_labels( render_state);
 
   m_depthTextures[m_rendercount]->copyDepthbuffer();
   (static_cast<VolumeRaycastRenderer *>(m_renders[1]))->setDepthTexture(m_depthTextures[m_rendercount]);
@@ -698,7 +698,7 @@ void VRVolumeApp::render_volume(const MinVR::VRGraphicsState &renderState)
   {
     ren->set_multiplier(m_ui_view->get_multiplier());
     ren->set_threshold(m_ui_view->get_threshold());
-    ren->set_numSlices(m_ui_view->get_slices());
+    ren->set_num_slices(m_ui_view->get_slices());
     ren->useMultichannelColormap(m_use_multi_transfer);
   }
 
@@ -796,7 +796,7 @@ void VRVolumeApp::animated_render(int tfn, int vol)
   {
     m_global_min = std::min(m_global_min, volume_min);
     m_global_max = std::max(m_global_max, volume_max);
-    m_ui_view->set_transfer_function_min_max(global_min, global_max);
+    m_ui_view->set_transfer_function_min_max(m_global_min, m_global_max);
   }
 }
 

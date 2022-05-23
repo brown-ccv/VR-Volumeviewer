@@ -137,7 +137,7 @@ void VolumeSliceRenderer::render(Volume* volume, const glm::mat4& MV, glm::mat4&
   glm::mat4 MVP = P * MV_tmp;
   glm::mat4 clipPlane;
   if (m_clipping) {
-    clipPlane = glm::translate(m_clipPlane * MV_tmp, glm::vec3(-0.5f));
+    clipPlane = glm::translate(m_clip_plane * MV_tmp, glm::vec3(-0.5f));
     shader.set_clipping(true);
   }
   else
@@ -179,7 +179,7 @@ void VolumeSliceRenderer::set_multiplier(float multiplier)
   shader.set_multiplier(multiplier);
 }
 
-void VolumeSliceRenderer::set_numSlices(int slices)
+void VolumeSliceRenderer::set_num_slices(int slices)
 {
   if (slices != num_slices) {
     num_slices = (MAX_SLICES < slices) ? MAX_SLICES : slices;
@@ -192,7 +192,7 @@ void VolumeSliceRenderer::useMultichannelColormap(bool useMulti)
   shader.useMultichannelColormap(useMulti);
 }
 
-void VolumeSliceRenderer::setClipMinMax(glm::vec3 min_clip, glm::vec3 max_clip) {
+void VolumeSliceRenderer::set_clip_min_max(glm::vec3 min_clip, glm::vec3 max_clip) {
 
   if (m_clip_min != min_clip || m_clip_max != max_clip) {
     m_clip_min = min_clip;

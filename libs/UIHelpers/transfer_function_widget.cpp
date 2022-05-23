@@ -549,13 +549,13 @@ void TransferFunctionWidget::update_colormap()
   }
 }
 
-void TransferFunctionWidget::set_Quantiles(float min, float max)
+void TransferFunctionWidget::set_quantiles(float min, float max)
 {
   m_quantiles[0] = min;
   m_quantiles[1] = max;
 }
 
-void TransferFunctionWidget::get_Quantiles(float &min, float &max)
+void TransferFunctionWidget::get_quantiles(float &min, float &max)
 {
   min = m_quantiles[0];
   max = m_quantiles[1];

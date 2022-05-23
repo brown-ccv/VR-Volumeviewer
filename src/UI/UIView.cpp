@@ -1321,10 +1321,6 @@ void UIView::open_save_modal_dialog(std::string &id, bool &window_state,
   }
 }
 
-void UIView::add_transfer_function()
-{
-}
-
 void UIView::save_transfer_functions(std::ofstream &saveFile)
 {
   std::string pointsLine;

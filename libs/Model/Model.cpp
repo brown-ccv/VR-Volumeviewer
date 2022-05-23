@@ -41,7 +41,7 @@ void Model::render(ShaderProgram &shaderProgram)
 	assert(m_Obj_Model && "NO MODEL TO RENDER");
 	// bind texture
 	// Always load texture id 0. The model doesnt support multi texturing.
-	m_texture->Bind(0);
+	m_texture->Bind();
 
 	// render geometry
 	if (m_Obj_Model)
@@ -51,7 +51,7 @@ void Model::render(ShaderProgram &shaderProgram)
 
 	// Unbind Text
 
-	m_texture->UnBind(0);
+	m_texture->UnBind();
 }
 
 glm::vec3 &Model::position()

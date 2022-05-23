@@ -144,7 +144,7 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4& MV, glm::mat
 
   glm::mat4 clipPlane;
   if (m_clipping) {
-    clipPlane = glm::translate(m_clipPlane * MV_tmp, glm::vec3(-0.5f));
+    clipPlane = glm::translate(m_clip_plane * MV_tmp, glm::vec3(-0.5f));
     shader.set_clipping(true);
   }
   else
@@ -200,7 +200,7 @@ void VolumeRaycastRenderer::set_multiplier(float multiplier)
   shader.set_multiplier(multiplier);
 }
 
-void VolumeRaycastRenderer::set_numSlices(int slices)
+void VolumeRaycastRenderer::set_num_slices(int slices)
 {
   shader.set_stepSize(0.01, 0.01, 0.01);
   // TO DO:  Camilo Thinks this is not necessary for ray casting volume rendering.
@@ -241,6 +241,6 @@ void VolumeRaycastRenderer::setChannel(Volume* volume)
   }
 }
 
-void VolumeRaycastRenderer::setClipMinMax(glm::vec3 min_clip, glm::vec3 max_clip) {
+void VolumeRaycastRenderer::set_clip_min_max(glm::vec3 min_clip, glm::vec3 max_clip) {
   shader.setClipping(min_clip, max_clip);
 }
