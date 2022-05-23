@@ -14,5 +14,5 @@ void main() {
     vertex_pos = model_view_matrix * vec4(position, 1.0);
 	text_coord = uv;
 
-    gl_Position = projection * vertex_pos;
+    gl_Position = projection_matrix * vertex_pos;
 }

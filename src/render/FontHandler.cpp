@@ -29,11 +29,12 @@
 #include <iomanip>
 #include <sstream>
 #include <cmath>
+#include "common/common.h"
 
 #define TEXTBORDER 0.003
 
 FontHandler* FontHandler::instance = NULL;
-std::string FontHandler::m_parentPath ="";
+std::string FontHandler::m_parentPath = std::string("fonts")+OS_SLASH;
 
 FontHandler::FontHandler()
 {
@@ -53,7 +54,7 @@ FontHandler::FontHandler()
 
 void FontHandler::setParentPath(std::string& path)
 {
-  m_parentPath = path;
+  m_parentPath = path + m_parentPath;
 };
 
 FontHandler::~FontHandler()

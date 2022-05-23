@@ -585,16 +585,16 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState &render_state)
 
    /* 
    * TO DO: Fix parent child relationship to not affect the mesh with z-scale
-   **/ 
-    glm::vec3 volume_position = volume_mv[3];
-    glm::mat4 mesh_model_matrix =  glm::translate(general_model_view, volume_position);
-    mesh_model_matrix = glm::translate(mesh_model_matrix, glm::vec3(-0.5f, -0.5f, -0.5f * px/pz));
-    mesh_model_matrix = glm::scale(mesh_model_matrix, glm::vec3(px, py, px));
-   
-
+   // glm::vec3 volume_position = volume_mv[3];
+   // glm::mat4 mesh_model_matrix =  glm::translate(general_model_view, volume_position);
+	//volume_mv = glm::translate(general_model_view, volume_position);
 	//glm::mat4 mesh_model_matrix = glm::translate(volume_mv, glm::vec3(-0.5f, -0.5f, -0.5f * px / pz));
 	////mesh_model_matrix = glm::scale(mesh_model_matrix, glm::vec3(px, py, px));
-	//mesh->get_model().setMVMatrix(volume_mv);
+   **/ 
+    
+    volume_mv = glm::translate(volume_mv, glm::vec3(-0.5f, -0.5f, -0.5f * px/pz));
+    volume_mv = glm::scale(volume_mv, glm::vec3(px, py, px));
+	mesh->get_model().setMVMatrix(volume_mv);
 
   }
 
@@ -628,7 +628,7 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState &render_state)
   for (Mesh* mesh: m_mesh_models)
   {
     m_simple_texture_shader.start();
-    m_simple_texture_shader.setUniform("p", m_projection_mtrx);
+    m_simple_texture_shader.setUniform("projection_matrix", m_projection_mtrx);
     mesh->get_model().render(m_simple_texture_shader);
     m_simple_texture_shader.stop();
   }
@@ -681,10 +681,9 @@ void VRVolumeApp::render_labels( const MinVR::VRGraphicsState& renderState)
   if (m_label_manager)
   {
     m_line_shader.start();
-    m_line_shader.setUniform("p", m_projection_mtrx);
+    m_line_shader.setUniform("projection_matrix", m_projection_mtrx);
     for (int i = 0 ; i < m_label_manager->get_labels().size();++i)
     {
-      //glm::mat4 volume_mv = m_volumes[m_label_manager->get_labels()[i].volume_id][0]->get_volume_mv();
       m_label_manager->drawLabels(  m_projection_mtrx, m_headpose, m_ui_view->get_z_scale());
     }  
     m_line_shader.stop();

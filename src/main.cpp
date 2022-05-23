@@ -1,4 +1,5 @@
 #include "../include/vrapp/VolumeVisualizationApp.h"
+#include "common/common.h"
 
 int main(int argc, char **argv) {
     
