@@ -6,23 +6,20 @@
 
 class Mesh
 {
-  
-public:
 
-  Mesh(Model*, unsigned int volume_id);
+public:
+  Mesh(Model *, unsigned int volume_id);
   virtual ~Mesh();
 
-  unsigned int get_volume_id(); 
+  unsigned int get_volume_id();
 
-  void set_volume_id(unsigned int val); 
+  void set_volume_id(unsigned int val);
 
-  Model& get_model(); 
-  
+  Model &get_model();
+
 private:
-  Model* m_model;
+  Model *m_model;
   unsigned int m_volume_id;
 };
 
-
-#endif 
-
+#endif

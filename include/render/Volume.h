@@ -1,25 +1,25 @@
 ﻿//  ----------------------------------
 //  Copyright © 2017, Brown University, Providence, RI.
-//  
+//
 //  All Rights Reserved
-//   
-//  Use of the software is provided under the terms of the GNU General Public License version 3 
-//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
-//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
-//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//
+//  Use of the software is provided under the terms of the GNU General Public License version 3
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in
+//  advertising or publicity pertaining to the use or distribution of the software without specific written
 //  prior permission from Brown University.
-//  
+//
 //  See license.txt for further information.
-//  
-//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
-//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
-//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
-//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
-//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
-//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //  ----------------------------------
-//  
+//
 ///\file Volume.h
 ///\author Benjamin Knorlein
 ///\editor Camilo Diaz
@@ -68,7 +68,6 @@ public:
 
   ~Volume();
 
-
   unsigned get_width() const
   {
     return m_width;
@@ -104,7 +103,7 @@ public:
     return m_z_scale;
   }
 
-  unsigned& get_texture_id()
+  unsigned &get_texture_id()
   {
     return m_texture_id;
   }
@@ -114,7 +113,7 @@ public:
     m_texture_id = texture_id;
   }
 
-  const pt& get_volume_position() const
+  const pt &get_volume_position() const
   {
     return m_volume_position;
   }
@@ -124,7 +123,7 @@ public:
     m_volume_position = pt;
   }
 
-  const pt& get_volume_scale() const
+  const pt &get_volume_scale() const
   {
     return m_volume_scale;
   }
@@ -134,28 +133,33 @@ public:
     m_volume_scale = pt;
   }
 
-  void setMinMax(float min, float max) {
+  void setMinMax(float min, float max)
+  {
     m_min = min;
     m_max = max;
   }
 
-  void setTime(time_t tp) {
+  void setTime(time_t tp)
+  {
     m_time = tp;
   }
 
-  time_t getTime() {
+  time_t getTime()
+  {
     return m_time;
   }
 
-  const float getMin() {
+  const float getMin()
+  {
     return m_min;
   }
 
-  const float getMax() {
+  const float getMax()
+  {
     return m_max;
   }
 
-  const glm::mat4& get_volume_mv() const
+  const glm::mat4 &get_volume_mv() const
   {
     return m_volume_MV;
   }
@@ -165,12 +169,12 @@ public:
     m_volume_MV = highp_mat4_x4;
   }
 
-  unsigned char* get_data()
+  unsigned char *get_data()
   {
     return data;
   }
 
-  const int& render_channel() const
+  const int &render_channel() const
   {
     return m_render_channel;
   }
@@ -185,12 +189,12 @@ public:
   void initGL();
   void uploadtoPBO();
 
-  bool& texture_initialized()
+  bool &texture_initialized()
   {
     return m_texture_initialized;
   }
 
-  std::vector<float>& getHistogram(int channel)
+  std::vector<float> &getHistogram(int channel)
   {
     return m_histogram[channel];
   }
@@ -219,11 +223,11 @@ private:
   unsigned int m_pbo;
   bool m_pbo_upload_started;
   unsigned int m_datatypesize;
-  unsigned char* data;
+  unsigned char *data;
 
   int m_render_channel;
 
-  std::vector< std::vector<float> > m_histogram;
+  std::vector<std::vector<float>> m_histogram;
 };
 
 #endif // VOLUME_H

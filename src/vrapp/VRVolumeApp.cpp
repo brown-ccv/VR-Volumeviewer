@@ -681,12 +681,11 @@ void VRVolumeApp::render_labels(const MinVR::VRGraphicsState &renderState)
   // render labels
   if (m_label_manager)
   {
-   
+
     for (int i = 0; i < m_label_manager->get_labels().size(); ++i)
     {
       m_label_manager->drawLabels(m_projection_mtrx, m_headpose, m_ui_view->get_z_scale());
     }
-  
   }
 }
 

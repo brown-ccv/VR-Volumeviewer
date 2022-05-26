@@ -10,12 +10,9 @@
 
 #include "common/common.h"
 
-
-
 VRDataLoader::VRDataLoader()
 {
 }
-
 
 void VRDataLoader::load_txt_file(VRVolumeApp &vrVolumeApp, std::string &filename)
 {
@@ -58,7 +55,7 @@ void VRDataLoader::load_txt_file(VRVolumeApp &vrVolumeApp, std::string &filename
           std::cerr << "text Size " << vals[6] << std::endl;
           std::cerr << "text offset " << vals[7] << std::endl;
           std::cerr << "for Volume " << vals[8] << std::endl;
-          std::string label = p_filename.directoryPath() + OS_SLASH +  vals[1];
+          std::string label = p_filename.directoryPath() + OS_SLASH + vals[1];
           vrVolumeApp.add_label(label, stof(vals[2]), stof(vals[3]), stof(vals[4]), stof(vals[5]), stof(vals[6]), stof(vals[7]), stoi(vals[8]) - 1);
         }
         if (tag == "desc")
@@ -70,12 +67,11 @@ void VRDataLoader::load_txt_file(VRVolumeApp &vrVolumeApp, std::string &filename
           vrVolumeApp.set_description(descHeight, fileName);
         }
         if (tag == "mesh")
-        { 
+        {
           assert(vals.size() == 4 && "Check mesh initialization parameters in the volume configuration file");
           std::string mesh_file_full_path = p_filename.directoryPath() + OS_SLASH + vals[1];
           std::string texture_file_full_path = p_filename.directoryPath() + OS_SLASH + vals[2];
           vrVolumeApp.set_mesh(stoi(vals[3]), mesh_file_full_path, texture_file_full_path);
-
         }
         if (tag == "numVolumes")
         {
@@ -91,13 +87,13 @@ void VRDataLoader::load_txt_file(VRVolumeApp &vrVolumeApp, std::string &filename
         {
           char str[3];
           int i;
-         
+
           std::string strVolumeIndex = tag.substr(6);
           size_t volumeIndex = std::stoi(strVolumeIndex);
           vals[1] = p_filename.directoryPath() + OS_SLASH + vals[1];
 
-          std::vector<std::promise<Volume*>*>& v = vrVolumeApp.get_promise(volumeIndex);
-          std::promise<Volume*>* pm = new std::promise<Volume*>();
+          std::vector<std::promise<Volume *> *> &v = vrVolumeApp.get_promise(volumeIndex);
+          std::promise<Volume *> *pm = new std::promise<Volume *>();
           v.push_back(pm);
 
           std::vector<std::future<Volume *>> *fut;

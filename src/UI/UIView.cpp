@@ -19,7 +19,6 @@
 #include <imgui_stdlib.h>
 #include <thread>
 
-
 UIView::UIView(VRVolumeApp &controllerApp) : m_controller_app(controllerApp), m_multiplier(1.0f), m_threshold(0.0f),
                                              m_z_scale(0.16f), m_scale{1.0f}, m_slices(256), m_dynamic_slices(false), m_renderVolume(true), m_selectedTrnFnc(0),
                                              m_animated(false), m_ui_frame_controller(0.0f), m_menu_handler(nullptr), m_initialized(false), m_use_transferfunction(false),
@@ -42,7 +41,7 @@ UIView::UIView(VRVolumeApp &controllerApp) : m_controller_app(controllerApp), m_
 
 UIView::~UIView()
 {
-  //TO DO: FIX Memory leak on this call
+  // TO DO: FIX Memory leak on this call
   delete m_menu_handler;
 }
 
@@ -137,8 +136,8 @@ void UIView::draw_ui_callback()
           }
 
           add_transfer_function();
-          if (m_tfns.size() == 1) m_trnfnc_table_selection = 0;
-          
+          if (m_tfns.size() == 1)
+            m_trnfnc_table_selection = 0;
         };
         ImGui::SameLine();
         if (ImGui::SmallButton("Remove Function"))
@@ -400,7 +399,7 @@ void UIView::draw_ui_callback()
               {
                 /*
                   TODO:
-                  
+
                   Fix frame by frame animation
 
                   unsigned int active_volume = floor(m_frame);
@@ -413,7 +412,6 @@ void UIView::draw_ui_callback()
                       m_volumes[m_selectedVolume][active_volume2]->getTransferfunction(i), alpha, i);
                   }*/
               }
-              
             }
             m_controller_app.set_multi_transfer(true);
             tfn_widget_multi[m_trnfnc_table_selection].draw_ui();
@@ -424,7 +422,7 @@ void UIView::draw_ui_callback()
             {
               /*
               TODO:
-                  
+
               The base code to fix frame by frame animation
 
               unsigned int active_volume = floor(m_frame);
@@ -440,7 +438,6 @@ void UIView::draw_ui_callback()
 
             m_histogram.draw_histogram();
             tfn_widget[m_trnfnc_table_selection].draw_ui();
-            
           }
         }
       }
@@ -804,9 +801,9 @@ void UIView::draw_ui_callback()
       {
         //  TO DO:  Thread the data loading process to run in the background and implement loading UI component
         //  VRDataLoader* insta = VRDataLoader::get_instance();
-        //std::thread t1 ( &VRDataLoader::load_txt_file, std::ref(m_controller_app), fileDialog.selected_path);
-        //t1.join();
-        //std:thread t1([=] {VRDataLoader::load_txt_file(m_controller_app, fileDialog.selected_path); });
+        // std::thread t1 ( &VRDataLoader::load_txt_file, std::ref(m_controller_app), fileDialog.selected_path);
+        // t1.join();
+        // std:thread t1([=] {VRDataLoader::load_txt_file(m_controller_app, fileDialog.selected_path); });
         VRDataLoader::load_txt_file(m_controller_app, fileDialog.selected_path);
       }
 #ifdef WITH_TEEM
@@ -814,9 +811,9 @@ void UIView::draw_ui_callback()
       {
         std::vector<std::string> vals;
         vals.push_back(fileDialog.GetSelected().string());
-          promises.push_back(new std::promise<Volume*>);
-          futures.push_back(promises.back()->get_future());
-          threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
+        promises.push_back(new std::promise<Volume *>);
+        futures.push_back(promises.back()->get_future());
+        threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
       }
 #endif
     }
@@ -923,7 +920,7 @@ void UIView::draw_ui_callback()
     ImGui::Text(m_day_info.c_str());
     ImGui::End();
   }
-  
+
   // draw transfer legend
   if (m_use_transferfunction)
   {
@@ -933,10 +930,10 @@ void UIView::draw_ui_callback()
 
 void UIView::init_ui(bool is2D, bool lookingGlass)
 {
-  
+
   if (!m_initialized)
-  { 
-    
+  {
+
 #ifdef WITH_NRRD
     fileDialog.SetTypeFilters({".txt", ".nrrd"});
 #elseif
@@ -952,7 +949,7 @@ void UIView::init_ui(bool is2D, bool lookingGlass)
     {
       fontsize = 3.0;
     }
-    
+
     m_menu_handler = new VRMenuHandler(is2D);
     VRMenu *menu = m_menu_handler->addNewMenu(std::bind(&UIView::draw_ui_callback, this), 1024, 1024, 1, 1, fontsize);
     menu->setMenuPose(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 2, -1, 1));
@@ -969,7 +966,7 @@ void UIView::init_ui(bool is2D, bool lookingGlass)
 
 void UIView::update_ui(int numVolumes)
 {
-  
+
   tfn_widget_multi.resize(1);
   tfn_widget.resize(1);
   m_use_transferfunction = true;
@@ -983,7 +980,7 @@ void UIView::update_ui(int numVolumes)
   MyTransFerFunctions trfntc;
   char label[32];
   sprintf(label, "TF%d", m_trnfnct_counter++);
-  
+
   trfntc.ID = tfn_widget.size();
   trfntc.Name = label;
   for (int i = 0; i < numVolumes; i++)
@@ -992,9 +989,8 @@ void UIView::update_ui(int numVolumes)
   }
   m_tfns.push_back(trfntc);
   m_trnfnc_table_selection = 0;
-  
+
   load_ocean_color_maps();
-  
 }
 
 void UIView::render_2D(Window_Properties &window_properties)
@@ -1329,9 +1325,9 @@ void UIView::save_transfer_functions(std::ofstream &saveFile)
     saveFile << "numFunction " << std::to_string(m_tfns.size()) << "\n";
     for (int i = 0; i < m_tfns.size(); i++)
     {
-      
+
       saveFile << "FuncName " + std::to_string(i + 1) + " " + m_tfns[i].Name + " " + std::to_string(tfn_widget[i].get_colormap_gpu()) + "\n";
-      
+
       saveFile << "FuncPoints " << std::to_string(i + 1) << " ";
       for (int j = 0; j < tfn_widget[i].alpha_control_pts.size(); j++)
       {
@@ -1363,7 +1359,7 @@ void UIView::save_user_session(std::ofstream &savefile)
     savefile << "scale " << std::to_string(m_scale) << "\n";
     savefile << "z-scale " << std::to_string(m_z_scale) << "\n";
     // this needs rework. It has nothing to do with slices, it is the ray step size.
-    //savefile << "Slices " << std::to_string(m_slices) << "\n";
+    // savefile << "Slices " << std::to_string(m_slices) << "\n";
     savefile << "automatic _slice adjustment " << std::to_string(m_dynamic_slices) << "\n";
     savefile << "RenderMethod " << std::to_string(m_rendermethod) << "\n";
     savefile << "Render_Channel " << std::to_string(m_renderchannel) << "\n";
@@ -1707,11 +1703,11 @@ void UIView::compute_new_histogram_view()
     {
       if (m_controller_app.get_volume(i)[0]->getMin() < global_min)
       {
-        global_min = std::min(global_min,m_controller_app.get_volume(i)[0]->getMin());
+        global_min = std::min(global_min, m_controller_app.get_volume(i)[0]->getMin());
       }
       if (m_controller_app.get_volume(i)[0]->getMax() > global_max)
       {
-        global_max = std::max(global_max,m_controller_app.get_volume(i)[0]->getMax());
+        global_max = std::max(global_max, m_controller_app.get_volume(i)[0]->getMax());
       }
 
       m_histogram.setMinMax(global_min, global_max);
@@ -1796,7 +1792,7 @@ void UIView::set_transfer_function_min_max(float min, float max)
 
 void UIView::load_ocean_color_maps()
 {
-  
+
   int w, h, n;
   int comp;
 

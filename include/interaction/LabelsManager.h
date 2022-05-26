@@ -52,7 +52,7 @@ public:
   ~LabelsManager();
 
   void add(std::string &texture, float x, float y, float z, float textPosZ, float size, float off_set, int volume);
-  void drawLabels(glm::mat4& projection_matrix, glm::mat4 &headpose, float z_scale);
+  void drawLabels(glm::mat4 &projection_matrix, glm::mat4 &headpose, float z_scale);
   void drawLines();
 
   void clear();

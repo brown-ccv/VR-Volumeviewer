@@ -14,15 +14,12 @@ enum TextAlignment
 class FontHandler
 {
 public:
-
-
   virtual ~FontHandler();
-  static FontHandler* getInstance();
+  static FontHandler *getInstance();
 
-  static void setParentPath(std::string& path);
-  
+  static void setParentPath(std::string &path);
 
-  FTFont* getFont();
+  FTFont *getFont();
 
   void renderTextBox(std::string text, double x, double y, double z, double width, double height, TextAlignment alignment = CENTER, bool rotateY = false);
   void renderMultiLineTextBox(std::vector<std::string> btext, double x, double y, double z, double width, double height, TextAlignment alignment = CENTER, bool rotateY = false);
@@ -32,11 +29,10 @@ public:
 
 private:
   FontHandler();
-  static FontHandler* instance;
+  static FontHandler *instance;
   static std::string m_parentPath;
-  FTFont* font;
+  FTFont *font;
   double m_fontMinMax[2];
 };
 
 #endif /* VRFONT_H_ */
-

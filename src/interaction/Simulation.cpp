@@ -121,7 +121,6 @@ ANIMATION_STATE Simulation::get_animation_state()
   default:
     return STOP;
   }
- 
 }
 
 std::string Simulation::get_camera_animation_state()
