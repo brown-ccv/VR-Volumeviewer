@@ -34,11 +34,11 @@
 #define TEXTBORDER 0.003
 
 FontHandler *FontHandler::instance = NULL;
-std::string FontHandler::m_parentPath = std::string("fonts") + OS_SLASH;
+std::string FontHandler::m_parent_path = std::string("fonts") + OS_SLASH;
 
 FontHandler::FontHandler()
 {
-  font = new FTGLPolygonFont((m_parentPath + "calibri.ttf").c_str());
+  font = new FTGLPolygonFont((m_parent_path + "calibri.ttf").c_str());
 
   if (font->Error())
   {
@@ -49,13 +49,13 @@ FontHandler::FontHandler()
   float ll[3], ur[3];
   std::string test = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
   font->BBox(test.c_str(), ll[0], ll[1], ll[2], ur[0], ur[1], ur[2]);
-  m_fontMinMax[0] = ll[1];
-  m_fontMinMax[1] = ur[1];
+  m_font_min_max[0] = ll[1];
+  m_font_min_max[1] = ur[1];
 }
 
 void FontHandler::setParentPath(std::string &path)
 {
-  m_parentPath = path + m_parentPath;
+  m_parent_path = path + m_parent_path;
 };
 
 FontHandler::~FontHandler()
@@ -101,9 +101,13 @@ void FontHandler::renderTextBox(std::string text, double x, double y, double z, 
   double off_y = (height - fontHeight) / 2.0f; // Bounding box isn't centered, so we need to add fudge factor
 
   if (alignment == TextAlignment::LEFT)
+  {
     off_x = TEXTBORDER;
-  if (alignment == TextAlignment::RIGHT)
+  }
+  else if (alignment == TextAlignment::RIGHT)
+  {
     off_x = width - TEXTBORDER - fontWidth;
+  }
 
   off_x -= ll[0] * scale;
   off_y -= ll[1] * scale;
@@ -124,44 +128,48 @@ void FontHandler::renderMultiLineTextBox(std::vector<std::string> text, double x
   if (text.size() == 0)
     return;
 
-  float ll[3], ur[3], fontWidth, fontHeight;
+  float ll[3], ur[3], font_width, font_height;
   float scale = 10000.0;
-  double textheight = height / text.size();
+  double text_height = height / text.size();
 
   for (std::vector<std::string>::const_iterator it = text.begin(); it != text.end(); ++it)
   {
     font->BBox(it->c_str(), ll[0], ll[1], ll[2], ur[0], ur[1], ur[2]);
-    fontWidth = (ur[0] - ll[0]) * scale;
+    font_width = (ur[0] - ll[0]) * scale;
 
-    if (fontWidth > (width - 2.0 * TEXTBORDER))
+    if (font_width > (width - 2.0 * TEXTBORDER))
     {
-      scale = (width - 2.0 * TEXTBORDER) / fontWidth * scale;
+      scale = (width - 2.0 * TEXTBORDER) / font_width * scale;
     }
   }
 
-  fontHeight = (m_fontMinMax[1] - m_fontMinMax[0]) * scale;
-  if (fontHeight > (textheight - 2.0 * TEXTBORDER))
+  font_height = (m_font_min_max[1] - m_font_min_max[0]) * scale;
+  if (font_height > (text_height - 2.0 * TEXTBORDER))
   {
-    scale = (textheight - 2.0 * TEXTBORDER) / fontHeight * scale;
-    fontHeight = (m_fontMinMax[1] - m_fontMinMax[0]) * scale;
+    scale = (text_height - 2.0 * TEXTBORDER) / font_height * scale;
+    font_height = (m_font_min_max[1] - m_font_min_max[0]) * scale;
   }
 
-  double off_y = (textheight - fontHeight) / 2.0f - m_fontMinMax[0] * scale; // Bounding box isn't centered, so we need to add fudge factor
+  double off_y = (text_height - font_height) / 2.0f - m_font_min_max[0] * scale; // Bounding box isn't centered, so we need to add fudge factor
 
   for (int i = 0; i < text.size(); i++)
   {
     font->BBox(text[i].c_str(), ll[0], ll[1], ll[2], ur[0], ur[1], ur[2]);
-    fontWidth = (ur[0] - ll[0]) * scale;
-    double off_x = (width - fontWidth) / 2.0f;
+    font_width = (ur[0] - ll[0]) * scale;
+    double off_x = (width - font_width) / 2.0f;
 
     if (alignment == TextAlignment::LEFT)
+    {
       off_x = TEXTBORDER;
+    }
     if (alignment == TextAlignment::RIGHT)
-      off_x = width - TEXTBORDER - fontWidth;
+    {
+      off_x = width - TEXTBORDER - font_width;
+    }
     off_x -= ll[0] * scale;
 
     glPushMatrix();
-    glTranslatef(x + off_x, y + off_y + (text.size() - i - 1) * textheight, z);
+    glTranslatef(x + off_x, y + off_y + (text.size() - i - 1) * text_height, z);
     glScalef(scale, scale, scale);
     if (rotateY)
       glRotatef(180, 0, 1, 0);
@@ -264,7 +272,6 @@ void drawAnalogClock(int x_pos, int y_pos, int radius, tm *time)
   glPushMatrix();
   glRotatef(time->tm_min * 6, 0.0f, 0.0f, -1.0f);
   glBegin(GL_LINES);
-  // glColor3f(1.0f, 0.0f, 0.0f); // vermelho
   glVertex2i(0, 0);
   glVertex2i(0, radius * 0.8);
   glEnd();
@@ -274,7 +281,6 @@ void drawAnalogClock(int x_pos, int y_pos, int radius, tm *time)
   glPushMatrix();
   glRotatef((time->tm_hour % 12) * 30 + time->tm_min * 0.5, 0.0f, 0.0f, -1.0f);
   glBegin(GL_LINES);
-  // glColor3f(1.0f, 0.0f, 0.0f); // vermelho
   glVertex2i(0, 0);
   glVertex2i(0, radius * 0.5);
   glEnd();

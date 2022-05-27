@@ -107,7 +107,7 @@ void LabelsManager::add(std::string &texture_path, float x, float y, float z, fl
   unsigned int line_vba = create_line_vba(line_start, line_end);
 
   LabelBillboard billboard = {line_vba, m_texture_cache[texture_path], m_plane_model, glm::vec3(x, y, textPosZ + off_set), volume};
-  get_labels().push_back(billboard);
+  m_billboard_labels.push_back(billboard);
 
   m_position.push_back(glm::vec3(x, y, z));
   m_position2.push_back(glm::vec3(x, y, textPosZ));
@@ -121,7 +121,6 @@ void LabelsManager::drawLabels(glm::mat4 &projection_matrix, glm::mat4 &headpose
   // draw lines
   m_lines_shader_program.start();
   m_lines_shader_program.setUniform("projection_matrix", projection_matrix);
-
   for (int i = 0; i < m_billboard_labels.size(); ++i)
   {
     glm::mat4 volume_mv = m_controller_app.get_mesh_models()[m_billboard_labels[i].volume_id]->get_model().modelViewM();
@@ -157,6 +156,8 @@ void LabelsManager::drawLabels(glm::mat4 &projection_matrix, glm::mat4 &headpose
     m_plane_model->setMVMatrix(label_mv);
     m_billboard_labels[i].label_model->setTexture(m_billboard_labels[i].label_texture);
     m_billboard_labels[i].label_model->render(m_plane_shader_program);
+    // unset texture unit on object (LabelsManager is the owner of the textures)
+    m_billboard_labels[i].label_model->setTexture(nullptr);
   }
   m_plane_shader_program.stop();
 }
@@ -172,7 +173,7 @@ void LabelsManager::drawLines()
   }
 }
 
-std::vector<LabelBillboard> &LabelsManager::get_labels()
+const std::vector<LabelBillboard> &LabelsManager::get_labels()
 {
   return m_billboard_labels;
 }

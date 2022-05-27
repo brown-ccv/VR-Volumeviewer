@@ -41,7 +41,7 @@ UIView::UIView(VRVolumeApp &controllerApp) : m_controller_app(controllerApp), m_
 
 UIView::~UIView()
 {
-  // TO DO: FIX Memory leak on this call
+  // TODO: FIX Memory leak on this call
   delete m_menu_handler;
 }
 
@@ -799,7 +799,7 @@ void UIView::draw_ui_callback()
 
       if (helper::ends_with_string(fileDialog.selected_fn, ".txt"))
       {
-        //  TO DO:  Thread the data loading process to run in the background and implement loading UI component
+        //  TODO:  Thread the data loading process to run in the background and implement loading UI component
         //  VRDataLoader* insta = VRDataLoader::get_instance();
         // std::thread t1 ( &VRDataLoader::load_txt_file, std::ref(m_controller_app), fileDialog.selected_path);
         // t1.join();
@@ -954,7 +954,6 @@ void UIView::init_ui(bool is2D, bool lookingGlass)
     VRMenu *menu = m_menu_handler->addNewMenu(std::bind(&UIView::draw_ui_callback, this), 1024, 1024, 1, 1, fontsize);
     menu->setMenuPose(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 2, -1, 1));
     m_dir_to_save = m_controller_app.get_directory_path().c_str();
-    std::cerr << "init_ui 4: " << std::endl;
     for (int i = 0; i < MAX_COLUMS; ++i)
     {
       m_column_selected[i] = false;
@@ -1358,7 +1357,7 @@ void UIView::save_user_session(std::ofstream &savefile)
     savefile << "threshold " << std::to_string(m_threshold) << "\n";
     savefile << "scale " << std::to_string(m_scale) << "\n";
     savefile << "z-scale " << std::to_string(m_z_scale) << "\n";
-    // this needs rework. It has nothing to do with slices, it is the ray step size.
+    //  TODO this needs rework. It has nothing to do with slices, it is the ray step size.
     // savefile << "Slices " << std::to_string(m_slices) << "\n";
     savefile << "automatic _slice adjustment " << std::to_string(m_dynamic_slices) << "\n";
     savefile << "RenderMethod " << std::to_string(m_rendermethod) << "\n";

@@ -30,9 +30,9 @@ public:
 private:
   FontHandler();
   static FontHandler *instance;
-  static std::string m_parentPath;
+  static std::string m_parent_path;
   FTFont *font;
-  double m_fontMinMax[2];
+  double m_font_min_max[2];
 };
 
 #endif /* VRFONT_H_ */

@@ -203,7 +203,7 @@ void VolumeRaycastRenderer::set_multiplier(float multiplier)
 void VolumeRaycastRenderer::set_num_slices(int slices)
 {
   shader.set_stepSize(0.01, 0.01, 0.01);
-  // TO DO:  Camilo Thinks this is not necessary for ray casting volume rendering.
+  // TODO:  Camilo Thinks this is not necessary for ray casting volume rendering.
   // we only need step size.
   // shader.set_stepSize(1.0f / slices, 1.0f / slices, 1.0f / slices);
 }

@@ -3,7 +3,7 @@
 #include <cassert>
 #include "ShaderProgram.h"
 
-Model::Model() : m_position(0), m_orientation(glm::quat()), m_scale(1), m_bounding_volumen_radius(1)
+Model::Model() : m_texture(nullptr),m_position(0), m_orientation(glm::quat()), m_scale(1), m_bounding_volumen_radius(1)
 {
 }
 

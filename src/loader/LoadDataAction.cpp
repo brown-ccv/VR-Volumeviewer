@@ -33,82 +33,11 @@
 
 #include <iostream>
 #include <fstream>
-#include <algorithm> // std::max
+#include <algorithm>
 
 LoadDataAction::LoadDataAction(std::string folder, float *res) : m_folder(folder), m_res(res)
 {
 }
-
-// void saveToImage(std::vector <cv::Mat> &images, std::string filename, float* res)
-//{
-//	int start = 16;
-//	int end = 60;
-//
-//
-//	int z_slices = end - start + 1;
-//	std::cerr << "z_slices " << z_slices << std::endl;
-//	int dim = ceil(sqrt(z_slices));
-//	std::cerr << "dim " << dim << std::endl;
-//	int max_res = floor(4096 / dim);
-//	std::cerr << "max_res " << max_res << std::endl;
-//	int downscale = ceil((float) std::max(images[0].cols, images[0].rows) / max_res);
-//	std::cerr << "resolution_image_before " << images[0].cols << " " << images[0].rows << std::endl;
-//	std::cerr << "downscale " << downscale << std::endl;
-//	cv::Size resolution_image = cv::Size(images[0].cols / downscale, images[0].rows / downscale);
-//	std::cerr << "resolution_image " << resolution_image.width << " " << resolution_image.height << std::endl;
-//	int resolution_out = std::max(images[0].cols, images[0].rows) / downscale;
-//	std::cerr << "resolution_out " << resolution_out << std::endl;
-//	cv::Mat image_out;
-//	int count = start;
-//	for(int i = 0 ; i < dim ; i++)
-//	{
-//		cv::Mat image_row;
-//		for (int j = 0; j < dim; j++)
-//		{
-//
-//			cv::Mat tmp;
-//			if (count < images.size() && count <= end) {
-//				cv::resize(images[count], tmp, resolution_image);
-//			}
-//			else
-//			{
-//				cv::resize(images[0], tmp, resolution_image);
-//				tmp = cv::Scalar::all(0);
-//			}
-//			if (j == 0) {
-//				image_row = tmp.clone();
-//			}else
-//			{
-//				cv::hconcat(image_row, tmp, image_row);
-//			}
-//			count++;
-//		}
-//		if (i == 0) {
-//			image_out = image_row.clone();
-//		}
-//		else
-//		{
-//			cv::vconcat(image_out, image_row, image_out);
-//		}
-//	}
-//	fs::path path = fs::path(filename);
-//	fs::path::iterator last_dir;
-//	last_dir = path.end();
-//	last_dir--;
-//	std::vector<int> compression_params;
-//	//compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
-//	//compression_params.push_back(9);
-//	//if(images[0].type() == CV_16U)
-//
-//	double pi = 3.14159265359;
-//	std::stringstream stream;
-//	stream << std::fixed << std::setprecision(5) << "_" << res[0] * downscale << "_" << res[1] * downscale << "_" << res[2];
-//	std::string resolution = stream.str();
-//
-//	image_out.convertTo(image_out, CV_8UC3, 1.0f/256.0f);
-//	cv::cvtColor(image_out, image_out, cv::COLOR_BGR2RGB);
-//	cv::imwrite(last_dir->filename().string() + "_slices" + std::to_string(z_slices) + resolution + ".png", image_out, compression_params);
-// }
 
 void equalizeHistogram(std::vector<cv::Mat> &images, unsigned short min_value)
 {
@@ -149,14 +78,14 @@ void equalizeHistogram(std::vector<cv::Mat> &images, unsigned short min_value)
       }
     }
   }
-  // std::cerr << "Total Pixel " << total << std::endl;
+  std::cerr << "Total Pixel " << total << std::endl;
 
   // Find first non-zero bin
   int i = 1;
   while (!hist[i])
     ++i;
 
-  // std::cerr << "Minimum is" << i << std::endl;
+  std::cerr << "Minimum is" << i << std::endl;
 
   // Compute scale
   float scale = (n_bins - 1.f) / (total - hist[i]);
@@ -258,15 +187,6 @@ Volume *LoadDataAction::run(bool convert)
       }
     }
 
-    // needs adjustement of min and max value
-    // for now disabled
-    /* if (!image_r.empty())
-       equalizeHistogram(image_r, 15 * 256);
-     if (!image_g.empty())
-       equalizeHistogram(image_g, 15 * 256);
-     if (!image_b.empty())
-       equalizeHistogram(image_b, 15 * 256);*/
-
     if (!image_r.empty() || !image_g.empty() || !image_b.empty())
     {
       mergeRGB(image_r, image_g, image_b, images);
@@ -289,9 +209,6 @@ Volume *LoadDataAction::run(bool convert)
     w = images[0].cols;
     h = images[0].rows;
     d = images.size();
-
-    // if(convert)
-    //	saveToImage(images, m_folder, m_res);
   }
 
   std::cerr << "Loading Volume size:  " << w << " , " << h << " , " << d << "Channels " << channels << std::endl;
@@ -470,44 +387,6 @@ void LoadDataAction::uploadData_32F_raw(std::string filename, Volume *volume)
   fread(data, sizeof(float), lSize / 4, file);
   fclose(file);
 }
-
-// void LoadDataAction::uploadDataCV_32F(std::vector <cv::Mat> image, Volume* volume)
-//{
-//	float* ptr = reinterpret_cast <float*> (volume->get_data());
-//	//fill vol and points
-//	for (int z = 0; z < volume->get_depth(); z++)
-//	{
-//		if (image[z].depth() == 1){
-//			cv::MatConstIterator_<float> it1 = image[z].begin<float>();
-//			cv::MatConstIterator_<float> it1_end = image[z].end<float>();
-//			for (; it1 != it1_end; ++it1)
-//			{
-//				*ptr++ = *it1;
-//			}
-//		}
-//		else if (image[z].depth() == 3){
-//			cv::MatConstIterator_<cv::Vec3f> it1 = image[z].begin<cv::Vec3f>();
-//			cv::MatConstIterator_<cv::Vec3f> it1_end = image[z].end<cv::Vec3f>();
-//			for (; it1 != it1_end; ++it1)
-//			{
-//				*ptr++ = (*it1)[0];
-//				*ptr++ = (*it1)[1];
-//				*ptr++ = (*it1)[2];
-//			}
-//		}
-//		else if (image[z].depth() == 4){
-//			cv::MatConstIterator_<cv::Vec4f> it1 = image[z].begin<cv::Vec4f>();
-//			cv::MatConstIterator_<cv::Vec4f> it1_end = image[z].end<cv::Vec4f>();
-//			for (; it1 != it1_end; ++it1)
-//			{
-//				*ptr++ = (*it1)[0];
-//				*ptr++ = (*it1)[1];
-//				*ptr++ = (*it1)[2];
-//				*ptr++ = (*it1)[3];
-//			}
-//		}
-//	}
-// }
 
 std::vector<std::string> LoadDataAction::readTiffs(std::string foldername)
 {

@@ -58,7 +58,7 @@ public:
   void clear();
   void set_parent_directory(std::string &directory);
 
-  std::vector<LabelBillboard> &get_labels();
+  const std::vector<LabelBillboard> &get_labels();
 
 private:
   unsigned int create_line_vba(glm::vec3 &start, glm::vec3 &end);

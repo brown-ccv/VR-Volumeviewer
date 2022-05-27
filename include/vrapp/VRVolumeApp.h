@@ -232,7 +232,7 @@ protected:
   int m_descriptionHeight;
   float m_volume_animation_scale_factor;
 
-  float m_frame;
+  float m_frame_step;
   float m_speed;
   unsigned int m_rendercount;
   int m_selectedVolume;
@@ -296,7 +296,7 @@ protected:
 
   APPMODE m_app_mode;
 
-  float m_global_min;
-  float m_global_max;
+  float m_volumes_global_min_value;
+  float m_volumes_global_max_value;
 };
 #endif

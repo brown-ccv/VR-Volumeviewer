@@ -18,7 +18,7 @@ void Mesh::set_volume_id(unsigned int val)
   m_volume_id = val;
 }
 
-Model &Mesh::get_model()
+Model  &Mesh::get_model()
 {
   return *m_model;
 }
