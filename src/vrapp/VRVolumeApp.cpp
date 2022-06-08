@@ -577,7 +577,7 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState &render_state)
     float pz = volume->get_volume_scale().z;
 
     /*
-    * TO DO: Fix parent child relationship to not affect the mesh with z-scale
+    * TO DO #60 : Fix parent child relationship to not affect the mesh with z-scale
     // glm::vec3 volume_position = volume_mv[3];
     // glm::mat4 mesh_model_matrix =  glm::translate(general_model_view, volume_position);
      //volume_mv = glm::translate(general_model_view, volume_position);
@@ -674,10 +674,7 @@ void VRVolumeApp::render_labels(const MinVR::VRGraphicsState &renderState)
   // render labels
   if (m_label_manager)
   {
-    for (int i = 0; i < m_label_manager->get_labels().size(); ++i)
-    {
-      m_label_manager->drawLabels(m_projection_mtrx, m_headpose, m_ui_view->get_z_scale());
-    }
+    m_label_manager->draw_labels(m_projection_mtrx, m_headpose, m_ui_view->get_z_scale());
   }
 }
 

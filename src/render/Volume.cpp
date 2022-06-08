@@ -32,7 +32,8 @@
 #include <iostream>
 
 Volume::Volume(unsigned int width, unsigned int height, unsigned int depth, double x_scale, double y_scale, double z_scale, unsigned int datatypesize, unsigned int channel)
-    : m_width{width}, m_height{height}, m_depth{depth}, m_channels{channel}, m_datatypesize{datatypesize}, m_texture_id{0}, m_x_scale{x_scale}, m_y_scale{y_scale}, m_z_scale{z_scale}, m_render_channel(-1), m_texture_initialized(false), m_pbo_upload_started{false}
+    : m_width{width}, m_height{height}, m_depth{depth}, m_channels{channel}, m_datatypesize{datatypesize}, m_texture_id{0}, m_x_scale{x_scale},
+      m_y_scale{y_scale}, m_z_scale{z_scale}, m_render_channel(-1), m_texture_initialized(false), m_pbo_upload_started{false}
 {
   data = new unsigned char[m_width * m_height * m_depth * m_channels * m_datatypesize]();
 }
@@ -49,7 +50,6 @@ void Volume::uploadtoPBO()
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbo);
   glBufferData(GL_PIXEL_UNPACK_BUFFER, get_depth() * get_width() * get_height() * get_channels() * m_datatypesize, 0, GL_STREAM_DRAW);
   GLubyte *ptr = (GLubyte *)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-  // updatePixels(ptr, get_depth() * get_width() * get_height());
   memcpy(ptr, get_data(), get_depth() * get_width() * get_height() * get_channels() * m_datatypesize);
   glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
@@ -154,29 +154,9 @@ void Volume::initGL()
 
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbo);
 
-  if (m_channels == 3)
+  switch (m_channels)
   {
-    if (m_datatypesize == 1)
-    {
-      glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-    }
-    if (m_datatypesize == 2)
-    {
-      glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_SHORT, NULL);
-    }
-  }
-  else if (m_channels == 4)
-  {
-    if (m_datatypesize == 1)
-    {
-      glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, get_width(), get_height(), get_depth(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-    }
-    if (m_datatypesize == 2)
-    {
-      glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, get_width(), get_height(), get_depth(), 0, GL_RGBA, GL_UNSIGNED_SHORT, NULL);
-    }
-  }
-  else if (m_channels == 1)
+  case 1:
   {
     if (m_datatypesize == 1)
     {
@@ -190,6 +170,48 @@ void Volume::initGL()
     {
       glTexImage3D(GL_TEXTURE_3D, 0, GL_R32F, get_width(), get_height(), get_depth(), 0, GL_RED, GL_FLOAT, NULL);
     }
+  }
+  break;
+  case 3:
+  {
+    if (m_datatypesize == 1)
+    {
+      glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    }
+    if (m_datatypesize == 2)
+    {
+      glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_SHORT, NULL);
+    }
+  }
+
+  break;
+  case 4:
+  {
+    if (m_datatypesize == 1)
+    {
+      glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, get_width(), get_height(), get_depth(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    }
+    if (m_datatypesize == 2)
+    {
+      glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, get_width(), get_height(), get_depth(), 0, GL_RGBA, GL_UNSIGNED_SHORT, NULL);
+    }
+  }
+  break;
+
+  default:
+  {
+    {
+      if (m_datatypesize == 1)
+      {
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+      }
+      if (m_datatypesize == 2)
+      {
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_SHORT, NULL);
+      }
+    }
+    break;
+  }
   }
 
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);

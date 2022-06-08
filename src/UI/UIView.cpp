@@ -41,7 +41,7 @@ UIView::UIView(VRVolumeApp &controllerApp) : m_controller_app(controllerApp), m_
 
 UIView::~UIView()
 {
-  // TODO: FIX Memory leak on this call
+  // TODO #48: FIX Memory leak on this call
   delete m_menu_handler;
 }
 
@@ -137,7 +137,9 @@ void UIView::draw_ui_callback()
 
           add_transfer_function();
           if (m_tfns.size() == 1)
+          {
             m_trnfnc_table_selection = 0;
+          }
         };
         ImGui::SameLine();
         if (ImGui::SmallButton("Remove Function"))
@@ -398,7 +400,7 @@ void UIView::draw_ui_callback()
               if (m_animated)
               {
                 /*
-                  TODO:
+                  TODO #50:
 
                   Fix frame by frame animation
 
@@ -799,7 +801,7 @@ void UIView::draw_ui_callback()
 
       if (helper::ends_with_string(fileDialog.selected_fn, ".txt"))
       {
-        //  TODO:  Thread the data loading process to run in the background and implement loading UI component
+        //  TODO #52 :  Thread the data loading process to run in the background and implement loading UI component
         //  VRDataLoader* insta = VRDataLoader::get_instance();
         // std::thread t1 ( &VRDataLoader::load_txt_file, std::ref(m_controller_app), fileDialog.selected_path);
         // t1.join();
@@ -1357,7 +1359,7 @@ void UIView::save_user_session(std::ofstream &savefile)
     savefile << "threshold " << std::to_string(m_threshold) << "\n";
     savefile << "scale " << std::to_string(m_scale) << "\n";
     savefile << "z-scale " << std::to_string(m_z_scale) << "\n";
-    //  TODO this needs rework. It has nothing to do with slices, it is the ray step size.
+    //  TODO #59: this needs rework. It has nothing to do with slices, it is the ray step size.
     // savefile << "Slices " << std::to_string(m_slices) << "\n";
     savefile << "automatic _slice adjustment " << std::to_string(m_dynamic_slices) << "\n";
     savefile << "RenderMethod " << std::to_string(m_rendermethod) << "\n";

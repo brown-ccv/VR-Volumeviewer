@@ -86,7 +86,7 @@ unsigned int LabelsManager::create_line_vba(glm::vec3 &start, glm::vec3 &end)
   return vba;
 }
 
-void LabelsManager::add(std::string &texture_path, float x, float y, float z, float textPosZ, float size, float off_set, int volume)
+void LabelsManager::add(std::string &texture_path, float x, float y, float z, float textPosZ, float size, float offset, int volume)
 {
   if (!m_init_plane_model)
   {
@@ -106,7 +106,7 @@ void LabelsManager::add(std::string &texture_path, float x, float y, float z, fl
   glm::vec3 line_end(x, y, textPosZ + 200);
   unsigned int line_vba = create_line_vba(line_start, line_end);
 
-  LabelBillboard billboard = {line_vba, m_texture_cache[texture_path], m_plane_model, glm::vec3(x, y, textPosZ + off_set), volume};
+  LabelBillboard billboard = {line_vba, m_texture_cache[texture_path], m_plane_model, glm::vec3(x, y, textPosZ + offset), volume};
   m_billboard_labels.push_back(billboard);
 
   m_position.push_back(glm::vec3(x, y, z));
@@ -115,7 +115,7 @@ void LabelsManager::add(std::string &texture_path, float x, float y, float z, fl
   m_volume.push_back(volume);
 }
 
-void LabelsManager::drawLabels(glm::mat4 &projection_matrix, glm::mat4 &headpose, float z_scale)
+void LabelsManager::draw_labels(glm::mat4 &projection_matrix, glm::mat4 &headpose, float z_scale)
 {
 
   // draw lines

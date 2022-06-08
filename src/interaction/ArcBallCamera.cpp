@@ -155,9 +155,9 @@ void ArcBallCamera::wasd_pressed(int wasd)
       m_current_poi.target = m_current_poi.target - (right)*glm::vec3(0.001);
       update_camera_matrix();
     }
+    if (D & wasd)
     {
-      if (D & wasd)
-        m_current_poi.target = m_current_poi.target + (right)*glm::vec3(0.001);
+      m_current_poi.target = m_current_poi.target + (right)*glm::vec3(0.001);
       update_camera_matrix();
     }
     if (Q & wasd)

@@ -130,13 +130,6 @@ void FrameBufferObject::create()
     glBindFramebuffer(GL_FRAMEBUFFER, m_nRenderFramebufferId);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_nDepthBufferId, 0);
 
-    // glGenTextures(1, &m_nResolveTextureId);
-    // glBindTexture(GL_TEXTURE_2D, m_nResolveTextureId);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-    // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-    // glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_nResolveTextureId, 0);
-
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
 
