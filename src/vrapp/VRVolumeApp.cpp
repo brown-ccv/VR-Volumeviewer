@@ -578,11 +578,11 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState &render_state)
 
     /*
     * TO DO #60 : Fix parent child relationship to not affect the mesh with z-scale
-    // glm::vec3 volume_position = volume_mv[3];
-    // glm::mat4 mesh_model_matrix =  glm::translate(general_model_view, volume_position);
-     //volume_mv = glm::translate(general_model_view, volume_position);
-     //glm::mat4 mesh_model_matrix = glm::translate(volume_mv, glm::vec3(-0.5f, -0.5f, -0.5f * px / pz));
-     ////mesh_model_matrix = glm::scale(mesh_model_matrix, glm::vec3(px, py, px));
+     glm::vec3 volume_position = volume_mv[3];
+     glm::mat4 mesh_model_matrix =  glm::translate(general_model_view, volume_position);
+     volume_mv = glm::translate(general_model_view, volume_position);
+     glm::mat4 mesh_model_matrix = glm::translate(volume_mv, glm::vec3(-0.5f, -0.5f, -0.5f * px / pz));
+     mesh_model_matrix = glm::scale(mesh_model_matrix, glm::vec3(px, py, px));
     **/
 
     volume_mv = glm::translate(volume_mv, glm::vec3(-0.5f, -0.5f, -0.5f * px / pz));
