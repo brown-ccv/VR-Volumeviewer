@@ -31,9 +31,11 @@
 
 #ifndef TFN_WIDGET_NO_STB_IMAGE_IMPL
 #define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
 #endif
 
 #include "stb_image.h"
+#include "stb_image_resize.h"
 
 template <typename T>
 T clamp(T x, T min, T max)
@@ -547,13 +549,13 @@ void TransferFunctionWidget::update_colormap()
   }
 }
 
-void TransferFunctionWidget::set_Quantiles(float min, float max)
+void TransferFunctionWidget::set_quantiles(float min, float max)
 {
   m_quantiles[0] = min;
   m_quantiles[1] = max;
 }
 
-void TransferFunctionWidget::get_Quantiles(float &min, float &max)
+void TransferFunctionWidget::get_quantiles(float &min, float &max)
 {
   min = m_quantiles[0];
   max = m_quantiles[1];
@@ -564,8 +566,18 @@ void TransferFunctionWidget::load_embedded_preset(const uint8_t *buf,
                                                   const std::string &name)
 {
   int w, h, n;
-  uint8_t *img_data = stbi_load_from_memory(buf, size, &w, &h, &n, 4);
-  auto img = std::vector<uint8_t>(img_data, img_data + w * 1 * 4);
+
+  uint8_t* img_data = stbi_load_from_memory(buf, size, &w, &h, &n, 4);
+  
+
+  int out_w = 256;
+  uint8_t*  output_pixels = (unsigned char*)malloc(out_w * h * n);
+
+  stbir_resize_uint8(img_data, w, h, 0, output_pixels, out_w, h, 0, n);
+  auto img = std::vector<uint8_t>(output_pixels, output_pixels + out_w * 1 * 4);
+
   stbi_image_free(img_data);
+  stbi_image_free(output_pixels);
+
   colormaps.emplace_back(name, img);
 }

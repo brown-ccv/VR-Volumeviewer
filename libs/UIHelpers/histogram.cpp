@@ -71,7 +71,7 @@ void Histogram::draw_histogram()
   draw_list->PushClipRect(canvas_pos, canvas_pos + canvas_size);
 
   const vec2f view_scale(canvas_size.x, -canvas_size.y);
-  const vec2f view_offset(canvas_pos.x, canvas_pos.y + canvas_size.y);
+  const vec2f view_offset(canvas_pos.x , canvas_pos.y + canvas_size.y);
 
   draw_list->AddRect(canvas_pos, canvas_pos + canvas_size, ImColor(180, 180, 180, 255));
 
@@ -84,9 +84,9 @@ void Histogram::draw_histogram()
 
   //Code to Draw histogram in the UI
   for (int i = 0; i < current_histogram.size(); i++) {
-    vec2f lp = vec2f(((float)i) / current_histogram.size(), 0.0f);
-    vec2f hp = vec2f(((float)i + 1.0f) / current_histogram.size(), current_histogram[i]);
-    vec2f p_min = lp * view_scale + view_offset;
+    vec2f lp = vec2f(((float)i) / current_histogram.size(), current_histogram[i]);
+    vec2f hp = vec2f(((float)i + 1.0f) / current_histogram.size(), 0.0f);
+    vec2f p_min = lp * view_scale + view_offset;  
     vec2f p_max = hp * view_scale + view_offset;
     //std::cout << i << ": " << p_min.x << "," << p_min.y << " " << p_max.x << "," << p_max.y << std::endl;
     draw_list->AddRectFilled(p_min, p_max, 0x77777777);

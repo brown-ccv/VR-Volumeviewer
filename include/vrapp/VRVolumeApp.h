@@ -1,7 +1,6 @@
 #ifndef VRVOLUMEAPP_H
 #define VRVOLUMEAPP_H
 
-
 #include <string>
 #include <vector>
 #include <future>
@@ -9,20 +8,18 @@
 
 #include "interaction/ArcBallCamera.h"
 #include "render/Volume.h"
-
+#include "loader/MeshData.h"
 
 #include "ShaderProgram.h"
-
 
 class UIView;
 class CreateMovieAction;
 class VolumeRenderer;
 class DepthTexture;
+class Mesh;
 class Window_Properties;
-class Model;
-class Texture;
 class Simulation;
-class LabelManager;
+class LabelsManager;
 
 enum MOVIESTATE
 {
@@ -39,18 +36,17 @@ enum APPMODE
 class VRVolumeApp
 {
 public:
-
   VRVolumeApp();
 
   ~VRVolumeApp();
 
-  void render(const MinVR::VRGraphicsState& renderState);
+  void render(const MinVR::VRGraphicsState &renderState);
 
   void initialize();
 
-  void load_volume(std::vector<std::string> vals, std::promise<Volume*>* promise);
+  void load_volume(std::vector<std::string> vals, std::promise<Volume *> *promise);
 
-  void load_nrrd_file(std::string& filename);
+  void load_nrrd_file(std::string &filename);
 
   void update_frame_state();
 
@@ -60,16 +56,14 @@ public:
   void clear_data();
   int get_num_volumes();
   bool data_is_multi_channel();
-  void get_min_max(const float frame, float& min, float& max);
-
-
+  void get_min_max(const float frame, float &min, float &max);
 
   void set_is_2D(bool);
   void set_looking_glass(bool);
   void set_convert(bool);
   void set_num_volumes(int);
 
-  void mouse_pos_event(glm::vec2& mPos);
+  void mouse_pos_event(glm::vec2 &mPos);
   void update_ui_events(float value);
   void update_track_ball_event(float value);
   void button_events_ui_handle(int button, int state);
@@ -85,19 +79,19 @@ public:
 
   void enable_render_volume();
 
-  void update_UI_pose_controller(glm::mat4& newPose);
-  void update_head_pose(glm::mat4& newPose);
+  void update_UI_pose_controller(glm::mat4 &newPose);
+  void update_head_pose(glm::mat4 &newPose);
 
   void update_fps(float fps);
   float get_fps();
 
   void update_dynamic_slices();
 
-  void do_grab(glm::mat4& pose);
+  void do_grab(glm::mat4 &pose);
 
   void intialize_ui();
 
-  void load_mesh_model();
+  void load_mesh_models();
 
   void load_shaders();
 
@@ -110,10 +104,9 @@ public:
   void update_animation(float fps);
 
 #if (!defined(__APPLE__))
- void run_movie(bool is_animation);
- void stop_movie();
+  void run_movie(bool is_animation);
+  void stop_movie();
 #endif
- 
 
   void set_render_count(unsigned int);
 
@@ -121,9 +114,9 @@ public:
 
   void set_frame(float frame);
 
-  glm::vec4& get_no_color();
-  glm::vec4& get_ambient();
-  glm::vec4& get_diffuse();
+  glm::vec4 &get_no_color();
+  glm::vec4 &get_ambient();
+  glm::vec4 &get_diffuse();
 
   void set_multi_transfer(bool);
   bool is_multi_transfer();
@@ -136,49 +129,47 @@ public:
 
   void set_threshold(float);
 
-  void add_label(std::string& text, float x, float y, float z, float textPosZ, float size, int volume);
+  void add_label(std::string &text, float x, float y, float z, float textPosZ, float size, float offset, int volume);
 
-  void set_description(int, std::string& text);
+  void set_description(int, std::string &text);
 
-  void set_mesh(int volumeId, std::string& fileName, std::string& shaderFilePath);
-
-  void set_texture(std::string& fileNamePath);
+  void set_mesh(int volume_id, std::string &mesh_file_path, std::string &texture_file_path);
 
   void init_num_volumes(int);
 
-  void add_data_label(std::string&);
+  void add_data_label(std::string &);
 
-  std::vector<std::promise<Volume*>*>& get_promise(int index);
+  std::vector<std::promise<Volume *> *> &get_promise(int index);
 
-  std::vector<std::future<Volume*>>* get_future(int index);
+  std::vector<std::future<Volume *>> *get_future(int index);
 
-  void set_future(int index, std::vector<std::future<Volume*>>*);
+  void set_future(int index, std::vector<std::future<Volume *>> *);
 
-  std::vector <std::thread*>& get_thread(int index);
+  std::vector<std::thread *> &get_thread(int index);
 
   void init_volume_loading(int index, std::vector<std::string>);
 
-  void set_character_state(std::string& key, int state);
-  
-  void set_directory_path(std::string& dir_path);
+  void set_character_state(std::string &key, int state);
 
-  std::string& get_directory_path();
+  void set_directory_path(std::string &dir_path);
 
-  void set_loaded_file(std::string& dir_path);
+  std::string &get_directory_path();
 
-  std::string& get_loaded_file();
+  void set_loaded_file(std::string &dir_path);
 
-  std::vector< Volume* >& get_volume(int volume);
+  std::string &get_loaded_file();
 
-  ArcBallCamera& get_trackball_camera();
+  std::vector<Volume *> &get_volume(int volume);
+
+  ArcBallCamera &get_trackball_camera();
 
   /*
     increase/decrease the step size of the volume animation by a `scale` factor.
-    It is a step unit, not related to any time unit. 
+    It is a step unit, not related to any time unit.
   */
   void set_volume_animation_scale_factor(float scale);
 
-  Simulation& get_simulation();
+  Simulation &get_simulation();
 
   void set_clip_min(glm::vec3 clip_min);
   void set_clip_max(glm::vec3 clip_max);
@@ -187,65 +178,61 @@ public:
 
   MOVIESTATE get_movie_state();
 
-  void set_app_mode(APPMODE );
+  void set_app_mode(APPMODE);
+
+  std::vector<std::vector<Volume *>> &get_volumes();
+
+  std::vector<Mesh *> &get_mesh_models();
 
 protected:
-
-  glm::vec4 m_noColor;// (0.0f, 0.0f, 0.0f, 0.0f);
-  glm::vec4 m_ambient;// [] = { 0.2f, 0.2f, 0.2f, 1.0f };
+  glm::vec4 m_noColor; // (0.0f, 0.0f, 0.0f, 0.0f);
+  glm::vec4 m_ambient; // [] = { 0.2f, 0.2f, 0.2f, 1.0f };
   glm::vec4 m_diffuse; //= { 0.5f, 0.5f, 0.5f, 1.0f };
-
 
   void add_lodaded_textures();
 
   void initialize_GL();
 
+  void render_labels(const MinVR::VRGraphicsState &renderState);
 
-
-  void render_labels(glm::mat4& volume_mv, const MinVR::VRGraphicsState& renderState);
-  void render_mesh(const MinVR::VRGraphicsState& renderState);
-  void render_volume(const MinVR::VRGraphicsState& renderState);
-  void render_ui(const MinVR::VRGraphicsState& renderState);
+  void render_volume(const MinVR::VRGraphicsState &renderState);
+  void render_ui(const MinVR::VRGraphicsState &renderState);
 
   void animated_render(int, int);
   void normal_render_volume(int, int);
 
-  
-
-  std::vector < std::vector< Volume* >> m_volumes;
+  std::vector<std::vector<Volume *>> m_volumes;
   std::vector<std::string> m_description;
-  LabelManager* m_labels;
-  std::vector <std::string> m_models_filenames;
-  std::vector <unsigned int> m_models_displayLists;
+  LabelsManager *m_label_manager;
+  std::vector<MeshData> m_mesh_models_data;
+  std::vector<unsigned int> m_models_displayLists;
   std::vector<pt> m_models_position;
   std::vector<int> m_models_volumeID;
   std::vector<glm::mat4> m_models_MV;
 
   GLfloat m_light_pos[4];
 
+  std::vector<VolumeRenderer *> m_renders;
+  std::vector<DepthTexture *> m_depthTextures;
 
-  std::vector <VolumeRenderer*> m_renders;
-  std::vector <DepthTexture*> m_depthTextures;
+  std::vector<std::vector<std::promise<Volume *> *>> m_promises;
+  std::vector<std::vector<std::future<Volume *>> *> m_futures;
+  std::vector<std::vector<std::thread *>> m_threads;
 
-  std::vector< std::vector<std::promise<Volume*>*>> m_promises;
-  std::vector< std::vector <std::future<Volume*>>*> m_futures;
-  std::vector< std::vector <std::thread*>> m_threads;
-
-  Model* m_mesh_model;
+  std::vector<Mesh *> m_mesh_models;
   ShaderProgram m_simple_texture_shader;
   ShaderProgram m_line_shader;
 
   std::string m_shader_file_path;
   std::string m_texture_filePath;
-  Texture* m_texture;
 
   bool m_isInitailized;
   bool m_animated;
   float m_threshold;
   int m_descriptionHeight;
   float m_volume_animation_scale_factor;
-  
-  float m_frame;
+
+  float m_frame_step;
   float m_speed;
   unsigned int m_rendercount;
   int m_selectedVolume;
@@ -255,26 +242,19 @@ protected:
   size_t m_numVolumes;
   std::vector<std::string> m_data_labels;
 
-
-  UIView* m_ui_view;
-
+  UIView *m_ui_view;
 
   bool m_convert;
   bool m_is2d;
   glm::mat4 m_headpose;
 
-
   glm::mat4 m_projection_mtrx;
-  glm::mat4 m_model_view;
-
+  glm::mat4 m_view_matrix;
 
   ArcBallCamera m_trackball;
   bool m_lookingGlass;
 
   glm::mat4 m_object_pose;
-
-
-  Model* mesh_model;
 
   bool m_clipping;
   bool m_use_custom_clip_plane;
@@ -285,7 +265,6 @@ protected:
   glm::vec3 m_clip_min;
   glm::vec3 m_clip_max;
 
-
   float m_multiplier;
   int m_slices;
 
@@ -293,31 +272,31 @@ protected:
   bool m_show_menu;
   bool m_end_load;
 
-
   /*Input Events*/
   bool m_grab;
   int m_wasd_pressed;
 
-
   float m_fps;
 
-  CreateMovieAction* m_movieAction;
+  CreateMovieAction *m_movieAction;
   std::string m_moviename;
 
-   glm::vec2 m_window_size ;
-   glm::vec2 m_frame_buffer_size;
+  glm::vec2 m_window_size;
+  glm::vec2 m_frame_buffer_size;
   std::string m_directiort_path;
 
   std::string m_current_file_loaded;
 
-  Window_Properties* m_window_properties;
+  Window_Properties *m_window_properties;
 
-  Simulation* m_simulation;
-  
+  Simulation *m_simulation;
+
   MOVIESTATE m_current_movie_state;
   bool m_stop_movie;
 
   APPMODE m_app_mode;
 
+  float m_volumes_global_min_value;
+  float m_volumes_global_max_value;
 };
 #endif

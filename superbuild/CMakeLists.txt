@@ -423,7 +423,7 @@ if(OpenCV_FOUND)
   message(STATUS "OpenCV found ${OpenCV_INSTALL_PATH}")
   if(WIN32)
    set(OPENCV_PATH ${_OpenCV_LIB_PATH} )
-   set(OPENCV_SUFIX "455" )
+   set(OPENCV_SUFIX "460" )
   elseif(APPLE)
    set(OPENCV_PATH "${CMAKE_BINARY_DIR}/install_${CMAKE_SYSTEM_NAME}/lib")
    set(OPENCV_PREFIX "lib" )
@@ -559,11 +559,12 @@ endif()
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/VolumeSliceShader.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/VolumeRaycastRenderer.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/VolumeRaycastShader.cpp
+ ${CMAKE_CURRENT_BINARY_DIR}/../src/render/Mesh.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/UI/UIView.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/glm.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/FrameBufferObject.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/DepthTexture.cpp
- ${CMAKE_CURRENT_BINARY_DIR}/../src/interaction/LabelManager.cpp
+ ${CMAKE_CURRENT_BINARY_DIR}/../src/interaction/LabelsManager.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/FontHandler.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/transfer_function_widget.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/transfer_function_multichannel_widget.cpp
@@ -578,9 +579,11 @@ endif()
 )
 
 set(header_files
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/common/common.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/vrapp/VolumeVisualizationApp.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/vrapp/VRVolumeApp.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/loader/LoadDataAction.h
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/loader/MeshData.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/Shader.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/Volume.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeRenderer.h
@@ -588,11 +591,12 @@ set(header_files
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeSliceShader.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeRaycastRenderer.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeRaycastShader.h
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/render/Mesh.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/UI/UIView.h
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/glm.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/FrameBufferObject.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/DepthTexture.h
- ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/LabelManager.h
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/LabelsManager.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/FontHandler.h
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/transfer_function_widget.h
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/transfer_function_multichannel_widget.h
@@ -676,7 +680,8 @@ target_link_libraries(${PROJECT_NAME}  ${LIBRARIES})
 
 file(COPY "${CMAKE_SOURCE_DIR}/../shaders" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
 file(COPY "${CMAKE_SOURCE_DIR}/../fonts" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
-file(COPY "${CMAKE_SOURCE_DIR}/../observers" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
+file(COPY "${CMAKE_SOURCE_DIR}/../observers/desktop_observer.minvr" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
+file(COPY "${CMAKE_SOURCE_DIR}/../observers/desktop.minvr" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
 file(COPY "${CMAKE_SOURCE_DIR}/../colormaps" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
 message(STATUS "COPY RESOURCES FOLDER")
 file(COPY "${CMAKE_SOURCE_DIR}/../Resources" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")

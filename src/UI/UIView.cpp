@@ -41,6 +41,7 @@ UIView::UIView(VRVolumeApp &controllerApp) : m_controller_app(controllerApp), m_
 
 UIView::~UIView()
 {
+  // TODO #48: FIX Memory leak on this call
   delete m_menu_handler;
 }
 
@@ -78,7 +79,15 @@ void UIView::draw_ui_callback()
       }
 
       ImGui::SliderFloat("alpha multiplier", &m_multiplier, 0.0f, 1.0f, "%.3f");
+      if (ImGui::IsItemHovered())
+      {
+        ImGui::SetTooltip("Pixel's alpha * alpha multiplier");
+      }
       ImGui::SliderFloat("threshold", &m_threshold, 0.0f, 1.0f, "%.3f");
+      if (ImGui::IsItemHovered())
+      {
+        ImGui::SetTooltip("Pixels with Alpha values below the threshold will be set to 0");
+      }
       ImGui::SliderFloat("scale", &m_scale, 0.001f, 5.0f, "%.3f");
       ImGui::SliderFloat("z - scale", &m_z_scale, 0.001f, 5.0f, "%.3f");
       ImGui::SliderInt("Slices", &m_slices, 10, 1024, "%d");
@@ -127,8 +136,10 @@ void UIView::draw_ui_callback()
           }
 
           add_transfer_function();
-          if (m_tfns.size() == 1) m_trnfnc_table_selection = 0;
-          
+          if (m_tfns.size() == 1)
+          {
+            m_trnfnc_table_selection = 0;
+          }
         };
         ImGui::SameLine();
         if (ImGui::SmallButton("Remove Function"))
@@ -278,8 +289,8 @@ void UIView::draw_ui_callback()
             }
           }
         }
-
         ImGui::EndTable();
+
         if (m_save_session_dialog_open)
         {
           m_current_save_modal = SAVE_SESSION;
@@ -389,8 +400,8 @@ void UIView::draw_ui_callback()
               if (m_animated)
               {
                 /*
-                  TODO:
-                  
+                  TODO #50:
+
                   Fix frame by frame animation
 
                   unsigned int active_volume = floor(m_frame);
@@ -403,7 +414,6 @@ void UIView::draw_ui_callback()
                       m_volumes[m_selectedVolume][active_volume2]->getTransferfunction(i), alpha, i);
                   }*/
               }
-              
             }
             m_controller_app.set_multi_transfer(true);
             tfn_widget_multi[m_trnfnc_table_selection].draw_ui();
@@ -414,7 +424,7 @@ void UIView::draw_ui_callback()
             {
               /*
               TODO:
-                  
+
               The base code to fix frame by frame animation
 
               unsigned int active_volume = floor(m_frame);
@@ -430,7 +440,6 @@ void UIView::draw_ui_callback()
 
             m_histogram.draw_histogram();
             tfn_widget[m_trnfnc_table_selection].draw_ui();
-            
           }
         }
       }
@@ -631,7 +640,9 @@ void UIView::draw_ui_callback()
         {
           sim_state.min_clip = m_clip_min;
           sim_state.max_clip = m_clip_max;
+          std::string state_name_tmp = sim_state.poi.label;
           sim_state.poi = m_controller_app.get_trackball_camera().get_current_poi();
+          sim_state.poi.label = state_name_tmp;
           m_time_frame_edited = true;
         }
       }
@@ -737,7 +748,7 @@ void UIView::draw_ui_callback()
           }
           else if (m_camera_button_action == EDIT)
           {
-            m_controller_app.get_simulation().get_simulation_state_at(m_camera_poi_table_selection).poi.label = m_copy_camera_name;
+            m_controller_app.get_simulation().get_simulation_state_at(m_simulation_state_selection).poi.label = m_copy_camera_name;
           }
           m_camera_name_window_open = false;
           ImGui::CloseCurrentPopup();
@@ -790,6 +801,15 @@ void UIView::draw_ui_callback()
 
       if (helper::ends_with_string(fileDialog.selected_fn, ".txt"))
       {
+        /*
+            TODO #52  
+            Thread the data loading process to run in the background and implement loading UI component
+            
+            VRDataLoader* insta = VRDataLoader::get_instance();
+            std::thread t1 ( &VRDataLoader::load_txt_file, std::ref(m_controller_app), fileDialog.selected_path);
+            t1.join();
+            std:thread t1([=] {VRDataLoader::load_txt_file(m_controller_app, fileDialog.selected_path); });
+        */
         VRDataLoader::load_txt_file(m_controller_app, fileDialog.selected_path);
       }
 #ifdef WITH_TEEM
@@ -797,9 +817,9 @@ void UIView::draw_ui_callback()
       {
         std::vector<std::string> vals;
         vals.push_back(fileDialog.GetSelected().string());
-          promises.push_back(new std::promise<Volume*>);
-          futures.push_back(promises.back()->get_future());
-          threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
+        promises.push_back(new std::promise<Volume *>);
+        futures.push_back(promises.back()->get_future());
+        threads.push_back(new std::thread(&VolumeVisualizationApp::loadVolume, this, vals, promises.back()));
       }
 #endif
     }
@@ -907,6 +927,7 @@ void UIView::draw_ui_callback()
     ImGui::End();
   }
 
+  // draw transfer legend
   if (m_use_transferfunction)
   {
     tfn_widget[0].draw_legend(0, m_legend_pos_y + 80, m_clock_width + 50, m_clock_height - 140);
@@ -918,6 +939,7 @@ void UIView::init_ui(bool is2D, bool lookingGlass)
 
   if (!m_initialized)
   {
+
 #ifdef WITH_NRRD
     fileDialog.SetTypeFilters({".txt", ".nrrd"});
 #elseif
@@ -933,17 +955,11 @@ void UIView::init_ui(bool is2D, bool lookingGlass)
     {
       fontsize = 3.0;
     }
-    std::cout << "is2d: " << (is2D ? "true" : "false") << std::endl;
+
     m_menu_handler = new VRMenuHandler(is2D);
-    if (!m_menu_handler)
-    {
-      std::cout << "m_menu_handler: "
-                << "NULL" << std::endl;
-    }
     VRMenu *menu = m_menu_handler->addNewMenu(std::bind(&UIView::draw_ui_callback, this), 1024, 1024, 1, 1, fontsize);
     menu->setMenuPose(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 2, -1, 1));
     m_dir_to_save = m_controller_app.get_directory_path().c_str();
-
     for (int i = 0; i < MAX_COLUMS; ++i)
     {
       m_column_selected[i] = false;
@@ -955,19 +971,21 @@ void UIView::init_ui(bool is2D, bool lookingGlass)
 
 void UIView::update_ui(int numVolumes)
 {
+
   tfn_widget_multi.resize(1);
   tfn_widget.resize(1);
   m_use_transferfunction = true;
+
   m_selected_volume_TrFn.resize(1);
   m_selected_volume_TrFn[0].resize(numVolumes);
   for (int i = 0; i < numVolumes; i++)
   {
     m_selected_volume_TrFn[0][i] = false;
   }
-
   MyTransFerFunctions trfntc;
   char label[32];
   sprintf(label, "TF%d", m_trnfnct_counter++);
+
   trfntc.ID = tfn_widget.size();
   trfntc.Name = label;
   for (int i = 0; i < numVolumes; i++)
@@ -1304,10 +1322,6 @@ void UIView::open_save_modal_dialog(std::string &id, bool &window_state,
   }
 }
 
-void UIView::add_transfer_function()
-{
-}
-
 void UIView::save_transfer_functions(std::ofstream &saveFile)
 {
   std::string pointsLine;
@@ -1316,9 +1330,9 @@ void UIView::save_transfer_functions(std::ofstream &saveFile)
     saveFile << "numFunction " << std::to_string(m_tfns.size()) << "\n";
     for (int i = 0; i < m_tfns.size(); i++)
     {
-      
+
       saveFile << "FuncName " + std::to_string(i + 1) + " " + m_tfns[i].Name + " " + std::to_string(tfn_widget[i].get_colormap_gpu()) + "\n";
-      
+
       saveFile << "FuncPoints " << std::to_string(i + 1) << " ";
       for (int j = 0; j < tfn_widget[i].alpha_control_pts.size(); j++)
       {
@@ -1349,7 +1363,8 @@ void UIView::save_user_session(std::ofstream &savefile)
     savefile << "threshold " << std::to_string(m_threshold) << "\n";
     savefile << "scale " << std::to_string(m_scale) << "\n";
     savefile << "z-scale " << std::to_string(m_z_scale) << "\n";
-    savefile << "Slices " << std::to_string(m_slices) << "\n";
+    //  TODO #59: this needs rework. It has nothing to do with slices, it is the ray step size.
+    // savefile << "Slices " << std::to_string(m_slices) << "\n";
     savefile << "automatic _slice adjustment " << std::to_string(m_dynamic_slices) << "\n";
     savefile << "RenderMethod " << std::to_string(m_rendermethod) << "\n";
     savefile << "Render_Channel " << std::to_string(m_renderchannel) << "\n";
@@ -1685,7 +1700,7 @@ void UIView::compute_new_histogram_view()
 
   std::vector<float> histogram(256, 0.f);
   float global_min = std::numeric_limits<float>::max();
-  float global_max = 0.f;
+  float global_max = std::numeric_limits<float>::min();
   for (int i = 0; i < m_controller_app.get_num_volumes(); i++)
   {
 
@@ -1693,11 +1708,11 @@ void UIView::compute_new_histogram_view()
     {
       if (m_controller_app.get_volume(i)[0]->getMin() < global_min)
       {
-        global_min = m_controller_app.get_volume(i)[0]->getMin();
+        global_min = std::min(global_min, m_controller_app.get_volume(i)[0]->getMin());
       }
       if (m_controller_app.get_volume(i)[0]->getMax() > global_max)
       {
-        global_max = m_controller_app.get_volume(i)[0]->getMax();
+        global_max = std::max(global_max, m_controller_app.get_volume(i)[0]->getMax());
       }
 
       m_histogram.setMinMax(global_min, global_max);
@@ -1782,6 +1797,7 @@ void UIView::set_transfer_function_min_max(float min, float max)
 
 void UIView::load_ocean_color_maps()
 {
+
   int w, h, n;
   int comp;
 
@@ -1789,6 +1805,7 @@ void UIView::load_ocean_color_maps()
   {
     std::string file_name_path = m_controller_app.get_directory_path() + OS_SLASH + m_color_map_directory + OS_SLASH + color_map_name;
     uint8_t *img_data = stbi_load(file_name_path.c_str(), &w, &h, &comp, 4);
+
     auto img = std::vector<uint8_t>(img_data, img_data + w * 1 * 4);
     stbi_image_free(img_data);
 

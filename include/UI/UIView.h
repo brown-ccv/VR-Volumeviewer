@@ -133,8 +133,6 @@ public:
 
   void compute_new_histogram_view();
 
-  void add_transfer_function();
-
   void set_animation_length(int num_frames);
 
   void get_quantiles(int row);

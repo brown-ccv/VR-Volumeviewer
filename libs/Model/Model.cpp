@@ -3,7 +3,7 @@
 #include <cassert>
 #include "ShaderProgram.h"
 
-Model::Model() : m_position(0), m_orientation(glm::quat()), m_scale(1), m_bounding_volumen_radius(1)
+Model::Model() : m_texture(nullptr), m_position(0), m_orientation(glm::quat()), m_scale(1), m_bounding_volumen_radius(1)
 {
 }
 
@@ -40,8 +40,7 @@ void Model::render(ShaderProgram &shaderProgram)
 
 	assert(m_Obj_Model && "NO MODEL TO RENDER");
 	// bind texture
-	// Always load texture id 0. The model doesnt support multi texturing.
-	m_texture->Bind(0);
+	m_texture->Bind();
 
 	// render geometry
 	if (m_Obj_Model)
@@ -50,8 +49,7 @@ void Model::render(ShaderProgram &shaderProgram)
 	}
 
 	// Unbind Text
-
-	m_texture->UnBind(0);
+	m_texture->UnBind();
 }
 
 glm::vec3 &Model::position()

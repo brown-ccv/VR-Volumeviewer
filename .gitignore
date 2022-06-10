@@ -53,3 +53,5 @@ superbuild/vr-imgui/vr-imgui/
 superbuild/CPPFSD/CPPFSD/
 superbuild/*.ttf
 superbuild/*.zip
+include/interaction/LabelManager.h
+src/interaction/LabelManager.cpp

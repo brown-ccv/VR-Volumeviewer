@@ -5,8 +5,6 @@ layout(location = 1) in vec3 normal;
 layout(location = 2) in vec2 uv;
 
 uniform mat4 projection_matrix;
-uniform mat4 v;
-uniform mat4 m;
 uniform mat4 model_view_matrix;
 
 out vec4 vertex_pos;
@@ -16,5 +14,5 @@ void main() {
     vertex_pos = model_view_matrix * vec4(position, 1.0);
 	text_coord = uv;
 
-    gl_Position = p * vertex_pos;
+    gl_Position = projection_matrix * vertex_pos;
 }

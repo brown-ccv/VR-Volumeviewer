@@ -23,44 +23,18 @@
 ///\file Labels.cpp
 ///\author Benjamin Knorlein
 ///\date 6/25/2019
-///\author Camilo Diaz
-///\date 4/28/2022
 
-#pragma once
-
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-#define M_PI 3.14159265358979323846
-#define MARKER_HEIGHT 0.05
-
-#if defined(WIN32)
-#define NOMINMAX
-#include <windows.h>
-#include "GL/glew.h"
-#include "GL/wglew.h"
-#elif defined(__APPLE__)
-#include <OpenGL/OpenGL.h>
-#include <OpenGL/glu.h>
-#else
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
-
-#include "../../include/interaction/LabelManager.h"
-#include <string>
-#include <math/VRMath.h>
-#include "../../include/render/FontHandler.h"
+#include "../../include/interaction/LabelsManager.h"
+#include "../../include/vrapp/VRVolumeApp.h"
 #include "GLMLoader.h"
-#include <Model.h>
+#include "../../include/render/Mesh.h"
 #include <ShaderProgram.h>
 
-LabelManager::LabelManager(ShaderProgram &lines_shader, ShaderProgram &plane_shader) : m_init_plane_model(false), m_lines_shader_program(lines_shader), m_plane_shader_program(plane_shader), m_plane_model(nullptr)
+LabelsManager::LabelsManager(VRVolumeApp &vrapp, ShaderProgram &lines_shader, ShaderProgram &plane_shader) : m_controller_app(vrapp), m_init_plane_model(false), m_lines_shader_program(lines_shader), m_plane_shader_program(plane_shader), m_plane_model(nullptr)
 {
 }
 
-LabelManager::~LabelManager()
+LabelsManager::~LabelsManager()
 {
   clear();
   std::map<std::string, Texture *>::iterator it;
@@ -71,7 +45,7 @@ LabelManager::~LabelManager()
   delete m_plane_model;
 }
 
-void LabelManager::clear()
+void LabelsManager::clear()
 {
   m_text.clear();
   m_position.clear();
@@ -80,12 +54,12 @@ void LabelManager::clear()
   m_volume.clear();
 }
 
-void LabelManager::set_parent_directory(std::string &directory)
+void LabelsManager::set_parent_directory(std::string &directory)
 {
   m_parent_directory = directory;
 }
 
-unsigned int LabelManager::create_line_vba(glm::vec3 &start, glm::vec3 &end)
+unsigned int LabelsManager::create_line_vba(glm::vec3 &start, glm::vec3 &end)
 {
   unsigned int vba;
   unsigned int vbo;
@@ -112,7 +86,7 @@ unsigned int LabelManager::create_line_vba(glm::vec3 &start, glm::vec3 &end)
   return vba;
 }
 
-void LabelManager::add_label(std::string texture_path, float x, float y, float z, float textPosZ, float size, int volume)
+void LabelsManager::add(std::string &texture_path, float x, float y, float z, float textPosZ, float size, float offset, int volume)
 {
   if (!m_init_plane_model)
   {
@@ -128,14 +102,11 @@ void LabelManager::add_label(std::string texture_path, float x, float y, float z
     m_texture_cache[texture_path] = texture;
   }
 
-  BillboardLabel billboard;
   glm::vec3 line_start(x, y, z);
   glm::vec3 line_end(x, y, textPosZ + 200);
   unsigned int line_vba = create_line_vba(line_start, line_end);
-  billboard.line_vba = line_vba;
-  billboard.label_texture = m_texture_cache[texture_path];
-  billboard.label_model = m_plane_model;
-  billboard.position = glm::vec3(x, y, textPosZ + 250);
+
+  LabelBillboard billboard = {line_vba, m_texture_cache[texture_path], m_plane_model, glm::vec3(x, y, textPosZ + offset), volume};
   m_billboard_labels.push_back(billboard);
 
   m_position.push_back(glm::vec3(x, y, z));
@@ -144,20 +115,29 @@ void LabelManager::add_label(std::string texture_path, float x, float y, float z
   m_volume.push_back(volume);
 }
 
-void LabelManager::draw_labels(glm::mat4 volume_mv, glm::mat4 projection_matrix, glm::mat4 &headpose, float z_scale)
+void LabelsManager::draw_labels(glm::mat4 &projection_matrix, glm::mat4 &headpose, float z_scale)
 {
-  for (int i = 0; i < m_billboard_labels.size(); i++)
+
+  // draw lines
+  m_lines_shader_program.start();
+  m_lines_shader_program.setUniform("projection_matrix", projection_matrix);
+  for (int i = 0; i < m_billboard_labels.size(); ++i)
   {
-    // draw line
-    m_lines_shader_program.start();
-    m_lines_shader_program.setUniform("p", projection_matrix);
-    m_lines_shader_program.setUniform("mv", volume_mv);
+    glm::mat4 volume_mv = m_controller_app.get_mesh_models()[m_billboard_labels[i].volume_id]->get_model().modelViewM();
+    m_lines_shader_program.setUniform("model_view_matrix", volume_mv);
     glLineWidth(2);
     glBindVertexArray(m_billboard_labels[i].line_vba);
     glDrawArrays(GL_LINES, 0, 2);
     glBindVertexArray(0);
-    m_lines_shader_program.stop();
+  }
+  m_lines_shader_program.stop();
 
+  // draw billboards
+  m_plane_shader_program.start();
+  m_plane_shader_program.setUniform("projection_matrix", projection_matrix);
+  for (int i = 0; i < m_billboard_labels.size(); ++i)
+  {
+    glm::mat4 volume_mv = m_controller_app.get_mesh_models()[m_billboard_labels[i].volume_id]->get_model().modelViewM();
     glm::vec4 markerpos = volume_mv * glm::vec4(m_billboard_labels[i].position.x, m_billboard_labels[i].position.y, 1, 1);
     glm::vec4 headpos = headpose * glm::vec4(0, 0, 0, 1);
     glm::vec4 dir = headpos / headpos.w - markerpos / markerpos.w;
@@ -166,23 +146,23 @@ void LabelManager::draw_labels(glm::mat4 volume_mv, glm::mat4 projection_matrix,
     dir.z = 0;
     dir = normalize(dir);
     float angle = 180.0f / M_PI * atan2(dir.x, dir.y);
-    glm::mat4 label_model_view_matrix;
+    glm::mat4 label_mv;
 
-    label_model_view_matrix = glm::translate(volume_mv, m_billboard_labels[i].position);
-    label_model_view_matrix = glm::scale(label_model_view_matrix, glm::vec3(50.0f, 50.0f, 100.0f));
-    label_model_view_matrix = glm::rotate(label_model_view_matrix, glm::radians(180.0f - angle), glm::vec3(0.0f, 0.0f, 1.0f));
-    label_model_view_matrix = glm::rotate(label_model_view_matrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    
-    m_plane_shader_program.start();
-    m_plane_shader_program.setUniform("p", projection_matrix);
-    m_plane_model->setMVMatrix(label_model_view_matrix);
+    label_mv = glm::translate(volume_mv, m_billboard_labels[i].position);
+    label_mv = glm::scale(label_mv, glm::vec3(50.0f, 50.0f, 100.0f));
+    label_mv = glm::rotate(label_mv, glm::radians(180.0f - angle), glm::vec3(0.0f, 0.0f, 1.0f));
+    label_mv = glm::rotate(label_mv, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    m_plane_model->setMVMatrix(label_mv);
     m_billboard_labels[i].label_model->setTexture(m_billboard_labels[i].label_texture);
     m_billboard_labels[i].label_model->render(m_plane_shader_program);
-    m_plane_shader_program.stop();
+    // unset texture unit on object (LabelsManager is the owner of the textures)
+    m_billboard_labels[i].label_model->setTexture(nullptr);
   }
+  m_plane_shader_program.stop();
 }
 
-void LabelManager::draw_lines()
+void LabelsManager::drawLines()
 {
 
   for (size_t i = 0; i < m_lines_vba.size(); ++i)
@@ -191,4 +171,9 @@ void LabelManager::draw_lines()
     glDrawArrays(GL_LINES, 0, 2);
     glBindVertexArray(0);
   }
+}
+
+const std::vector<LabelBillboard> &LabelsManager::get_labels()
+{
+  return m_billboard_labels;
 }

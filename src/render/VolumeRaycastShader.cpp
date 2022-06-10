@@ -111,8 +111,6 @@ VolumeRaycastShader::VolumeRaycastShader() : m_use_blending{false}, m_blend_volu
       // To ensure we update dataPos and t_hit to reflect a ray from entry point to exit
       "dataPos = camPos + t_hit.x * geomDir;\n"
       "t_hit.y = t_hit.y-t_hit.x; \n"
-
-      // slightly move the ray to not collide with viewport culling front plane.
       "t_hit.x = 0.0001f; \n"
 
       // get t for the clipping plane and overwrite the entry point
@@ -146,9 +144,6 @@ VolumeRaycastShader::VolumeRaycastShader() : m_use_blending{false}, m_blend_volu
       "d_ndc = d_ndc / d_ndc.w; \n"
 
       // compute t_occ and check if it closer than the exit point
-      //  The code below ocludes portion of the voxels at the center of the unit cube.
-      //  Removing this lines fixes the issue, but it generates artifacts in the APPLE rendering.
-      //  Do some research why the ray caster is occliding those specific voxels
       /*"float t_occ = ((d_ndc.x + 0.5) - dataPos.x) / geomDir.x; \n"
       "t_hit.y = min(t_hit.y, t_occ); \n"*/
 
@@ -162,7 +157,7 @@ VolumeRaycastShader::VolumeRaycastShader() : m_use_blending{false}, m_blend_volu
       // Step 4: Starting from the entry point, march the ray through the volume
       // and sample it
       "dataPos = dataPos + t_hit.x * geomDir; \n"
-      "for (float t = t_hit.x; t < t_hit.y; t += dt) {\n"
+      "for (float step = t_hit.x; step < t_hit.y; step += dt) {\n"
       // data fetching from the red channel of volume texture
       "vec4 sample; \n"
       "if (channel == 1){ \n"
@@ -211,7 +206,7 @@ VolumeRaycastShader::VolumeRaycastShader() : m_use_blending{false}, m_blend_volu
       "sample.b = texture(lut, vec2(sample.b,0.5)).b;"
       "sample.a = max(sample.r, max(sample.g,sample.b)) ; "
       "}else{\n"
-      "sample = texture(lut, vec2(sample.a,0.5));"
+      "sample = texture(lut, vec2(clamp(sample.a,0.0,1.0),0.5));"
       "}\n"
       "}\n"
 
@@ -231,7 +226,7 @@ VolumeRaycastShader::VolumeRaycastShader() : m_use_blending{false}, m_blend_volu
       "} \n"
 
       // remove fragments for correct depthbuffer
-      "if (vFragColor.a == 0.0f)"
+      "if (vFragColor.a < 0.001f)"
       "discard;"
       "}\n";
 }
