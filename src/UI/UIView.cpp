@@ -801,11 +801,15 @@ void UIView::draw_ui_callback()
 
       if (helper::ends_with_string(fileDialog.selected_fn, ".txt"))
       {
-        //  TODO #52 :  Thread the data loading process to run in the background and implement loading UI component
-        //  VRDataLoader* insta = VRDataLoader::get_instance();
-        // std::thread t1 ( &VRDataLoader::load_txt_file, std::ref(m_controller_app), fileDialog.selected_path);
-        // t1.join();
-        // std:thread t1([=] {VRDataLoader::load_txt_file(m_controller_app, fileDialog.selected_path); });
+        /*
+            TODO #52  
+            Thread the data loading process to run in the background and implement loading UI component
+            
+            VRDataLoader* insta = VRDataLoader::get_instance();
+            std::thread t1 ( &VRDataLoader::load_txt_file, std::ref(m_controller_app), fileDialog.selected_path);
+            t1.join();
+            std:thread t1([=] {VRDataLoader::load_txt_file(m_controller_app, fileDialog.selected_path); });
+        */
         VRDataLoader::load_txt_file(m_controller_app, fileDialog.selected_path);
       }
 #ifdef WITH_TEEM
