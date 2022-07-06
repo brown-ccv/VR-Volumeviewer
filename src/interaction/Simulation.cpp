@@ -63,10 +63,12 @@ void Simulation::update_simulation()
     animation_button_label = "Animate";
     m_controller_app.set_app_mode(MANUAL);
     m_timeline.resetTime();
+#if (!defined(__APPLE__))
     if (m_controller_app.get_movie_state() == MOVIE_RECORD)
     {
       m_controller_app.stop_movie();
     }
+#endif
   }
 }
 

@@ -320,7 +320,7 @@ void VRVolumeApp::set_description(int descriptionHeight, std::string &descriptio
 
 void VRVolumeApp::set_mesh(int volume_id, std::string &mesh_file_path, std::string &texture_file_path)
 {
-  MeshData mesh_data = {volume_id - 1, mesh_file_path, texture_file_path};
+  MeshData mesh_data = {(unsigned int)volume_id - 1, mesh_file_path, texture_file_path};
   m_mesh_models_data.push_back(mesh_data);
   m_models_MV.push_back(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
 }
