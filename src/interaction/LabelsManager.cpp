@@ -106,7 +106,7 @@ void LabelsManager::add(std::string &texture_path, float x, float y, float z, fl
   glm::vec3 line_end(x, y, textPosZ + 200);
   unsigned int line_vba = create_line_vba(line_start, line_end);
 
-  LabelBillboard billboard = {line_vba, m_texture_cache[texture_path], m_plane_model, glm::vec3(x, y, textPosZ + offset), volume};
+  LabelBillboard billboard = {line_vba, m_texture_cache[texture_path], m_plane_model, glm::vec3(x, y, textPosZ + offset), (unsigned int)volume};
   m_billboard_labels.push_back(billboard);
 
   m_position.push_back(glm::vec3(x, y, z));

@@ -51,6 +51,7 @@ int Texture::Load2DTexture()
 
 int Texture::Load3DTexture(const std::vector<std::string> &paths)
 {
+#if (!defined(__APPLE__))
 	if (paths.size() == 0)
 	{
 		assert(false && "no paths to load from");
@@ -63,7 +64,7 @@ int Texture::Load3DTexture(const std::vector<std::string> &paths)
 	// load and format each image
 	for (int i = 0; i < paths.size(); ++i)
 	{
-		BYTE *bits(0);
+		unsigned char *bits(0);
 		int bbp = 0;
 		if (!LoadTexture(paths[i], width, height, &bits, bbp))
 		{
@@ -104,6 +105,11 @@ int Texture::Load3DTexture(const std::vector<std::string> &paths)
 	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 	// Return the ID of the texture we just created
 	return textureID;
+#endif
+
+	assert("3D textures no supported on this System");
+
+	return 0;
 }
 
 int Texture::LoadTexture(const std::string &fileName,
@@ -127,15 +133,13 @@ int Texture::LoadTexture(const std::string &fileName,
 	if (data)
 	{
 		if (bbp == 3)
-		{			
+		{
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, *data);
 		}
 		else if (bbp == 4)
 		{
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, *data);
 		}
-
-		
 	}
 	else
 	{

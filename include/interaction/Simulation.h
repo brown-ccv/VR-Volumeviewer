@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 
 #include "PointOfInterests.h"
+#include <list>
 
 enum ANIMATION_STATE
 {
