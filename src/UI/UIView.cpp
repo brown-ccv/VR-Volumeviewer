@@ -126,7 +126,7 @@ void UIView::draw_ui_callback()
       {
         if (ImGui::SmallButton("Add Function"))
         {
-          tfn_widget.push_back(TransferFunctionWidget());
+          tfn_widget.push_back(tfnw::TransferFunctionWidget());
           tfn_widget_multi.push_back(TransferFunctionMultiChannelWidget());
           int index = m_selected_volume_TrFn.size();
           m_selected_volume_TrFn.push_back(std::vector<bool>(numVolumes));
@@ -151,7 +151,7 @@ void UIView::draw_ui_callback()
             tfn_widget.clear();
             tfn_widget_multi.clear();
             m_tfns.clear();
-            tfn_widget.push_back(TransferFunctionWidget());
+            tfn_widget.push_back(tfnw::TransferFunctionWidget());
             tfn_widget_multi.push_back(TransferFunctionMultiChannelWidget());
             add_transfer_function();
             m_trnfnc_table_selection = 0;
@@ -174,7 +174,7 @@ void UIView::draw_ui_callback()
           tfn_widget.clear();
           tfn_widget_multi.clear();
           m_tfns.clear();
-          tfn_widget.push_back(TransferFunctionWidget());
+          tfn_widget.push_back(tfnw::TransferFunctionWidget());
           tfn_widget_multi.push_back(TransferFunctionMultiChannelWidget());
           MyTransFerFunctions trfntc;
           char label[32];
@@ -1813,7 +1813,7 @@ void UIView::load_ocean_color_maps()
 
     std::string name = color_map_name.substr(0, color_map_name.find_first_of("."));
 
-    Colormap color_map(name, img);
+    tfnw::Colormap color_map(name, img, tfnw::SRGB);
     tfn_widget[0].add_colormap(color_map);
   }
 }
