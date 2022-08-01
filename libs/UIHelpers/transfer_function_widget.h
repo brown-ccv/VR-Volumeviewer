@@ -1,6 +1,4 @@
-#ifndef TransferFunctionWidget_H_
-#define TransferFunctionWidget_H_
-
+#pragma once
 #ifdef _WIN32
 #include "GL/glew.h"
 #include "GL/wglew.h"
@@ -15,105 +13,113 @@
 #include <GL/gl.h>
 #elif defined(__APPLE__)
 #define GL_GLEXT_PROTOTYPES
-#include <OpenGL/gl3.h>
-#include <OpenGL/glext.h>
+#include <OpenGL/OpenGL.h>
+#include <OpenGL/glu.h>
 #else
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
 #endif
-
 #include <cstdint>
 #include <string>
 #include <vector>
-#include "imgui/imgui.h"
+#include "imgui.h"
 #include "Vec2.h"
 
-struct Colormap
-{
-  std::string name;
-  // An RGBA8 1D image
-  std::vector<uint8_t> colormap;
+namespace tfnw {
 
-  Colormap(const std::string &name, const std::vector<uint8_t> &img);
+enum ColorSpace { LINEAR, SRGB };
+
+struct Colormap {
+    std::string name;
+    // An RGBA8 1D image
+    std::vector<uint8_t> colormap;
+    ColorSpace color_space;
+
+    Colormap(const std::string &name,
+             const std::vector<uint8_t> &img,
+             const ColorSpace color_space);
 };
 
-class TransferFunctionWidget
-{
+class TransferFunctionWidget {
+   
 
-  std::vector<Colormap> colormaps;
+    std::vector<Colormap> colormaps;
+    
+    std::vector<uint8_t> current_colormap;
 
-  std::vector<uint8_t> current_colormap;
+   
+    size_t selected_point = -1;
 
-  size_t selected_point = -1;
-
-  bool colormap_changed = true;
-  GLuint colormap_img = -1;
-
-  std::vector<float> current_histogram;
-  float m_min_max_val[2];
+    bool clicked_on_item = false;
+    bool gpu_image_stale = true;
+    bool colormap_changed = true;
+    GLuint colormap_img = -1;
 
 public:
-  size_t selected_colormap = 0;
-  std::vector<vec2f> alpha_control_pts = {vec2f(0.f), vec2f(1.f)};
+    TransferFunctionWidget();
+    
+    std::vector<vec2f> alpha_control_pts = { vec2f(0.f), vec2f(1.f) };
 
-  TransferFunctionWidget();
+    size_t selected_colormap = 0;
 
-  // Add a colormap preset. The image should be a 1D RGBA8 image
-  void add_colormap(const Colormap &map);
+    // Add a colormap preset. The image should be a 1D RGBA8 image, if the image
+    // is provided in sRGBA colorspace it will be linearized
+    void add_colormap(const Colormap &map);
 
-  // Add the transfer function UI into the currently active window
-  void draw_ui();
+    // Add the transfer function UI into the currently active window
+    void draw_ui();
 
-  // Returns true if the colormap was updated since the last
-  // call to draw_ui
-  bool changed() const;
+    // Returns true if the colormap was updated since the last
+    // call to draw_ui
+    bool changed() const;
 
-  // Get back the RGBA8 color data for the transfer function
-  std::vector<uint8_t> get_colormap();
+    // Get back the RGBA8 color data for the transfer function
+    std::vector<uint8_t> get_colormap();
 
-  // Get back the RGBA32F color data for the transfer function
-  std::vector<float> get_colormapf();
+    // Get back the RGBA32F color data for the transfer function
+    std::vector<float> get_colormapf();
 
-  void setHistogram(const std::vector<float> &hist);
+    // Get back the RGBA32F color data for the transfer function
+    // as separate color and opacity vectors
+    void get_colormapf(std::vector<float> &color, std::vector<float> &opacity);
 
-  std::vector<float> &getHistogram();
 
-  void setMinMax(const float min, const float max);
+	GLint get_colormap_gpu()
+	{
+		return colormap_img;
+	}
 
-  void setBlendedHistogram(const std::vector<float> &hist1, const std::vector<float> &hist2, float alpha);
+	void set_colormap_gpu(GLint colormap)
+	{
+		colormap_img = colormap;
+	}
 
-  // Get back the RGBA32F color data for the transfer function
-  // as separate color and opacity vectors
-  void get_colormapf(std::vector<float> &color, std::vector<float> &opacity);
+	void draw_legend();
 
-  GLint get_colormap_gpu()
-  {
-    return colormap_img;
-  }
+	void draw_legend(float legend_pos_x, float legend_pos_y, float legend_width, float legend_height);
 
-  void set_colormap_gpu(GLint colormap)
-  {
-    colormap_img = colormap;
-  }
+    void update_colormap();
 
-  void draw_legend();
+	void set_quantiles(float min, float max);
 
-  void draw_legend(float legend_pos_x, float legend_pos_y, float legend_width, float legend_height);
+	void get_quantiles(float& min, float& max);
 
-  void draw_histogram();
+	std::vector<float> current_histogram;
 
-  void update_colormap();
+	float m_min_max_val[2];
 
-  void set_quantiles(float min, float max);
+	void setHistogram(const std::vector<float>& hist);
 
-  void get_quantiles(float &min, float &max);
+	std::vector<float>& getHistogram();
+
+	void setMinMax(const float min, const float max);
 
 private:
-  void update_gpu_image();
+    void update_gpu_image();
 
-  void load_embedded_preset(const uint8_t *buf, size_t size, const std::string &name);
-
-  float m_quantiles[2];
+    void load_embedded_preset(const uint8_t *buf, size_t size, const std::string &name);
+    
+    float m_quantiles[2];
 };
+}
 
-#endif

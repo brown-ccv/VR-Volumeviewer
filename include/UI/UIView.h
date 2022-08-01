@@ -202,7 +202,7 @@ private:
   bool m_show_menu;
   bool m_renderVolume;
   std::vector<TransferFunctionMultiChannelWidget> tfn_widget_multi;
-  std::vector<TransferFunctionWidget> tfn_widget;
+  std::vector<tfnw::TransferFunctionWidget> tfn_widget;
   std::vector<MyTransFerFunctions> m_tfns;
   std::vector<std::vector<bool>> m_selected_volume_TrFn;
 
