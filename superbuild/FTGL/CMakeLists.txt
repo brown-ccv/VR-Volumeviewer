@@ -13,6 +13,7 @@ set(EXTERNAL_DIR_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/../install/)
 build_git_subproject(
    NAME FTGL
    URL https://github.com/ulrichard/ftgl.git
+   TAG master
    BUILD_ARGS
     -DBUILD_SHARED_LIBS=OFF
 	-DFREETYPE_INCLUDE_DIR_ft2build=${CMAKE_INSTALL_PREFIX}/include/freetype2

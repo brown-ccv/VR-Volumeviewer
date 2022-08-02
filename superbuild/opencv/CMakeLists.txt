@@ -11,7 +11,8 @@ set(EXTERNAL_DIR_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/../install/)
 
 build_git_subproject(
   NAME opencv
-  URL "https://github.com/opencv/opencv.git"
+  URL https://github.com/opencv/opencv.git
+  TAG 4.6.0
   BUILD_ARGS
    -DBUILD_TESTS=OFF
    -DBUILD_PERF_TESTS=OFF
