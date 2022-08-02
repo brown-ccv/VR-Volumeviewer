@@ -26,14 +26,14 @@ endmacro()
 macro(build_git_subproject)
   # See cmake_parse_arguments docs to see how args get parsed here:
   #    https://cmake.org/cmake/help/latest/command/cmake_parse_arguments.html
-  set(oneValueArgs NAME URL )
+  set(oneValueArgs NAME URL TAG)
   set(multiValueArgs BUILD_ARGS DEPENDS_ON)
   cmake_parse_arguments(BUILD_SUBPROJECT "" "${oneValueArgs}"
                         "${multiValueArgs}" ${ARGN})
 
   # Setup SUBPROJECT_* variables (containing paths) for this function
   setup_subproject_path_vars(${BUILD_SUBPROJECT_NAME})
-  
+
   # Build the actual subproject
   ExternalProject_Add(${SUBPROJECT_NAME}
     PREFIX ${SUBPROJECT_NAME}
@@ -42,6 +42,7 @@ macro(build_git_subproject)
     SOURCE_DIR ${SUBPROJECT_SOURCE_PATH}
     BINARY_DIR ${SUBPROJECT_BUILD_PATH}
     GIT_REPOSITORY  ${BUILD_SUBPROJECT_URL}
+    GIT_TAG ${BUILD_SUBPROJECT_TAG}
     LIST_SEPARATOR | # Use the alternate list separator
     CMAKE_ARGS
      
@@ -89,7 +90,7 @@ macro(build_choerograph_subproject)
     SOURCE_DIR ${SUBPROJECT_SOURCE_PATH}
     BINARY_DIR ${SUBPROJECT_BUILD_PATH}
     GIT_REPOSITORY  ${BUILD_SUBPROJECT_URL}
-	GIT_TAG stable
+    GIT_TAG stable
     LIST_SEPARATOR | # Use the alternate list separator
     CMAKE_ARGS
 	  -S ${CMAKE_CURRENT_SOURCE_DIR}/Choreograph/source/src

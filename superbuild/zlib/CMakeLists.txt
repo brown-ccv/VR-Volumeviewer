@@ -11,6 +11,7 @@ set(EXTERNAL_DIR_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/../install/)
 
 build_git_subproject(
   NAME zlib
-  URL "https://github.com/madler/zlib.git"
+  URL https://github.com/madler/zlib.git
+  TAG v1.2.12
   -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 )
