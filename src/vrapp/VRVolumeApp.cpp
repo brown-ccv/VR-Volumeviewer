@@ -633,11 +633,6 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState &render_state)
   m_depthTextures[m_rendercount]->copyDepthbuffer();
   (static_cast<VolumeRaycastRenderer *>(m_renders[1]))->setDepthTexture(m_depthTextures[m_rendercount]);
 
-  if (m_is2d)
-  {
-    m_ui_view->draw_transfer_function_legend();
-  }
-
   // drawTime
   if (m_is2d && m_animated)
   {

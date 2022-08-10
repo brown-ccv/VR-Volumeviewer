@@ -139,8 +139,6 @@ public:
 
   void set_volume_time_info(time_t time);
 
-  void draw_transfer_function_legend();
-
   void set_transfer_function_min_max(float min, float max);
 
   bool get_show_movie_saved_pop_up() const { return m_show_movie_saved_pop_up; }

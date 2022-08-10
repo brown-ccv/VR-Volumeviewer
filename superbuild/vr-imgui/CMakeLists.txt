@@ -19,7 +19,7 @@ set(EXTERNAL_DIR_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/../install/)
 build_git_subproject(
   NAME vr-imgui 
   URL https://github.com/brown-ccv/VR-imgui.git
-  TAG v1.0
+  TAG v2.0.0
   BUILD_ARGS
    -DBUILD_WITH_VIRTUALKEYBOARD=OFF 
    -DBUILD_WITH_FILEBROWSER=ON 

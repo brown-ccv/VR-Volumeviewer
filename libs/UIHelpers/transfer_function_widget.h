@@ -1,7 +1,10 @@
-#pragma once
+#ifndef TransferFunctionWidget_H_
+#define TransferFunctionWidget_H_
+
 #ifdef _WIN32
 #include "GL/glew.h"
 #include "GL/wglew.h"
+#define NOMINMAX
 #elif (!defined(__APPLE__))
 #include "GL/glxew.h"
 #endif
@@ -13,22 +16,21 @@
 #include <GL/gl.h>
 #elif defined(__APPLE__)
 #define GL_GLEXT_PROTOTYPES
-#include <OpenGL/OpenGL.h>
-#include <OpenGL/glu.h>
+#include <OpenGL/gl3.h>
+#include <OpenGL/glext.h>
 #else
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
 #endif
+
 #include <cstdint>
 #include <string>
 #include <vector>
-#include "imgui.h"
 #include "Vec2.h"
 
 namespace tfnw
 {
-
-    enum class ColorSpace
+    enum ColorSpace
     {
         LINEAR,
         SRGB
@@ -41,9 +43,7 @@ namespace tfnw
         std::vector<uint8_t> colormap;
         ColorSpace color_space;
 
-        Colormap(const std::string &name,
-                 const std::vector<uint8_t> &img,
-                 const ColorSpace color_space);
+        Colormap(const std::string &name, const std::vector<uint8_t> &img, const ColorSpace color_space);
     };
 
     class TransferFunctionWidget
@@ -60,15 +60,16 @@ namespace tfnw
         bool colormap_changed = true;
         GLuint colormap_img = -1;
 
-    public:
-        TransferFunctionWidget();
+        std::vector<float> current_histogram;
+        float m_min_max_val[2];
 
+    public:
+        size_t selected_colormap = 0;
         std::vector<vec2f> alpha_control_pts = {vec2f(0.f), vec2f(1.f)};
 
-        size_t selected_colormap = 0;
+        TransferFunctionWidget();
 
-        // Add a colormap preset. The image should be a 1D RGBA8 image, if the image
-        // is provided in sRGBA colorspace it will be linearized
+        // Add a colormap preset. The image should be a 1D RGBA8 image
         void add_colormap(const Colormap &map);
 
         // Add the transfer function UI into the currently active window
@@ -84,6 +85,14 @@ namespace tfnw
         // Get back the RGBA32F color data for the transfer function
         std::vector<float> get_colormapf();
 
+        void setHistogram(const std::vector<float> &hist);
+
+        std::vector<float> &getHistogram();
+
+        void setMinMax(const float min, const float max);
+
+        void setBlendedHistogram(const std::vector<float> &hist1, const std::vector<float> &hist2, float alpha);
+
         // Get back the RGBA32F color data for the transfer function
         // as separate color and opacity vectors
         void get_colormapf(std::vector<float> &color, std::vector<float> &opacity);
@@ -98,25 +107,15 @@ namespace tfnw
             colormap_img = colormap;
         }
 
-        void draw_legend();
-
         void draw_legend(float legend_pos_x, float legend_pos_y, float legend_width, float legend_height);
+
+        void draw_histogram();
 
         void update_colormap();
 
         void set_quantiles(float min, float max);
 
         void get_quantiles(float &min, float &max);
-
-        std::vector<float> current_histogram;
-
-        float m_min_max_val[2];
-
-        void setHistogram(const std::vector<float> &hist);
-
-        std::vector<float> &getHistogram();
-
-        void setMinMax(const float min, const float max);
 
     private:
         void update_gpu_image();
@@ -125,4 +124,7 @@ namespace tfnw
 
         float m_quantiles[2];
     };
+
 }
+
+#endif

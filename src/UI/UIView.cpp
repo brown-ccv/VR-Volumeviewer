@@ -1779,14 +1779,6 @@ void UIView::set_volume_time_info(time_t time)
   }
 }
 
-void UIView::draw_transfer_function_legend()
-{
-  if (m_use_transferfunction)
-  {
-    tfn_widget[0].draw_legend();
-  }
-}
-
 void UIView::set_transfer_function_min_max(float min, float max)
 {
   if (m_use_transferfunction)
@@ -1813,7 +1805,7 @@ void UIView::load_ocean_color_maps()
 
     std::string name = color_map_name.substr(0, color_map_name.find_first_of("."));
 
-    tfnw::Colormap color_map(name, img, tfnw::ColorSpace::SRGB);
+    tfnw::Colormap color_map(name, img, tfnw::SRGB);
 
     tfn_widget[0].add_colormap(color_map);
   }
