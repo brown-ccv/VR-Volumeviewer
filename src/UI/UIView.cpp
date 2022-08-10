@@ -802,9 +802,9 @@ void UIView::draw_ui_callback()
       if (helper::ends_with_string(fileDialog.selected_fn, ".txt"))
       {
         /*
-            TODO #52  
+            TODO #52
             Thread the data loading process to run in the background and implement loading UI component
-            
+
             VRDataLoader* insta = VRDataLoader::get_instance();
             std::thread t1 ( &VRDataLoader::load_txt_file, std::ref(m_controller_app), fileDialog.selected_path);
             t1.join();
@@ -1814,6 +1814,7 @@ void UIView::load_ocean_color_maps()
     std::string name = color_map_name.substr(0, color_map_name.find_first_of("."));
 
     tfnw::Colormap color_map(name, img, tfnw::ColorSpace::SRGB);
+
     tfn_widget[0].add_colormap(color_map);
   }
 }
