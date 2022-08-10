@@ -1813,7 +1813,7 @@ void UIView::load_ocean_color_maps()
 
     std::string name = color_map_name.substr(0, color_map_name.find_first_of("."));
 
-    tfnw::Colormap color_map(name, img, tfnw::SRGB);
+    tfnw::Colormap color_map(name, img, tfnw::ColorSpace::SRGB);
     tfn_widget[0].add_colormap(color_map);
   }
 }

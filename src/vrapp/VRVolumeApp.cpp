@@ -760,18 +760,16 @@ void VRVolumeApp::animated_render(int tfn, int vol)
       if (m_ui_view->is_render_volume_enabled())
       {
 
-        GLint colorMap = m_ui_view->get_transfer_function_colormap(tfn);
-        GLint colorMapMult = m_ui_view->get_multitransfer_function_colormap(tfn);
         GLint lut = -1;
         if (use_tranferFunction)
         {
           if (m_use_multi_transfer)
           {
-            lut = colorMapMult;
+            lut = m_ui_view->get_multitransfer_function_colormap(tfn);
           }
           else
           {
-            lut = colorMap;
+            lut = m_ui_view->get_transfer_function_colormap(tfn);
           }
         }
 

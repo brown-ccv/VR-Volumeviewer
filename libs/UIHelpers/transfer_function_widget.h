@@ -27,7 +27,7 @@
 
 namespace tfnw {
 
-enum ColorSpace { LINEAR, SRGB };
+enum class ColorSpace { LINEAR, SRGB };
 
 struct Colormap {
     std::string name;

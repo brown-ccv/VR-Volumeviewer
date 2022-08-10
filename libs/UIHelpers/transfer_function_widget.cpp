@@ -9,6 +9,7 @@
 
 #ifndef TFN_WIDGET_NO_STB_IMAGE_IMPL
 #define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
 #endif
 
 #include "stb_image.h"
@@ -83,9 +84,9 @@ void TransferFunctionWidget::add_colormap(const Colormap &map)
 {
     colormaps.push_back(map);
 
-    if (colormaps.back().color_space == SRGB) {
+    if (colormaps.back().color_space == ColorSpace::SRGB) {
         Colormap &cmap = colormaps.back();
-        cmap.color_space = LINEAR;
+        cmap.color_space = ColorSpace::LINEAR;
         for (size_t i = 0; i < cmap.colormap.size() / 4; ++i) {
             for (size_t j = 0; j < 3; ++j) {
                 const float x = srgb_to_linear(cmap.colormap[i * 4 + j] / 255.f);
@@ -455,7 +456,7 @@ void TransferFunctionWidget::load_embedded_preset(const uint8_t *buf,
     uint8_t *img_data = stbi_load_from_memory(buf, (int)size, &w, &h, &n, 4);
     auto img = std::vector<uint8_t>(img_data, img_data + w * 1 * 4);
     stbi_image_free(img_data);
-    colormaps.emplace_back(name, img, SRGB);
+    colormaps.emplace_back(name, img, ColorSpace::SRGB);
     Colormap &cmap = colormaps.back();
     for (size_t i = 0; i < cmap.colormap.size() / 4; ++i) {
         for (size_t j = 0; j < 3; ++j) {
