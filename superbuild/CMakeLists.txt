@@ -315,9 +315,18 @@ execute_process(
 
 # Build external project
 execute_process(
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/FTGL
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/FTGL --config ${CMAKE_BUILD_TYPE}
 )
 #ENDIF()
+
+# find_package(OpenGL REQUIRED)
+FIND_PACKAGE(FTGL REQUIRED )
+if(FTGL_FOUND)
+  message(STATUS "FTGL found")
+  message(STATUS "FTGL_INCLUDE_DIR ${FTGL_INCLUDE_DIR}")
+ else()
+  message(STATUS "FTGL NOT found" )
+endif()
 
 #CCPFS
 # Configure external project
