@@ -139,8 +139,6 @@ public:
 
   void set_volume_time_info(time_t time);
 
-  void draw_transfer_function_legend();
-
   void set_transfer_function_min_max(float min, float max);
 
   bool get_show_movie_saved_pop_up() const { return m_show_movie_saved_pop_up; }
@@ -202,7 +200,7 @@ private:
   bool m_show_menu;
   bool m_renderVolume;
   std::vector<TransferFunctionMultiChannelWidget> tfn_widget_multi;
-  std::vector<TransferFunctionWidget> tfn_widget;
+  std::vector<tfnw::TransferFunctionWidget> tfn_widget;
   std::vector<MyTransFerFunctions> m_tfns;
   std::vector<std::vector<bool>> m_selected_volume_TrFn;
 

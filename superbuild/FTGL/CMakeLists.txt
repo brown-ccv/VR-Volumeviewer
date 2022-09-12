@@ -4,7 +4,7 @@ include(ExternalProject)
 include(GNUInstallDirs)
 include(${CMAKE_SOURCE_DIR}/../macros.cmake)
 
-message("ZLIB INSTALL_DIR_ABSOLUTE ${INSTALL_DIR_ABSOLUTE}")
+message("FTGL INSTALL_DIR_ABSOLUTE ${INSTALL_DIR_ABSOLUTE}")
 message("FTGL CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
 
 set(EXTERNAL_DIR_LOCATION ${CMAKE_BINARY_DIR})  
@@ -15,7 +15,7 @@ build_git_subproject(
    URL https://github.com/ulrichard/ftgl.git
    TAG master
    BUILD_ARGS
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DBUILD_SHARED_LIBS=OFF
 	-DFREETYPE_INCLUDE_DIR_ft2build=${CMAKE_INSTALL_PREFIX}/include/freetype2
-    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 )

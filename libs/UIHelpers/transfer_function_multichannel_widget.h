@@ -66,7 +66,7 @@ public:
 	TransferFunctionMultiChannelWidget();
 
     // Add a colormap preset. The image should be a 1D RGBA8 image
-    void add_colormap(const Colormap &map);
+    void add_colormap(const tfnw::Colormap &map);
 
     // Add the transfer function UI into the currently active window
     void draw_ui();

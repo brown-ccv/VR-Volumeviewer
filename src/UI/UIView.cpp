@@ -126,7 +126,7 @@ void UIView::draw_ui_callback()
       {
         if (ImGui::SmallButton("Add Function"))
         {
-          tfn_widget.push_back(TransferFunctionWidget());
+          tfn_widget.push_back(tfnw::TransferFunctionWidget());
           tfn_widget_multi.push_back(TransferFunctionMultiChannelWidget());
           int index = m_selected_volume_TrFn.size();
           m_selected_volume_TrFn.push_back(std::vector<bool>(numVolumes));
@@ -151,7 +151,7 @@ void UIView::draw_ui_callback()
             tfn_widget.clear();
             tfn_widget_multi.clear();
             m_tfns.clear();
-            tfn_widget.push_back(TransferFunctionWidget());
+            tfn_widget.push_back(tfnw::TransferFunctionWidget());
             tfn_widget_multi.push_back(TransferFunctionMultiChannelWidget());
             add_transfer_function();
             m_trnfnc_table_selection = 0;
@@ -174,7 +174,7 @@ void UIView::draw_ui_callback()
           tfn_widget.clear();
           tfn_widget_multi.clear();
           m_tfns.clear();
-          tfn_widget.push_back(TransferFunctionWidget());
+          tfn_widget.push_back(tfnw::TransferFunctionWidget());
           tfn_widget_multi.push_back(TransferFunctionMultiChannelWidget());
           MyTransFerFunctions trfntc;
           char label[32];
@@ -802,9 +802,9 @@ void UIView::draw_ui_callback()
       if (helper::ends_with_string(fileDialog.selected_fn, ".txt"))
       {
         /*
-            TODO #52  
+            TODO #52
             Thread the data loading process to run in the background and implement loading UI component
-            
+
             VRDataLoader* insta = VRDataLoader::get_instance();
             std::thread t1 ( &VRDataLoader::load_txt_file, std::ref(m_controller_app), fileDialog.selected_path);
             t1.join();
@@ -1779,14 +1779,6 @@ void UIView::set_volume_time_info(time_t time)
   }
 }
 
-void UIView::draw_transfer_function_legend()
-{
-  if (m_use_transferfunction)
-  {
-    tfn_widget[0].draw_legend();
-  }
-}
-
 void UIView::set_transfer_function_min_max(float min, float max)
 {
   if (m_use_transferfunction)
@@ -1813,7 +1805,8 @@ void UIView::load_ocean_color_maps()
 
     std::string name = color_map_name.substr(0, color_map_name.find_first_of("."));
 
-    Colormap color_map(name, img);
+    tfnw::Colormap color_map(name, img, tfnw::SRGB);
+
     tfn_widget[0].add_colormap(color_map);
   }
 }
