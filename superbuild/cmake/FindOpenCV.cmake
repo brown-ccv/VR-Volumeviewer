@@ -13,7 +13,9 @@ message(STATUS "OpenCV_INCLUDE_DIR  ${OpenCV_INCLUDE_DIR}")
 
 find_library(OpenCV_LIBRARY
        NAMES
-	   cppfs
+	   opencv_
+	   opencv
+	   opencv_core
 	   HINTS
         ${CMAKE_INSTALL_PREFIX}/lib/
 )  

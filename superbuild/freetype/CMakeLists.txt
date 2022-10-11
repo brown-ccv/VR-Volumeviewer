@@ -12,7 +12,7 @@ set(EXTERNAL_DIR_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/../install/)
 build_git_subproject(
    NAME freetype
    URL https://gitlab.freedesktop.org/freetype/freetype.git
-   TAG VER-2-12-1
+   TAG master
    BUILD_ARGS
    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
    -DFT_DISABLE_ZLIB=TRUE

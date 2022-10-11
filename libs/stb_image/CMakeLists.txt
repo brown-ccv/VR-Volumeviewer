@@ -1,3 +1,5 @@
+project(stb_image)
+
 # STB_IMAGE
 add_library(
 stb_image
