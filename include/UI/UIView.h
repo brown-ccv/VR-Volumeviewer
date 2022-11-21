@@ -2,9 +2,6 @@
 #define UIVIEW_H
 
 #include "VRMenuHandler.h"
-#if (!defined(__APPLE__))
-#include "imfilebrowser.h"
-#endif
 #include "ImGuiFileBrowser.h"
 #include "UIHelpers/transfer_function_multichannel_widget.h"
 #include "UIHelpers/transfer_function_widget.h"

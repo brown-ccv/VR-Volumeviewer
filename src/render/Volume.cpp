@@ -29,6 +29,7 @@
 #endif
 
 #include "render/Volume.h"
+#include <cstring>
 #include <iostream>
 
 Volume::Volume(unsigned int width, unsigned int height, unsigned int depth, double x_scale, double y_scale, double z_scale, unsigned int datatypesize, unsigned int channel)

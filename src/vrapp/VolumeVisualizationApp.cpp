@@ -7,32 +7,30 @@
 #ifdef WITH_TEEM
 #include "loader/LoadNrrdAction.h"
 #endif
+
 #include "interaction/HelperFunctions.h"
 
-#include <glm/gtx/euler_angles.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "glm.h"
 
-#include "GLMLoader.h"
-#include "Texture.h"
-#include "Model.h"
+#include "vrapp/VRVolumeApp.h"
 
-#include "loader/LoadDescriptionAction.h"
-#include "render/FontHandler.h"
-
-#include "UI/UIView.h"
 #include "loader/VRDataLoader.h"
-
-#include <cppfs/fs.h>
-#include <cppfs/FilePath.h>
 #include "render/FontHandler.h"
 
-VolumeVisualizationApp::VolumeVisualizationApp(int argc, char **argv) : VRApp(argc, argv), m_vrVolumeApp(nullptr), m_num_frames(0)
+#include <cppfs/cppfs.h>
+#include <cppfs/FilePath.h>
+#include <string>
+
+VolumeVisualizationApp::VolumeVisualizationApp(int argc, char **argv) : MinVR::VRApp(argc, argv), m_vrVolumeApp(nullptr), m_num_frames(0)
 {
+  
   int argc_int = this->getLeftoverArgc();
   char **argv_int = this->getLeftoverArgv();
 
   m_vrVolumeApp = new VRVolumeApp();
-  std::string current_Path = std::string(argv_int[0]);
+  const std::string current_Path = std::string(argv_int[0]);
   cppfs::FilePath p_filename(current_Path);
   std::string parent_Path = p_filename.directoryPath();
   m_vrVolumeApp->set_directory_path(parent_Path);
@@ -58,7 +56,7 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char **argv) : VRApp(ar
       else if (helper::ends_with_string(std::string(argv_int[i]), ".txt"))
       {
         std::string fileName = argv_int[i];
-        VRDataLoader::load_txt_file(*m_vrVolumeApp, fileName);
+        //VRDataLoader::load_txt_file(*m_vrVolumeApp, fileName);
       }
       else if (helper::ends_with_string(std::string(argv_int[i]), ".nrrd"))
       {
@@ -83,7 +81,7 @@ VolumeVisualizationApp::~VolumeVisualizationApp()
   delete m_vrVolumeApp;
 }
 
-void VolumeVisualizationApp::onCursorMove(const VRCursorEvent &event)
+void VolumeVisualizationApp::onCursorMove(const MinVR::VRCursorEvent &event)
 {
   if (event.getName() == "Mouse_Move")
   {
@@ -101,7 +99,7 @@ void VolumeVisualizationApp::onCursorMove(const VRCursorEvent &event)
 int last_received = 0;
 #endif count_Packages
 
-void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event)
+void VolumeVisualizationApp::onAnalogChange(const MinVR::VRAnalogEvent &event)
 {
   if (m_vrVolumeApp && m_vrVolumeApp->is_show_menu() && m_vrVolumeApp->is_ui_event())
   {
@@ -137,7 +135,7 @@ void VolumeVisualizationApp::onAnalogChange(const VRAnalogEvent &event)
   }
 }
 
-void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event)
+void VolumeVisualizationApp::onButtonDown(const MinVR::VRButtonEvent &event)
 {
   if (m_vrVolumeApp && m_vrVolumeApp->is_ui_event())
   {
@@ -253,7 +251,7 @@ void VolumeVisualizationApp::onButtonDown(const VRButtonEvent &event)
   }
 }
 
-void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event)
+void VolumeVisualizationApp::onButtonUp(const MinVR::VRButtonEvent &event)
 {
   if (m_vrVolumeApp && m_vrVolumeApp->is_ui_event())
   {
@@ -398,7 +396,7 @@ void VolumeVisualizationApp::onButtonUp(const VRButtonEvent &event)
   }
 }
 
-void VolumeVisualizationApp::onTrackerMove(const VRTrackerEvent &event)
+void VolumeVisualizationApp::onTrackerMove(const MinVR::VRTrackerEvent &event)
 {
 
   if (event.getName() == "HTC_Controller_Right_Move" || event.getName() == "HTC_Controller_1_Move" || event.getName() == "Wand0_Move")
@@ -437,7 +435,7 @@ void VolumeVisualizationApp::onTrackerMove(const VRTrackerEvent &event)
   }
 }
 
-void VolumeVisualizationApp::onGenericEvent(const VRDataIndex &index)
+void VolumeVisualizationApp::onGenericEvent(const MinVR::VRDataIndex &index)
 {
   if (index.getName() == "WindowClose")
   {
@@ -452,7 +450,7 @@ void VolumeVisualizationApp::onGenericEvent(const VRDataIndex &index)
   }
 }
 
-void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &renderState)
+void VolumeVisualizationApp::onRenderGraphicsContext(const MinVR::VRGraphicsState &renderState)
 {
   // This routine is called once per graphics context at the start of the
   // rendering process.  So, this is the place to initialize textures,
@@ -524,7 +522,7 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const VRGraphicsState &rend
   }
 }
 
-void VolumeVisualizationApp::onRenderGraphicsScene(const VRGraphicsState &renderState)
+void VolumeVisualizationApp::onRenderGraphicsScene(const MinVR::VRGraphicsState &renderState)
 {
   // This routine is called once per eye.  This is the place to actually
   // draw the scene...

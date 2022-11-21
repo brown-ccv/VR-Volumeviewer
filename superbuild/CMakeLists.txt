@@ -1,4 +1,3 @@
-
 #Using 3.19 to get a modern version of FindOpenGL.cmake
 cmake_minimum_required (VERSION 3.19) 
 
@@ -28,9 +27,10 @@ set(CMAKE_CXX_STANDARD 17)
 add_definitions(-D_HAS_STD_BYTE=0)
 
 if (UNIX)
-	add_compile_options(-lpthread)
-	add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
-	SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++17 -pthread")
+	#add_compile_options(-lpthread)
+  #add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
+  message(STATUS "ENTER HEEEEEEEEEEEEEEEEEREEEE222")
+	SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++17 -pthread ")
 endif (UNIX)
 
 set(DEFAULT_BUILD_COMMAND cmake -G "${CMAKE_GENERATOR}" . )
@@ -61,6 +61,7 @@ message("xxxxxx CMAKE_VERSION ${CMAKE_VERSION}")
 
 set(MINVR_PATCH_PATH ${CMAKE_SOURCE_DIR}/../patches)
 message("MINVR_PATCH_PATH ${MINVR_PATCH_PATH}")
+
 
 find_package(OpenGL REQUIRED)
 
@@ -143,10 +144,31 @@ else()
   message(STATUS "Choreograph NOT found" )
 endif()
 
+#CCPFS
+# Configure external project
+#IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/CPPFSD/CPPFSD)
+execute_process(
+    COMMAND ${CMAKE_COMMAND} 
+    -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
+    -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} 
+    -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} 
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    ${CMAKE_SOURCE_DIR}/CPPFSD
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/CPPFSD  
+)
+
+# Build external project
+execute_process(
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/CPPFSD --config ${CMAKE_BUILD_TYPE}
+)
+
+
+#ENDIF()
+
 
 #MinVR
 # Configure external project
-IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/MinVR/MinVR)
+#IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/MinVR/MinVR)
  execute_process(
      COMMAND ${CMAKE_COMMAND} 
      -DMINVR_PATCH_PATH=${MINVR_PATCH_PATH} 
@@ -167,7 +189,7 @@ execute_process( COMMAND ${CMAKE_COMMAND}
   )
 
 
-ENDIF()
+#ENDIF()
 
 find_package(MinVR REQUIRED)
 if(MinVR_FOUND)
@@ -332,31 +354,9 @@ if(FTGL_FOUND)
   message(STATUS "FTGL NOT found" )
 endif()
 
-#CCPFS
-# Configure external project
-#IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/CPPFSD/CPPFSD)
-execute_process(
-    COMMAND ${CMAKE_COMMAND} 
-    -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
-    -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} 
-    -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} 
-    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-    ${CMAKE_SOURCE_DIR}/CPPFSD
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/CPPFSD  
-)
-
-# Build external project
-execute_process(
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/CPPFSD --config ${CMAKE_BUILD_TYPE}
-)
-
-
-#ENDIF()
-
-
 #opencv
 # Configure external project
-#IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/opencv/opencv)
+IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/opencv/opencv)
 execute_process(
     COMMAND ${CMAKE_COMMAND} 
     -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
@@ -372,7 +372,7 @@ execute_process(
     COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/opencv --config ${CMAKE_BUILD_TYPE}
 )
 
-#ENDIF()
+ENDIF()
 
 
 find_package(ZLIB REQUIRED)
@@ -407,6 +407,7 @@ FIND_PACKAGE(Freetype REQUIRED )
 if(Freetype_FOUND)
   message(STATUS "Freetype found")
   message(STATUS "Freetype_INCLUDE_DIR ${Freetype_INCLUDE_DIR}")
+  message(STATUS "Freetype_LIBRARY ${Freetype_LIBRARY}")
  else()
   message(STATUS "Freetype NOT found" )
 endif()
@@ -415,6 +416,7 @@ FIND_PACKAGE(CPPFS REQUIRED)
 if(CPPFS_FOUND)
   message(STATUS "CPPFS found")
   message(STATUS "CPPFS_INCLUDE_DIR ${CPPFS_INCLUDE_DIR}")
+  message(STATUS "CPPFS_LIBRARY ${CPPFS_LIBRARY}")
  else()
   message(STATUS "CPPFS NOT found" )
 endif()
@@ -534,8 +536,8 @@ set(header_files
   ${GLEW_INCLUDE_DIR}
   ${FTGL_INCLUDE_DIR}
   ${Freetype_INCLUDE_DIR}
-  ${ZLIB_INCLUDE_DIRS}
-  ${CPPFS_INCLUDE_DIRS}
+  ${ZLIB_INCLUDE_DIR}
+  ${CPPFS_INCLUDE_DIR}
   ${Imgui_INCLUDE_DIR}
   ${IMGUIVR_INCLUDE_DIR}
   ${CHOREOGRAPH_INCLUDE_DIR}
@@ -550,24 +552,16 @@ set(header_files
 
 set(LIBRARIES
   ${OPENGL_LIBRARY}
+  ${GLEW_LIBRARY}
   ${CHOREOGRAPH_LIBRARY}
+  ${CPPFS_LIBRARY}
 	${OpenCV_LIBS}
 	${GLM_LIBRARIES}
-	${GLEW_LIBRARY}
-  ${MinVR_LIBRARY}
-	${OPENGL_LIBRARY}
 	${FTGL_LIBRARY}
-	${FREETYPE_LIBRARY}
-	${ZLIB_LIBRARY}
 	${Freetype_LIBRARY}
-	${CPPFS_LIBRARY}
+	${ZLIB_LIBRARY}
   ${IMGUIVR_LIBRARY}
-  ${OpenCV_LIBRARIES}
-	${Stb_image_LIBRARY}
-	${GLMLoader_LIBRARY}
-	${Model_LIBRARY}
-  ${Texture_LIBRARY}
-  ${ShaderProgram_LIBRARY}
+  ${MinVR_LIBRARY}
 )
 
 message(STATUS "LIBRARIES ${LIBRARIES}")
@@ -588,8 +582,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/install_${CMAKE_SYSTEM_NA
 
 
 add_executable(${PROJECT_NAME} ${source_files} ${header_files})
- 
-target_link_libraries(${PROJECT_NAME}  ${LIBRARIES} stb_image ShaderProgram Texture Model GLMLoader)
+
+message(STATUS "CMAKE_DL_LIBS ${CMAKE_DL_LIBS}")
+
+target_link_libraries(${PROJECT_NAME}  ${LIBRARIES}   stb_image ShaderProgram Texture Model GLMLoader ${CMAKE_DL_LIBS})
 
 file(COPY "${CMAKE_SOURCE_DIR}/../shaders" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
 file(COPY "${CMAKE_SOURCE_DIR}/../fonts" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")

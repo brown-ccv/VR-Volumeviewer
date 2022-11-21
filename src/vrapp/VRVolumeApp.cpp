@@ -209,9 +209,7 @@ void VRVolumeApp::update_animation(float fps)
 #if (!defined(__APPLE__))
 void VRVolumeApp::run_movie(bool is_animation)
 {
-#ifndef _MSC_VER
-  fs::create_directory("movie");
-#endif
+
   if (m_movieAction)
     delete m_movieAction;
 
@@ -477,8 +475,9 @@ void VRVolumeApp::load_volume(std::vector<std::string> vals, std::promise<Volume
     t_res[0] = stof(vals[2]);
     t_res[1] = stof(vals[3]);
     t_res[2] = stof(vals[4]);
-
+    std::cerr << "Resolution 222ss2222"  << std::endl;
     Volume *volume = LoadDataAction(vals[1], &t_res[0]).run(m_convert);
+    std::cerr << "Resolution 2222222"  << std::endl;
 
     volume->set_volume_position({stof(vals[5]), stof(vals[6]), stof(vals[7])});
     volume->set_volume_scale({0.0, 0.0, 0.0});

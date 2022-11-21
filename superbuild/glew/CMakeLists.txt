@@ -13,8 +13,6 @@ set(EXTERNAL_DIR_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/../install/)
 
 #the URL parametes doesnt do anything in this case
 build_glew_subproject(
-  NAME glew
-  URL "https://sourceforge.net/projects/glew/files/glew/snapshots/glew-20220402.tgz"
- 
- 
+ NAME glew
+ URL "https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0.zip"
 )

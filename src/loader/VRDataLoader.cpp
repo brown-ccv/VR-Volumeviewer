@@ -10,9 +10,6 @@
 
 #include "common/common.h"
 
-VRDataLoader::VRDataLoader()
-{
-}
 
 void VRDataLoader::load_txt_file(VRVolumeApp &vrVolumeApp, std::string &filename)
 {
