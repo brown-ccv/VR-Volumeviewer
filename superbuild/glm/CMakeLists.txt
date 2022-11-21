@@ -13,10 +13,11 @@ set(EXTERNAL_DIR_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/../install/)
 if(APPLE)
  set(GLM_TAG_CLANG_SUPPORT 0.9.9.2)
 else()
-  set(GLM_TAG_CLANG_SUPPORT 0.9.9.0)
+  set(GLM_TAG_CLANG_SUPPORT 0.9.9.5)
 endif(APPLE)
 
 message(STATUS "Build GLM ${GLM_TAG_CLANG_SUPPORT}")
+
 
 build_glm_subproject(
   NAME glm

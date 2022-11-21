@@ -82,6 +82,15 @@ execute_process( COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/glew  --co
 ENDIF()
 
 
+find_package(GLEW REQUIRED)
+if(GLEW_FOUND)
+  message(STATUS "glew found")
+  message(STATUS "GLEW_INCLUDE_DIR ${GLEW_INCLUDE_DIR}")
+  message(STATUS "GLEW_LIBRARY ${GLEW_LIBRARY}")
+ else()
+  message(STATUS "glew NOT found" )
+endif()
+
 #glfw
 #Configure external project
 IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/glfw/glfw)
@@ -104,7 +113,6 @@ if (WIN32)
 else()
  message("====== MINVR IS NOT WIN 32")
 endif (WIN32)
-
 
 #Choreograph
 # Configure external project
@@ -169,14 +177,7 @@ if(MinVR_FOUND)
   message(STATUS "MINNVR NOT found" )
 endif()
 
-find_package(GLEW REQUIRED)
-if(GLEW_FOUND)
-  message(STATUS "glew found")
-  message(STATUS "GLEW_INCLUDE_DIR ${GLEW_INCLUDE_DIR}")
-  message(STATUS "GLEW_LIBRARY ${GLEW_LIBRARY}")
- else()
-  message(STATUS "glew NOT found" )
-endif()
+
 
 
 #glm
@@ -191,6 +192,9 @@ execute_process(
     ${CMAKE_SOURCE_DIR}/glm
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/glm
 )
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  add_compile_options("-fcomment-block-commands=retval" "-Wdocumentation-unknown-command" "-Werror,-Wextra-semi-stmt")
+endif()
 
 # Build external project
 execute_process(
@@ -362,7 +366,7 @@ execute_process(
     ${CMAKE_SOURCE_DIR}/opencv
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/opencv
 )
-
+SET(OpenCV_DIR "${CMAKE_INSTALL_PREFIX}/lib" )
 # Build external project
 execute_process(
     COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/opencv --config ${CMAKE_BUILD_TYPE}
@@ -430,135 +434,32 @@ set_target_properties(${OpenCV_LIBS} PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBIN
 if(OpenCV_FOUND)
   message(STATUS "OpenCV found ${_OpenCV_LIB_PATH}")
   message(STATUS "OpenCV found ${OpenCV_INSTALL_PATH}")
-  if(WIN32)
-   message(STATUS "OpenCV for Windows")
+  if(MSVC)
+   message(STATUS "OpenCV for Windows Visual studio")
    set(OPENCV_PATH ${_OpenCV_LIB_PATH} )
    set(OPENCV_SUFIX "460" )
    set(DEBUG_SUFFIX ${CMAKE_DEBUG_SUFFIX})
-  elseif(APPLE)
-   message(STATUS "OpenCV for APPLE")
-   set(OPENCV_PATH "${CMAKE_BINARY_DIR}/install_${CMAKE_SYSTEM_NAME}/lib")
-   set(OPENCV_PREFIX "lib" )
-   set(DEBUG_SUFFIX "") 
-   #set(OPENCV_SUFIX "4.5.3" )
+   file(COPY "${OPENCV_PATH}/${OPENCV_PREFIX}opencv_videoio${OPENCV_SUFIX}${DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
+   file(COPY "${OPENCV_PATH}/${OPENCV_PREFIX}opencv_imgcodecs${OPENCV_SUFIX}${DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
+   file(COPY "${OPENCV_PATH}/${OPENCV_PREFIX}opencv_imgproc${OPENCV_SUFIX}${DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
+   file(COPY "${OPENCV_PATH}/${OPENCV_PREFIX}opencv_core${OPENCV_SUFIX}${DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
   endif()
-
-  file(COPY "${OPENCV_PATH}/${OPENCV_PREFIX}opencv_videoio${OPENCV_SUFIX}${DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
-  file(COPY "${OPENCV_PATH}/${OPENCV_PREFIX}opencv_imgcodecs${OPENCV_SUFIX}${DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
-  file(COPY "${OPENCV_PATH}/${OPENCV_PREFIX}opencv_imgproc${OPENCV_SUFIX}${DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
-  file(COPY "${OPENCV_PATH}/${OPENCV_PREFIX}opencv_core${OPENCV_SUFIX}${DEBUG_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin" )
-  
+else()
+  message(FATAL_ERROR "OpenCV NOT found ${_OpenCV_LIB_PATH}")
 endif()
 
 
 message("OpenCV_LIBRARIES ${OpenCV_LIBRARIES}")
 message("FTGL_LIBRARY ${FTGL_LIBRARY}")
 
+add_subdirectory(../libs/GLMLoader ${CMAKE_CURRENT_BINARY_DIR}/GLMLoader)
+add_subdirectory(../libs/Model ${CMAKE_CURRENT_BINARY_DIR}/Model)
+add_subdirectory(../libs/Texture ${CMAKE_CURRENT_BINARY_DIR}/Texture)
+add_subdirectory(../libs/ShaderProgram ${CMAKE_CURRENT_BINARY_DIR}/ShaderProgram)
+add_subdirectory(../libs/stb_image ${CMAKE_CURRENT_BINARY_DIR}/stb_image)
 
 
-
-execute_process(
-    COMMAND ${CMAKE_COMMAND} 
-    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-    -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
-    -DGLEW_INCLUDE_DIR=${GLEW_INCLUDE_DIR} 
-    -DGLM_INCLUDE_DIR=${GLM_INCLUDE_DIR}
-    -S ${CMAKE_CURRENT_SOURCE_DIR}/../libs/GLMLoader -B ${CMAKE_CURRENT_BINARY_DIR}/GLMLoader
-)
-execute_process(
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/GLMLoader --config ${CMAKE_BUILD_TYPE}
-)
-
-execute_process(
-    COMMAND ${CMAKE_COMMAND} 
-    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-    -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
-    -DGLEW_INCLUDE_DIR=${GLEW_INCLUDE_DIR} 
-    -DGLM_INCLUDE_DIR=${GLM_INCLUDE_DIR}
-    -S ${CMAKE_CURRENT_SOURCE_DIR}/../libs/Model -B ${CMAKE_CURRENT_BINARY_DIR}/Model 
-)
-execute_process(
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/Model --config ${CMAKE_BUILD_TYPE}
-)
-
-execute_process(
-    COMMAND ${CMAKE_COMMAND} 
-    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-    -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
-    -DGLEW_INCLUDE_DIR=${GLEW_INCLUDE_DIR} 
-    -DGLM_INCLUDE_DIR=${GLM_INCLUDE_DIR}
-    -S ${CMAKE_CURRENT_SOURCE_DIR}/../libs/Texture -B ${CMAKE_CURRENT_BINARY_DIR}/Texture 
-)
-execute_process(
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/Texture --config ${CMAKE_BUILD_TYPE}
-)
-
-execute_process(
-    COMMAND ${CMAKE_COMMAND} 
-    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-    -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
-    -DGLEW_INCLUDE_DIR=${GLEW_INCLUDE_DIR} 
-    -DGLM_INCLUDE_DIR=${GLM_INCLUDE_DIR}
-    -S ${CMAKE_CURRENT_SOURCE_DIR}/../libs/ShaderProgram -B ${CMAKE_CURRENT_BINARY_DIR}/ShaderProgram 
-)
-execute_process(
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/ShaderProgram --config ${CMAKE_BUILD_TYPE}
-)
-
-execute_process(
-    COMMAND ${CMAKE_COMMAND} 
-    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-    -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
-    -DGLEW_INCLUDE_DIR=${GLEW_INCLUDE_DIR} 
-    -DGLM_INCLUDE_DIR=${GLM_INCLUDE_DIR}
-    -S ${CMAKE_CURRENT_SOURCE_DIR}/../libs/stb_image -B ${CMAKE_CURRENT_BINARY_DIR}/stb_image 
-)
-execute_process(
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/stb_image --config ${CMAKE_BUILD_TYPE}
-)
-
-
- find_package(GLMLoader REQUIRED)
- if(GLMLoader_FOUND)
- message(STATUS "GLMLoader found")
- message(STATUS "GLMLoader_LIBRARY ${GLMLoader_LIBRARY}")
-else()
- message(STATUS "GLMLoader NOT found" )
-endif()
-
-find_package(Texture REQUIRED)
-if(Texture_FOUND)
-message(STATUS "Texture found")
-message(STATUS "Texture ${Texture_LIBRARY}")
-else()
-message(STATUS "Texture NOT found" )
-endif()
-
-find_package(ShaderProgram REQUIRED)
-if(ShaderProgram_FOUND)
-message(STATUS "ShaderProgram found")
-message(STATUS "ShaderProgram_LIBRARY ${ShaderProgram_LIBRARY}")
-else()
-message(STATUS "ShaderProgram NOT found" )
-endif()
-
-
-find_package(Model REQUIRED)
-if(Model_FOUND)
-message(STATUS "Model found")
-message(STATUS "Model_INCLUDE_DIR ${Model_INCLUDE_DIR}")
-message(STATUS "Model_LIBRARY ${Model_LIBRARY}")
-else()
-message(STATUS "Model NOT found" )
-endif()
-
-find_package(Stb_image REQUIRED)
-if(Stb_image_FOUND)
-message(STATUS "Stb_image found")
-message(STATUS "Stb_image_LIBRARY ${Stb_image_LIBRARY}")
-else()
-message(STATUS "Model NOT found" )
-endif()
+message(STATUS "MYCOMPILER IS ${CMAKE_CXX_COMPILER}")
 
  set(source_files
  ${CMAKE_CURRENT_BINARY_DIR}/../src/main.cpp
@@ -688,7 +589,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/install_${CMAKE_SYSTEM_NA
 
 add_executable(${PROJECT_NAME} ${source_files} ${header_files})
  
-target_link_libraries(${PROJECT_NAME}  ${LIBRARIES})
+target_link_libraries(${PROJECT_NAME}  ${LIBRARIES} stb_image ShaderProgram Texture Model GLMLoader)
 
 file(COPY "${CMAKE_SOURCE_DIR}/../shaders" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
 file(COPY "${CMAKE_SOURCE_DIR}/../fonts" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
