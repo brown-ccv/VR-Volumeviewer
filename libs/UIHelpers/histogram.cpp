@@ -83,12 +83,12 @@ void Histogram::draw_histogram()
 
 
   //Code to Draw histogram in the UI
+
   for (int i = 0; i < current_histogram.size(); i++) {
     vec2f lp = vec2f(((float)i) / current_histogram.size(), current_histogram[i]);
     vec2f hp = vec2f(((float)i + 1.0f) / current_histogram.size(), 0.0f);
     vec2f p_min = lp * view_scale + view_offset;  
     vec2f p_max = hp * view_scale + view_offset;
-    //std::cout << i << ": " << p_min.x << "," << p_min.y << " " << p_max.x << "," << p_max.y << std::endl;
     draw_list->AddRectFilled(p_min, p_max, 0x77777777);
   }
 

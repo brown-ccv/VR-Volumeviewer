@@ -469,7 +469,7 @@ void VRVolumeApp::load_volume(std::vector<std::string> vals, std::promise<Volume
   {
     std::cerr << "Load volume " << vals[1] << std::endl;
     std::cerr << "Position " << vals[5] << " , " << vals[6] << " , " << vals[7] << std::endl;
-    std::cerr << "Resolution " << vals[2] << " , " << vals[3] << " , " << vals[4] << std::endl;
+    std::cerr << "Spacing " << vals[2] << " , " << vals[3] << " , " << vals[4] << std::endl;
 
     float t_res[3];
     t_res[0] = stof(vals[2]);
@@ -480,7 +480,7 @@ void VRVolumeApp::load_volume(std::vector<std::string> vals, std::promise<Volume
     std::cerr << "Resolution 2222222"  << std::endl;
 
     volume->set_volume_position({stof(vals[5]), stof(vals[6]), stof(vals[7])});
-    volume->set_volume_scale({0.0, 0.0, 0.0});
+    volume->set_volume_scale({1.0, 1.0, 1.0});
     volume->set_volume_mv(glm::mat4());
 
     if (vals.size() > 9)
@@ -489,7 +489,7 @@ void VRVolumeApp::load_volume(std::vector<std::string> vals, std::promise<Volume
       volume->set_render_channel(std::stoi(vals[9]));
     }
     promise->set_value(volume);
-    ;
+    
     std::cerr << "end load" << std::endl;
   }
 }
@@ -537,7 +537,11 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState &render_state)
 
   if (render_state.isInitialRenderCall())
   {
-    m_depthTextures.push_back(new DepthTexture);
+    int window_w = render_state.index().getValue("WindowWidth");
+    int window_h = render_state.index().getValue("WindowHeight");
+    int framebuffer_w = render_state.index().getValue("FramebufferWidth");
+    int framebuffer_h = render_state.index().getValue("FramebufferHeight");
+    m_depthTextures.push_back(new DepthTexture(window_w,window_h,framebuffer_w,framebuffer_h));
   }
 
   m_projection_mtrx = glm::make_mat4(render_state.getProjectionMatrix());
@@ -546,19 +550,23 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState &render_state)
   if (m_is2d)
     m_view_matrix = m_trackball.get_view_matrix();
 
-  glMatrixMode(GL_PROJECTION);
-  glLoadMatrixf(glm::value_ptr(m_projection_mtrx));
+  //glMatrixMode(GL_PROJECTION);
+  //glLoadMatrixf(glm::value_ptr(m_projection_mtrx));
 
-  glm::mat4 general_model_view = glm::scale(glm::mat4(1.0), glm::vec3(m_ui_view->get_scale(), m_ui_view->get_scale(), m_ui_view->get_scale()));
+  glm::mat4 general_model_matrix = glm::scale(glm::mat4(1.0f), glm::vec3(m_ui_view->get_scale(), m_ui_view->get_scale(), m_ui_view->get_scale()));
+  //glm::mat4 general_model_view = glm::scale(glm::mat4(1.0), glm::vec3(1,1 , -1));
+  //general_model_matrix = glm::rotate(general_model_matrix, glm::radians(180.0f), glm::vec3(1.0f,0.f,0.f));
+
 
   // setup Modelview for volumes
   for (int i = 0; i < m_volumes.size(); i++)
   {
     for (int j = 0; j < m_volumes[i].size(); j++)
     {
-      glm::mat4 volume_matrix = m_view_matrix * m_object_pose * glm::scale(general_model_view, glm::vec3(1.0, 1.0, m_ui_view->get_z_scale()));
+      glm::mat4 volume_matrix = m_view_matrix * m_object_pose * glm::scale(general_model_matrix, glm::vec3(1.0, 1.0, m_ui_view->get_z_scale()));
       if (!m_animated)
       {
+        std::cout << "IS ANIMATED" << std::endl;
         volume_matrix = glm::translate(volume_matrix, glm::vec3(m_volumes[i][j]->get_volume_position().x, m_volumes[i][j]->get_volume_position().y, m_volumes[i][j]->get_volume_position().z));
       }
       m_volumes[i][j]->set_volume_mv(volume_matrix);
@@ -584,9 +592,10 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState &render_state)
      mesh_model_matrix = glm::scale(mesh_model_matrix, glm::vec3(px, py, px));
     **/
 
+    //volume_mv = glm::rotate(volume_mv, glm::radians(180.0f), glm::vec3(1.0f,0.f,0.f));
     volume_mv = glm::translate(volume_mv, glm::vec3(-0.5f, -0.5f, -0.5f * px / pz));
     volume_mv = glm::scale(volume_mv, glm::vec3(px, py, px));
-
+    
     mesh->get_model().setMVMatrix(volume_mv);
   }
 
@@ -630,6 +639,10 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState &render_state)
   render_labels(render_state);
 
   m_depthTextures[m_rendercount]->copyDepthbuffer();
+  //m_depth_texture = m_depthTextures[m_rendercount]->depth_texture();
+  // int screen_w = m_depthTextures[m_rendercount]->width();
+  // int screen_h = m_depthTextures[m_rendercount]->height();
+  // std::cout << "screen_w: " << screen_w <<","<<" screen_h: " << screen_h << std::endl;
   (static_cast<VolumeRaycastRenderer *>(m_renders[1]))->setDepthTexture(m_depthTextures[m_rendercount]);
 
   // drawTime
@@ -730,8 +743,11 @@ void VRVolumeApp::animated_render(int tfn, int vol)
     A sequence of volumes in the same data set can be animated. Each of the volumes are considered a key-frame.
     m_frame_step is a float send by the UI as a measurement of the distance between the current (active_volume) and th next (next_active_volume) key-frame.
   */
+  //std::cout <<"m_frame_step " << m_frame_step << std::endl;
   unsigned int active_volume = floor(m_frame_step);
   unsigned int next_active_volume = ceil(m_frame_step);
+  //std::cout <<"active_volume " << active_volume << std::endl;
+  //std::cout <<"next_active_volume " << next_active_volume << std::endl;
   int render_method = m_ui_view->get_render_method();
   bool use_tranferFunction = m_ui_view->is_use_transfer_function_enabled();
 

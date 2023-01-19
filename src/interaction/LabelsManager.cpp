@@ -90,7 +90,7 @@ void LabelsManager::add(std::string &texture_path, float x, float y, float z, fl
 {
   if (!m_init_plane_model)
   {
-    std::string plane_obj_path = m_parent_directory + "Resources/Models/plane.obj";
+    std::string plane_obj_path = m_parent_directory + "Resources/Models/plane4.obj";
     m_plane_model = GLMLoader::loadObjModel(plane_obj_path);
     m_init_plane_model = true;
   }

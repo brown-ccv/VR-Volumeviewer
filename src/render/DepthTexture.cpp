@@ -1,30 +1,28 @@
 ﻿//  ----------------------------------
 //  Copyright © 2015, Brown University, Providence, RI.
-//  
+//
 //  All Rights Reserved
-//   
-//  Use of the software is provided under the terms of the GNU General Public License version 3 
-//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided 
-//  that this copyright notice appear in all copies and that the name of Brown University not be used in 
-//  advertising or publicity pertaining to the use or distribution of the software without specific written 
+//
+//  Use of the software is provided under the terms of the GNU General Public License version 3
+//  as published by the Free Software Foundation at http://www.gnu.org/licenses/gpl-3.0.html, provided
+//  that this copyright notice appear in all copies and that the name of Brown University not be used in
+//  advertising or publicity pertaining to the use or distribution of the software without specific written
 //  prior permission from Brown University.
-//  
+//
 //  See license.txt for further information.
-//  
-//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS 
-//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
-//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY 
-//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING 
-//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR 
-//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION 
-//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+//
+//  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE WHICH IS
+//  PROVIDED “AS IS”, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+//  FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE FOR ANY
+//  SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR FOR ANY DAMAGES WHATSOEVER RESULTING
+//  FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+//  OTHER TORTIOUS ACTION, OR ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN CONNECTION
+//  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //  ----------------------------------
-//  
+//
 ///\file DepthTexture.cpp
 ///\author Benjamin Knorlein
 ///\date 6/14/2019
-
-
 
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
@@ -54,14 +52,35 @@
 #endif
 #include <iostream>
 
-DepthTexture::DepthTexture() : m_isInitialized{ false }
+// GLenum glCheckError_(const char *file, int line)
+// {
+//     GLenum errorCode;
+//     while ((errorCode = glGetError()) != GL_NO_ERROR)
+//     {
+//         std::string error;
+//         switch (errorCode)
+//         {
+//             case GL_INVALID_ENUM:                  error = "INVALID_ENUM"; break;
+//             case GL_INVALID_VALUE:                 error = "INVALID_VALUE"; break;
+//             case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
+//             case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
+//             case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
+//         }
+//         std::cout << error << " | " << file << " (" << line << ")" << std::endl;
+//     }
+//     return errorCode;
+// }
+// #define glCheckError() glCheckError_(__FILE__, __LINE__)
+
+DepthTexture::DepthTexture(int window_width, int window_height, int framebuffer_width, int framebuffer_height) : m_isInitialized{false}
 {
-  create();
+  create(window_width, window_height, framebuffer_width, framebuffer_height);
 }
 
 DepthTexture::~DepthTexture()
 {
-  if (m_isInitialized) {
+  if (m_isInitialized)
+  {
     glDeleteTextures(1, &m_depth_texture);
   }
 }
@@ -71,23 +90,34 @@ void DepthTexture::copyDepthbuffer()
   glBindTexture(GL_TEXTURE_2D, m_depth_texture);
   glReadBuffer(m_pDrawBuffer);
 
-  //TODO: Does not work for multisample framebuffer
-  glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 0, 0, m_width, m_height, 0);
+  // TODO: Does not work for multisample framebuffer
+  glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 0, 0, m_framebuffer_width, m_framebuffer_height, 0);
+  //glCheckError();
   glBindTexture(GL_TEXTURE_2D, 0);
-
+  //glCheckError();
   glReadBuffer(m_pReadBuffer);
+  //glCheckError();
+
 }
 
-void DepthTexture::create()
+void DepthTexture::create(int window_width, int window_height, int framebuffer_width, int framebuffer_height)
 {
-  if (!m_isInitialized) {
+  if (!m_isInitialized)
+  {
     glGetIntegerv(GL_DRAW_BUFFER, &m_pDrawBuffer);
     glGetIntegerv(GL_READ_BUFFER, &m_pReadBuffer);
 
-    GLint viewport[4];
-    glGetIntegerv(GL_VIEWPORT, viewport);
-    m_width = viewport[2];
-    m_height = viewport[3];
+    // GLint viewport[4];
+    // glGetIntegerv(GL_VIEWPORT, viewport);
+    // m_width = viewport[2];
+    // m_height = viewport[3];
+    m_width = window_width;
+    m_height = window_height;
+    m_framebuffer_width = framebuffer_width;
+    m_framebuffer_height = framebuffer_height;
+
+    m_display_scale_x = m_framebuffer_width/ window_width;
+    m_display_scale_y = m_framebuffer_height/ window_height;
 
     glGenTextures(1, &m_depth_texture);
     glBindTexture(GL_TEXTURE_2D, m_depth_texture);
@@ -98,9 +128,9 @@ void DepthTexture::create()
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-    GLint actualbits;
-    glGetIntegerv(GL_DEPTH_BITS, &actualbits);
-    //std::cerr << actualbits << std::endl;
+    // GLint actualbits;
+    // glGetIntegerv(GL_DEPTH_BITS, &actualbits);
+    // std::cerr << actualbits << std::endl;
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, m_width, m_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
     glBindTexture(GL_TEXTURE_2D, 0);

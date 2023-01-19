@@ -34,6 +34,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include "Texture.h"
 
 LoadDataAction::LoadDataAction(std::string folder, float *res) : m_folder(folder), m_res(res)
 {
@@ -139,8 +140,28 @@ Volume *LoadDataAction::run(bool convert)
   float minval[2];
   std::vector<cv::Mat> images;
   time_t posix_time;
+  
+  if(helper::ends_with_string(m_folder, "png.desc"))
+  {
+    FILE *pFile;
+    pFile = fopen(m_folder.c_str(), "r");
+    fscanf(pFile, "%u,%u,%u,%f,%f\n'", &w, &h, &d, &minval[0], &minval[1]);
+    fscanf(pFile, "%lld\n'", &posix_time);
 
-  if (helper::ends_with_string(m_folder, "desc"))
+    channels = 1;
+    depth = CV_16U;
+    helper::replace(m_folder, ".png.desc", ".png");
+    std::vector<cv::Mat> images;
+   
+    Volume* volume = new Volume(w, h, d, m_res[0], m_res[1], m_res[2], 2, channels,m_folder);
+    minval[0] =  std::numeric_limits<unsigned int>::min();
+    minval[1] =  std::numeric_limits<unsigned int>::max();
+    volume->setMinMax(minval[0], minval[1]);
+    volume->setTime(posix_time);
+    return volume;
+     
+  }
+  else if (helper::ends_with_string(m_folder, "desc"))
   {
 
     FILE *pFile;
@@ -216,15 +237,15 @@ Volume *LoadDataAction::run(bool convert)
   switch (depth)
   {
   case CV_8U:
-    volume = new Volume(w, h, d, m_res[0], m_res[1], m_res[2], 1, channels);
+    volume = new Volume(w, h, d, m_res[0], m_res[1], m_res[2], 1, channels,"");
     uploadDataCV_8U(images, volume);
     break;
   case CV_16U:
-    volume = new Volume(w, h, d, m_res[0], m_res[1], m_res[2], 2, channels);
+    volume = new Volume(w, h, d, m_res[0], m_res[1], m_res[2], 2, channels,"");
     uploadDataCV_16U(images, volume);
     break;
   case CV_32F:
-    volume = new Volume(w, h, d, m_res[0], m_res[1], m_res[2], 4, channels);
+    volume = new Volume(w, h, d, m_res[0], m_res[1], m_res[2], 4, channels,"");
     uploadData_32F_raw(m_folder, volume);
     break;
   }
@@ -331,17 +352,24 @@ void LoadDataAction::uploadDataCV_8U(std::vector<cv::Mat> image, Volume *volume)
 void LoadDataAction::uploadDataCV_16U(std::vector<cv::Mat> image, Volume *volume)
 {
   unsigned short *ptr = reinterpret_cast<unsigned short *>(volume->get_data());
+   std::cout << "READING TEXTURE DATA BBBBBBBBBBBBBB" << std::endl;
+   std::cout << "image.size() " << image.size() <<std::endl;
   // fill vol and points
-  for (int z = 0; z < volume->get_depth(); z++)
+  for (int z = 0; z < image.size(); z++)
   {
+    std::cout << "READING TEXTURE DATA EEEEEEEEEEEEEEE" << std::endl;
     if (image[z].channels() == 1)
     {
+      std::cout << "READING TEXTURE DATA AAAAAAAAAAAAA" << std::endl;
       cv::MatConstIterator_<unsigned short> it1 = image[z].begin<unsigned short>();
       cv::MatConstIterator_<unsigned short> it1_end = image[z].end<unsigned short>();
+      size_t num_pixels = 0;
       for (; it1 != it1_end; ++it1)
       {
         *ptr++ = *it1;
+        num_pixels++;
       }
+      std::cout << "num_pixels: " << num_pixels << std::endl;
     }
     else if (image[z].channels() == 3)
     {

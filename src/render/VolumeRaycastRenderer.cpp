@@ -63,10 +63,25 @@ void VolumeRaycastRenderer::initGL()
                            glm::vec3(-0.5f, 0.5f, 0.5f)};  // 7
 
   // unit cube indices
-  GLushort cubeIndices[36] = {0, 5, 4,
-                              5, 0, 1,
-                              3, 7, 6,
-                              3, 6, 2,
+  // GLushort cubeIndices[36] = {0, 5, 4,
+  //                             5, 0, 1,
+  //                             3, 7, 6,
+  //                             3, 6, 2,
+
+  //                             7, 4, 6,
+  //                             6, 4, 5,
+  //                             2, 1, 3,
+  //                             3, 1, 0,
+  //                             3, 0, 7,
+  //                             7, 0, 4,
+  //                             6, 5, 2,
+  //                             2, 5, 1};
+
+  GLushort cubeIndices[36] = {3, 6, 7,
+                              6, 3, 2,
+                              0, 4, 5,
+                              0, 5, 1,
+                              
                               7, 4, 6,
                               6, 4, 5,
                               2, 1, 3,
@@ -102,8 +117,10 @@ void VolumeRaycastRenderer::render(Volume *volume, const glm::mat4 &MV, glm::mat
   glEnable(GL_CULL_FACE);
   glCullFace(GL_FRONT);
 
+  
   glActiveTexture(GL_TEXTURE0 + 0);
-  glBindTexture(GL_TEXTURE_3D, volume->get_texture_id());
+  glBindTexture(GL_TEXTURE_2D, volume->get_texture_id());
+  //std::cout << "PPPPPPPPPP get_texture_id " << volume->get_texture_id() << std::endl;
 
   ////enable alpha blending (use over operator)
   bool enableBlend = glIsEnabled(GL_BLEND);
@@ -154,6 +171,8 @@ void VolumeRaycastRenderer::render(Volume *volume, const glm::mat4 &MV, glm::mat
   ////use the volume shader
   shader.set_P_inv(P_inv);
   // shader.set_stepSize(1.0f / volume->get_width(), 1.0f / volume->get_height(), 1.0f / volume->get_depth());
+  shader.setNumSlices(volume->get_depth());
+  shader.setNumDim(volume->get_dim());
 
   shader.render(MVP, clipPlane, camPos);
 

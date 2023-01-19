@@ -1468,7 +1468,7 @@ void UIView::load_transfer_functions(std::ifstream &loadFile)
           float pointX = std::stof(point.substr(0, comaPos));
           float pointY = std::stof(point.substr(comaPos + 1));
           tfn_widget[index].alpha_control_pts.push_back(vec2f(pointX, pointY));
-          std::cout << points.substr(last) << std::endl;
+         
         }
       }
     }

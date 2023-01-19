@@ -5,6 +5,7 @@
 
 Texture::Texture(GLenum TextureTarget, const std::string &filename) : m_texture_target(TextureTarget), m_file_name(filename.c_str())
 {
+	std::cout << "READING TEXTURE " << std::endl;
 	m_texture_id = Load2DTexture();
 }
 
@@ -40,12 +41,13 @@ int Texture::Load2DTexture()
 
 	// retrieve the image data
 	// if this somehow one of these failed (they shouldn't), return failure
+	std::cout << "READING TEXTURE 2" << std::endl;
 	GLuint textureID = LoadTexture(m_file_name, width, height, &bits, bbp);
 	if (textureID == -1)
 	{
-		assert(false && "Image failed to load 2");
+		assert(false && "Image failed to load ");
 	}
-
+	std::cout << "READING TEXTURE 3" << std::endl;
 	return textureID;
 }
 
@@ -117,7 +119,9 @@ int Texture::LoadTexture(const std::string &fileName,
 {
 
 	unsigned int texture;
+	std::cout << "READING TEXTURE 2.0.0" << fileName <<std::endl;
 	glGenTextures(1, &texture);
+	std::cout << "READING TEXTURE 2.0.1" << std::endl;
 	glBindTexture(GL_TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
 	// set the texture wrapping parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // set texture wrapping to GL_REPEAT (default wrapping method)
@@ -128,10 +132,17 @@ int Texture::LoadTexture(const std::string &fileName,
 
 	// int width, height, nrChannels;
 	stbi_set_flip_vertically_on_load(1);
+	std::cout << "READING TEXTURE 2.1" << std::endl;
 	*data = stbi_load(fileName.c_str(), &width, &height, &bbp, 0);
-
+	std::cout << "READING TEXTURE 2.2" << std::endl;
 	if (data)
 	{
+		std::cout << "bbp " << bbp << std::endl;
+		// if (bbp == 1)
+		// {
+		// 	glTexImage2D(GL_TEXTURE_2D, 0, GL_R16UI, width, height, 0, GL_RED, GL_UNSIGNED_SHORT, *data);
+		// }
+		// else 
 		if (bbp == 3)
 		{
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, *data);

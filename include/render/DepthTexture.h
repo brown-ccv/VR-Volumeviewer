@@ -30,7 +30,7 @@
 class DepthTexture
 {
 public:
-  DepthTexture();
+  DepthTexture(int window_width, int window_height, int framebuffer_width, int framebuffer_height);
   ~DepthTexture();
 
   void copyDepthbuffer();
@@ -40,23 +40,48 @@ public:
     return m_depth_texture;
   };
 
-  const unsigned &width() const
+  unsigned int width() const 
   {
     return m_width;
   }
 
-  const unsigned &height() const
+  unsigned int height() const
   {
     return m_height;
+  }
+
+
+  unsigned int frame_buffer_width() const
+  {
+    return m_framebuffer_width;
+  }
+
+  unsigned int frame_buffer_height() const
+  {
+    return m_framebuffer_height;
+  }
+
+   unsigned int display_scale_x() const
+  {
+    return m_display_scale_x;
+  }
+
+  unsigned int display_scale_y() 
+  {
+    return m_display_scale_y;
   }
 
   static void getJetColor(double value, double min_val, double max_val, float &r, float &g, float &b, float &a);
 
 private:
-  void create();
+  void create(int window_width, int window_height, int framebuffer_width, int framebuffer_height);
 
   unsigned int m_width;
   unsigned int m_height;
+  unsigned int m_framebuffer_width;
+  unsigned int m_framebuffer_height;
+  float m_display_scale_x;
+  float m_display_scale_y;
   int m_pReadBuffer;
   int m_pDrawBuffer;
 

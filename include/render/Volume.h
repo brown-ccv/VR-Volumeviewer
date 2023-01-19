@@ -53,6 +53,7 @@
 #include <cmath>
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
+#include <string>
 
 struct pt
 {
@@ -61,10 +62,11 @@ struct pt
   float z;
 };
 
+class Texture;
 class Volume
 {
 public:
-  Volume(unsigned int width, unsigned int height, unsigned int depth, double x_scale, double y_scale, double z_scale, unsigned int datatypesize, unsigned int channel = 1);
+  Volume(unsigned int width, unsigned int height, unsigned int depth, double x_scale, double y_scale, double z_scale, unsigned int datatypesize, unsigned int channel , std::string texture_file_path);
 
   ~Volume();
 
@@ -105,7 +107,7 @@ public:
 
   unsigned &get_texture_id()
   {
-    return m_texture_id;
+    return m_texture_2_id;
   }
 
   void set_texture_id(const unsigned texture_id)
@@ -199,10 +201,17 @@ public:
     return m_histogram[channel];
   }
 
+  float get_dim()
+  {
+    return m_dim;
+  }
+
 private:
   unsigned int m_width;
   unsigned int m_height;
   unsigned int m_depth;
+  float m_dim;
+
   float m_min;
   float m_max;
   time_t m_time;
@@ -215,6 +224,7 @@ private:
 
   bool m_texture_initialized;
   unsigned int m_texture_id;
+  unsigned int m_texture_2_id;
 
   pt m_volume_position;
   pt m_volume_scale;
@@ -227,7 +237,11 @@ private:
 
   int m_render_channel;
 
+  std::unique_ptr<Texture> m_texture;
+
   std::vector<std::vector<float>> m_histogram;
+
+  std::string m_texture_file_path;
 };
 
 #endif // VOLUME_H

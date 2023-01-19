@@ -103,6 +103,10 @@ public:
     m_depth_texture = depth_texture->depth_texture();
     m_screen_size[0] = depth_texture->width();
     m_screen_size[1] = depth_texture->height();
+    m_buffer_size[0] = depth_texture->frame_buffer_width();
+    m_buffer_size[1] = depth_texture->frame_buffer_height();
+    m_display_scale[0] = depth_texture->display_scale_x();
+    m_display_scale[1] = depth_texture->display_scale_y();
   }
 
   void set_P_inv(glm::mat4 &P_inv)
@@ -128,6 +132,16 @@ public:
     m_clip_max = max_clip;
   }
 
+  void setNumSlices(float slices)
+  {
+    m_slices = slices;
+  }
+
+  void setNumDim(float dim)
+  {
+    m_dim = dim;
+  }
+
 private:
   GLuint m_volume_uniform;
   GLuint m_vVertex_attribute;
@@ -145,6 +159,8 @@ private:
   float m_threshold;
   float m_multiplier;
   int m_channel;
+  float m_slices;
+  float m_dim;
 
   GLuint m_threshold_uniform;
   GLuint m_multiplier_uniform;
@@ -158,6 +174,9 @@ private:
 
   unsigned int m_depth_texture;
   unsigned int m_screen_size[2];
+  unsigned int m_buffer_size[2];
+  unsigned int m_display_scale[2];
+
   glm::mat4 m_P_inv;
   GLuint m_depth_uniform;
   GLuint m_viewport_uniform;
@@ -172,6 +191,10 @@ private:
 
   GLuint m_clip_min_uniform;
   GLuint m_clip_max_uniform;
+  GLuint m_frambuffer_uniform;
+  GLuint m_display_scale_uniform;
+  GLuint m_slices_uniform;
+  GLuint m_dim_uniform;
   glm::vec3 m_clip_min;
   glm::vec3 m_clip_max;
 };

@@ -31,12 +31,35 @@
 #include "render/Volume.h"
 #include <cstring>
 #include <iostream>
+#include <math.h>
 
-Volume::Volume(unsigned int width, unsigned int height, unsigned int depth, double x_scale, double y_scale, double z_scale, unsigned int datatypesize, unsigned int channel)
-    : m_width{width}, m_height{height}, m_depth{depth}, m_channels{channel}, m_datatypesize{datatypesize}, m_texture_id{0}, m_x_scale{x_scale},
-      m_y_scale{y_scale}, m_z_scale{z_scale}, m_render_channel(-1), m_texture_initialized(false), m_pbo_upload_started{false}
+#include "Texture.h"
+#include "stb_image.h"
+GLenum glCheckError_(const char *file, int line)
 {
-  data = new unsigned char[m_width * m_height * m_depth * m_channels * m_datatypesize]();
+    GLenum errorCode;
+    while ((errorCode = glGetError()) != GL_NO_ERROR)
+    {
+        std::string error;
+        switch (errorCode)
+        {
+            case GL_INVALID_ENUM:                  error = "INVALID_ENUM"; break;
+            case GL_INVALID_VALUE:                 error = "INVALID_VALUE"; break;
+            case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
+            case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
+            case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
+        }
+        std::cout << error << " | " << file << " (" << line << ")" << std::endl;
+    }
+    return errorCode;
+}
+#define glCheckError() glCheckError_(__FILE__, __LINE__)
+
+Volume::Volume(unsigned int width, unsigned int height, unsigned int depth, double x_scale, double y_scale, double z_scale, unsigned int datatypesize, unsigned int channel, std::string texture_file_path)
+    : m_width(width), m_height(height), m_depth(depth), m_channels(channel), m_datatypesize(datatypesize), m_texture_id(0), m_x_scale(x_scale),
+      m_y_scale(y_scale), m_z_scale(z_scale), m_render_channel(-1), m_texture_initialized(false), m_pbo_upload_started(false), m_dim(0), m_texture_file_path(texture_file_path)
+{
+  data = new unsigned char[m_width * m_height * m_channels * m_datatypesize]();
 }
 
 Volume::~Volume()
@@ -51,7 +74,8 @@ void Volume::uploadtoPBO()
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbo);
   glBufferData(GL_PIXEL_UNPACK_BUFFER, get_depth() * get_width() * get_height() * get_channels() * m_datatypesize, 0, GL_STREAM_DRAW);
   GLubyte *ptr = (GLubyte *)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-  memcpy(ptr, get_data(), get_depth() * get_width() * get_height() * get_channels() * m_datatypesize);
+
+  memcpy(ptr, data, get_depth() * get_width() * get_height() * get_channels() * m_datatypesize);
   glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
   m_pbo_upload_started = true;
@@ -89,6 +113,20 @@ void Volume::computeHistogram()
   }
   else if (m_datatypesize == 4)
   {
+
+    float *ptr1 = reinterpret_cast<float *>(data);
+    float m_min = std::numeric_limits<float>::max();
+    float m_max = std::numeric_limits<float>::min();
+    for (int i = 0; i < get_depth() * get_width() * get_height(); i++)
+    {
+      m_min = std::min(m_min, (*ptr1));
+      m_max = std::max(m_max, (*ptr1));
+      ptr1++;
+    }
+    std::cout << "DATA MIN " << m_min << std::endl;
+    std::cout << "DATA MAX " << m_max << std::endl;
+    std::cout << "COMPUTING HISTOGRAM DATATYPE = 4" << std::endl;
+    std::cout << "COMPUTING HISTOGRAM DATATYPE = 4" << std::endl;
     float *ptr = reinterpret_cast<float *>(data);
     for (int i = 0; i < get_depth() * get_width() * get_height(); i++)
     {
@@ -113,7 +151,8 @@ void Volume::computeHistogram()
 
   for (int c = 0; c < m_channels; c++)
   {
-    unsigned int non_black_voxels = get_depth() * get_width() * get_height() - m_histogram_tmp[c][0];
+    //unsigned int non_black_voxels = get_depth() * get_width() * get_height() - m_histogram_tmp[c][0];
+    unsigned int non_black_voxels = get_depth() * get_width()  - m_histogram_tmp[c][0];
 
     m_histogram.push_back(std::vector<float>(m_histogram_tmp[c].size()));
     m_histogram[c][0] = 0;
@@ -129,99 +168,183 @@ void Volume::initGL()
   if (m_texture_initialized)
     return;
 
-  if (!m_pbo_upload_started)
+  // if (!m_pbo_upload_started)
+  // {
+  //   uploadtoPBO();
+  //   return;
+  // }
+  int width;
+  int height;
+  int bbp;
+  stbi_set_flip_vertically_on_load(true);
+  stbi_us* t_data = stbi_load_16(m_texture_file_path.c_str(), &width, &height, &bbp, 0);
+  //stbi_us* t_full_data = new stbi_us[width*height*4];
+
+  //unsigned short *ptr = reinterpret_cast<unsigned short *>(t_data);
+  unsigned short* t_prt = t_data;
+  unsigned short m_max = std::numeric_limits<unsigned short>::min(); 
+  unsigned short m_min = std::numeric_limits<unsigned short>::max(); 
+  std::vector<std::vector<unsigned int>> m_histogram_tmp;
+  m_histogram_tmp.push_back(std::vector<unsigned int>(256, 0));
+  for (int i = 0; i < width * height ; i++)
   {
-    uploadtoPBO();
-    return;
+     unsigned int index = ((float)*t_prt / (float)(std::numeric_limits<unsigned short>::max() -1 ))  * 255; 
+     m_histogram_tmp[0][index]++;
+     t_prt++;
   }
-
-  if (get_texture_id() != 0)
-    glDeleteTextures(1, &get_texture_id());
-
-  glGenTextures(1, &get_texture_id());
-  glBindTexture(GL_TEXTURE_3D, get_texture_id());
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S,
-                  GL_CLAMP);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T,
-                  GL_CLAMP);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R,
-                  GL_CLAMP);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER,
-                  GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER,
-                  GL_LINEAR_MIPMAP_LINEAR);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_BASE_LEVEL, 0);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, 0);
-
-  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbo);
-
-  switch (m_channels)
+  unsigned int non_black_voxels = get_depth() * get_width()  - m_histogram_tmp[0][0];
+  for (int i = 0; i < m_histogram.size(); i++)
+    m_histogram[i].clear();
+  m_histogram.clear();
+  m_histogram.push_back(std::vector<float>(m_histogram_tmp[0].size()));
+  m_histogram[0][0] = 0;
+  //std::cout << 0 <<": "<< m_histogram_tmp[0][0] <<std::endl;
+  for (int i = 1; i < m_histogram_tmp[0].size(); i++)
   {
-  case 1:
-  {
-    if (m_datatypesize == 1)
-    {
-      glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, get_width(), get_height(), get_depth(), 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
-    }
-    if (m_datatypesize == 2)
-    {
-      glTexImage3D(GL_TEXTURE_3D, 0, GL_R16, get_width(), get_height(), get_depth(), 0, GL_RED, GL_UNSIGNED_SHORT, NULL);
-    }
-    if (m_datatypesize == 4)
-    {
-      glTexImage3D(GL_TEXTURE_3D, 0, GL_R32F, get_width(), get_height(), get_depth(), 0, GL_RED, GL_FLOAT, NULL);
-    }
+    //std::cout << i <<": "<< m_histogram_tmp[0][i] <<std::endl;
+    m_histogram[0][i] = (((float)m_histogram_tmp[0][i]) / non_black_voxels) * 32000;
   }
-  break;
-  case 3:
-  {
-    if (m_datatypesize == 1)
-    {
-      glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-    }
-    if (m_datatypesize == 2)
-    {
-      glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_SHORT, NULL);
-    }
-  }
+  // 
+ 
+  // for (int i = 0; i < width * height ; i++)
+  // {
+  //   m_min = std::min(m_min, (*t_prt));
+  //   m_max = std::max(m_max, (*t_prt));
+  //   t_prt++;
+  // }
+  // std::cout << "VOLUME DATA MIN " << m_min << std::endl;
+  // std::cout << "VOLUME DATA MAX " << m_max << std::endl;
 
-  break;
-  case 4:
-  {
-    if (m_datatypesize == 1)
+   std::cout << "volume bbp: " << bbp << std::endl;
+  if (t_data)
+	{
+ 
+    
+    std::cout << "LOADING VOLUME TEXTURE" << std::endl;
+    glCheckError();
+		if (get_texture_id() != 0)
     {
-      glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, get_width(), get_height(), get_depth(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+      glDeleteTextures(1, &m_texture_2_id);
     }
-    if (m_datatypesize == 2)
-    {
-      glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, get_width(), get_height(), get_depth(), 0, GL_RGBA, GL_UNSIGNED_SHORT, NULL);
-    }
-  }
-  break;
+    glCheckError();
+  
 
-  default:
-  {
-    {
-      if (m_datatypesize == 1)
-      {
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-      }
-      if (m_datatypesize == 2)
-      {
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_SHORT, NULL);
-      }
-    }
-    break;
-  }
-  }
+    glGenTextures(1, &m_texture_2_id);
+    glCheckError();
+    glBindTexture(GL_TEXTURE_2D, m_texture_2_id);
+    glCheckError();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+                    GL_REPEAT);
+    glCheckError();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+                    GL_REPEAT);
+    glCheckError();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+                    GL_LINEAR);
+    glCheckError();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                    GL_LINEAR);
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, t_data);
+    glCheckError();
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R16, width, height, 0, GL_RED, GL_UNSIGNED_SHORT, t_data);
+    glCheckError();
+    
+    glBindTexture(GL_TEXTURE_2D, 0);
+    stbi_image_free(t_data);
+     std::cout << "END LOADING VOLUME TEXTURE" << std::endl;
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+		
+	}  
 
-  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-  glDeleteBuffers(1, &m_pbo);
-  m_pbo_upload_started = false;
 
-  glGenerateMipmap(GL_TEXTURE_3D);
-  set_volume_scale({static_cast<float>(1.0f / (m_x_scale * m_width)),
-                    static_cast<float>(1.0f / (m_y_scale * m_height)),
+  // //glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbo);
+
+  // switch (m_channels)
+  // {
+  // case 1:
+  // {
+  //   if (m_datatypesize == 1)
+  //   {
+  //     glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, get_width(), get_height(), get_depth(), 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
+  //     //glCheckError();
+  //   }
+  //   if (m_datatypesize == 2)
+  //   {
+  //     std::cout << "LOADING VOLUME WITH m_datatypesize " << m_datatypesize << std::endl;
+  //     //glTexImage3D(GL_TEXTURE_3D, 0, GL_R16, get_width(), get_height(), get_depth(), 0, GL_RED, GL_UNSIGNED_SHORT, NULL);
+  //     glTexImage2D(GL_TEXTURE_2D, 0, GL_R16, get_width(), get_height(), 0, GL_RED, GL_UNSIGNED_SHORT, data);
+  //     std::cout << "YYYYYYYYY get_texture_id " << get_texture_id() << std::endl;
+  //     //glCheckError();
+
+  //   }
+  //   if (m_datatypesize == 4)
+  //   {
+  //     //glTexImage3D(GL_TEXTURE_3D, 0, GL_R32F, get_width(), get_height(), get_depth() , 0, GL_RED, GL_FLOAT, data);
+  //     //glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, get_width(), get_height(), get_depth(), 0, GL_RED, GL_UNSIGNED_BYTE, data);
+  //     //glCheckError();
+  //     glTexImage2D(GL_TEXTURE_2D, 0, GL_R16, get_width(), get_height(), 0, GL_RED, GL_UNSIGNED_SHORT, data);
+  //   }
+  // }
+  // break;
+  // case 3:
+  // {
+  //   if (m_datatypesize == 1)
+  //   {
+  //     glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+  //     //glCheckError();
+  //   }
+  //   if (m_datatypesize == 2)
+  //   {
+  //     glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_SHORT, NULL);
+  //     //glCheckError();
+  //   }
+  // }
+
+  // break;
+  // case 4:
+  // {
+  //   if (m_datatypesize == 1)
+  //   {
+  //     glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, get_width(), get_height(), get_depth(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+  //     //glCheckError();
+  //   }
+  //   if (m_datatypesize == 2)
+  //   {
+  //     glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, get_width(), get_height(), get_depth(), 0, GL_RGBA, GL_UNSIGNED_SHORT, NULL);
+  //     //glCheckError();
+  //   }
+  // }
+  // break;
+
+  // default:
+  // {
+  //   {
+  //     if (m_datatypesize == 1)
+  //     {
+  //       glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+  //       //glCheckError();
+  //     }
+  //     if (m_datatypesize == 2)
+  //     {
+  //       glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_SHORT, NULL);
+  //       //glCheckError();
+  //     }
+  //   }
+  //   break;
+  // }
+  // }
+
+  // //glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+  // //glDeleteBuffers(1, &m_pbo);
+  // m_pbo_upload_started = false;
+
+  m_dim =  ceil(sqrt(m_depth));
+  //glGenerateMipmap(GL_TEXTURE_3D);
+  set_volume_scale({static_cast<float>(1.0f / (m_x_scale * (m_width/m_dim) )),
+                    static_cast<float>(1.0f / (m_y_scale * (m_height/m_dim)  )),
                     static_cast<float>(1.0f / (m_z_scale * m_depth))});
 
   delete[] data;

@@ -481,14 +481,14 @@ void VolumeVisualizationApp::onRenderGraphicsContext(const MinVR::VRGraphicsStat
       std::cout << "Error initializing GLEW." << std::endl;
     }
 #endif
-    std::cout << "init vizapp " << std::endl;
+   
     if (m_vrVolumeApp)
     {
       m_vrVolumeApp->initialize();
       m_vrVolumeApp->intialize_ui();
       m_vrVolumeApp->load_shaders();
     }
-    std::cout << "init vizapp 2" << std::endl;
+    
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glLightfv(GL_LIGHT0, GL_AMBIENT, glm::value_ptr(m_vrVolumeApp->get_ambient()));
