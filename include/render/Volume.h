@@ -54,6 +54,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 #include <string>
+#include <memory>
 
 struct pt
 {
@@ -66,7 +67,7 @@ class Texture;
 class Volume
 {
 public:
-  Volume(unsigned int width, unsigned int height, unsigned int depth, double x_scale, double y_scale, double z_scale, unsigned int datatypesize, unsigned int channel , std::string texture_file_path);
+  Volume(unsigned int width, unsigned int height, unsigned int depth, double x_scale, double y_scale, double z_scale, unsigned int datatypesize, unsigned int channel , std::string texture_file_path, bool volume_texture_atlas= false);
 
   ~Volume();
 
@@ -188,6 +189,7 @@ public:
 
   void computeHistogram();
 
+  void initGLTextureAtlas();
   void initGL();
   void uploadtoPBO();
 
@@ -205,6 +207,7 @@ public:
   {
     return m_dim;
   }
+
 
 private:
   unsigned int m_width;
@@ -242,6 +245,7 @@ private:
   std::vector<std::vector<float>> m_histogram;
 
   std::string m_texture_file_path;
+  bool m_volume_texture_atlas;
 };
 
 #endif // VOLUME_H
