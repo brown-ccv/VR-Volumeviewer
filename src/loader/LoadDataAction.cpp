@@ -153,7 +153,7 @@ Volume *LoadDataAction::run(bool convert)
     helper::replace(m_folder, ".png.desc", ".png");
     std::vector<cv::Mat> images;
    
-    Volume* volume = new Volume(w, h, d, m_res[0], m_res[1], m_res[2], 2, channels,m_folder);
+    Volume* volume = new Volume(w, h, d, m_res[0], m_res[1], m_res[2], 2, channels,m_folder,true);
     minval[0] =  std::numeric_limits<unsigned int>::min();
     minval[1] =  std::numeric_limits<unsigned int>::max();
     volume->setMinMax(minval[0], minval[1]);

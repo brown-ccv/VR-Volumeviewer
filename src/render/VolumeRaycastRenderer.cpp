@@ -124,11 +124,11 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4& MV, glm::mat
 	{
 		glActiveTexture(GL_TEXTURE0 + 1);
 		glBindTexture(GL_TEXTURE_2D, colormap);
-		m_ray_caster_shader.setUniformi("useLut", true);
+		shader.set_useLut(true);
 	}
 	else
 	{
-		m_ray_caster_shader.setUniformi("useLut", false);
+		shader.set_useLut(false);
 	}
 
 	////now do the z_scaling
@@ -138,16 +138,12 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4& MV, glm::mat
 	glm::mat4 MVP = P * MV_tmp;
 
 	glm::mat4 clipPlane;
+	shader.set_clipping(m_clipping);
 	if (m_clipping)
 	{
 		clipPlane = glm::translate(m_clip_plane * MV_tmp, glm::vec3(-0.5f));
-		m_ray_caster_shader.setUniformi("clipping", true);
 	}
-	else
-	{
-		m_ray_caster_shader.setUniformi("clipping", false);
-	}
-
+	
 	glm::vec3 camPos = glm::vec4(glm::inverse(MV_tmp) * glm::vec4(0, 0, 0, 1));
 	camPos += glm::vec3(0.5f);
 	glm::mat4 P_inv = glm::inverse(MV_tmp) * glm::inverse(P);
@@ -155,30 +151,28 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4& MV, glm::mat
 	if (renderChannel == 0)
 		setChannel(volume);
 	else
-		//shader.set_channel(renderChannel);
-		m_ray_caster_shader.setUniformi("channel", renderChannel);
+		shader.set_channel(renderChannel);
+		
 
 	glBindVertexArray(cubeVAOID);
 	////use the volume shader
-	//shader.set_P_inv(P_inv);
-	m_ray_caster_shader.setUniform("P_inv", P_inv);
-	// shader.set_stepSize(1.0f / volume->get_width(), 1.0f / volume->get_height(), 1.0f / volume->get_depth());
+	shader.set_P_inv(P_inv);
+	//shader.set_stepSize(1.0f / volume->get_width(), 1.0f / volume->get_height(), 1.0f / volume->get_depth());
 
-	//shader.setNumSlices(volume->get_depth());
-	m_ray_caster_shader.setUniformi("slices", volume->get_depth());
-	//shader.setNumDim(volume->get_dim());
-	m_ray_caster_shader.setUniformf("dim", volume->get_dim());
+	shader.setNumSlices(volume->get_depth());
+	shader.setNumDim(volume->get_dim());
+	
 
 	//draw call
-	//shader.render(MVP, clipPlane, camPos);
-	if (false)
+	shader.render(MVP, clipPlane, camPos);
+	/*if (false)
 	{
 		glActiveTexture(GL_TEXTURE0 + 3);
 		glBindTexture(GL_TEXTURE_3D, m_blend_volume);
 	}
 
 	glActiveTexture(GL_TEXTURE0 + 2);
-	glBindTexture(GL_TEXTURE_2D, m_depth_texture);
+	glBindTexture(GL_TEXTURE_2D, m_depth_texture);*/
 
 	////disable blending
 	glBindVertexArray(0);

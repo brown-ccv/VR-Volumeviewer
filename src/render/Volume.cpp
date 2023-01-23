@@ -179,46 +179,41 @@ void Volume::initGLTextureAtlas()
 	stbi_set_flip_vertically_on_load(true);
 	stbi_us* t_data = stbi_load_16(m_texture_file_path.c_str(), &width, &height, &bbp, 0);
 
-	unsigned short* t_prt = t_data;
-	unsigned short m_max = std::numeric_limits<unsigned short>::min();
-	unsigned short m_min = std::numeric_limits<unsigned short>::max();
-	std::vector<std::vector<unsigned int>> m_histogram_tmp;
-	m_histogram_tmp.push_back(std::vector<unsigned int>(256, 0));
-	for (int i = 0; i < width * height; i++)
-	{
-		unsigned int index = ((float)*t_prt / (float)(std::numeric_limits<unsigned short>::max() - 1)) * 255;
-		m_histogram_tmp[0][index]++;
-		t_prt++;
-	}
-
-	unsigned int non_black_voxels = get_depth() * get_width() - m_histogram_tmp[0][0];
-	for (int i = 0; i < m_histogram.size(); i++)
-		m_histogram[i].clear();
-
-	m_histogram.clear();
-	m_histogram.push_back(std::vector<float>(m_histogram_tmp[0].size()));
-	m_histogram[0][0] = 0;
-	//std::cout << 0 <<": "<< m_histogram_tmp[0][0] <<std::endl;
-	for (int i = 1; i < m_histogram_tmp[0].size(); i++)
-	{
-		//std::cout << i <<": "<< m_histogram_tmp[0][i] <<std::endl;
-		m_histogram[0][i] = (((float)m_histogram_tmp[0][i]) / non_black_voxels) * 32000;
-	}
-
-
-	for (int i = 0; i < width * height; i++)
-	{
-		m_min = std::min(m_min, (*t_prt));
-		m_max = std::max(m_max, (*t_prt));
-		t_prt++;
-	}
-	std::cout << "VOLUME DATA MIN " << m_min << std::endl;
-	std::cout << "VOLUME DATA MAX " << m_max << std::endl;
-
-	std::cout << "volume bbp: " << bbp << std::endl;
+	
 	if (t_data)
 	{
+		unsigned short* t_prt = t_data;
+		unsigned short m_max = std::numeric_limits<unsigned short>::min();
+		unsigned short m_min = std::numeric_limits<unsigned short>::max();
+		std::vector<std::vector<unsigned int>> m_histogram_tmp;
+		m_histogram_tmp.push_back(std::vector<unsigned int>(256, 0));
+		for (int i = 0; i < width * height; i++)
+		{
+			unsigned int index = ((float)*t_prt / (float)(std::numeric_limits<unsigned short>::max() - 1)) * 255;
+			m_histogram_tmp[0][index]++;
+			m_min = std::min(m_min, (*t_prt));
+			m_max = std::max(m_max, (*t_prt));
+			t_prt++;
+		}
 
+		unsigned int non_black_voxels = get_depth() * get_width() - m_histogram_tmp[0][0];
+		for (int i = 0; i < m_histogram.size(); i++)
+			m_histogram[i].clear();
+
+		m_histogram.clear();
+		m_histogram.push_back(std::vector<float>(m_histogram_tmp[0].size()));
+		m_histogram[0][0] = 0;
+		//std::cout << 0 <<": "<< m_histogram_tmp[0][0] <<std::endl;
+		for (int i = 1; i < m_histogram_tmp[0].size(); i++)
+		{
+			//std::cout << i <<": "<< m_histogram_tmp[0][i] <<std::endl;
+			m_histogram[0][i] = (((float)m_histogram_tmp[0][i]) / non_black_voxels) * 32000;
+		}
+
+		std::cout << "VOLUME DATA MIN " << m_min << std::endl;
+		std::cout << "VOLUME DATA MAX " << m_max << std::endl;
+
+		std::cout << "volume bbp: " << bbp << std::endl;
 
 		std::cout << "LOADING VOLUME TEXTURE" << std::endl;
 		glCheckError();
@@ -251,6 +246,11 @@ void Volume::initGLTextureAtlas()
 		glBindTexture(GL_TEXTURE_2D, 0);
 		stbi_image_free(t_data);
 		std::cout << "END LOADING VOLUME TEXTURE" << std::endl;
+		m_dim = ceil(sqrt(m_depth));
+		set_volume_scale({ static_cast<float>(1.0f / (m_x_scale * (m_width / m_dim) )),
+						   static_cast<float>(1.0f / (m_y_scale * (m_height / m_dim) )),
+						   static_cast<float>(1.0f / (m_z_scale * m_depth)) });
+		
 	}
 	else
 	{
@@ -269,6 +269,7 @@ void Volume::initGL()
 	{
 		initGLTextureAtlas();
 		m_texture_initialized = true;
+		return;
 	}
 
 	if (!m_pbo_upload_started)
@@ -299,30 +300,32 @@ void Volume::initGL()
 
 	switch (m_channels)
 	{
-	case 1:
-	{
-		if (m_datatypesize == 1)
+		case 1:
 		{
-			glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, get_width(), get_height(), get_depth(), 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
+			if (m_datatypesize == 1)
+			{
+				glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, get_width(), get_height(), get_depth(), 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
+			}
+			if (m_datatypesize == 2)
+			{
+				glTexImage3D(GL_TEXTURE_3D, 0, GL_R16, get_width(), get_height(), get_depth(), 0, GL_RED, GL_UNSIGNED_SHORT, NULL);
+			}
+			if (m_datatypesize == 4)
+			{
+				glTexImage3D(GL_TEXTURE_3D, 0, GL_R32F, get_width(), get_height(), get_depth(), 0, GL_RED, GL_FLOAT, NULL);
+			}
 		}
-		if (m_datatypesize == 2)
+		break;
+		case 3:
 		{
-			glTexImage3D(GL_TEXTURE_3D, 0, GL_R16, get_width(), get_height(), get_depth(), 0, GL_RED, GL_UNSIGNED_SHORT, NULL);
-		}
-		if (m_datatypesize == 4)
-		{
-			glTexImage3D(GL_TEXTURE_3D, 0, GL_R32F, get_width(), get_height(), get_depth(), 0, GL_RED, GL_FLOAT, NULL);
+			if (m_datatypesize == 1)
+			{
+				glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+			}
+			if (m_datatypesize == 2)
+			{
+				glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_SHORT, NULL);
+			}
 		}
 	}
-	break;
-	case 3:
-	{
-		if (m_datatypesize == 1)
-		{
-			glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-		}
-		if (m_datatypesize == 2)
-		{
-			glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_SHORT, NULL);
-		}
-	}
+}

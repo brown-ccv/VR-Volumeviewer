@@ -59,7 +59,7 @@ VRVolumeApp::VRVolumeApp() : m_clip_max{1.0f}, m_clip_min{0.0f}, m_clip_ypr{0.0f
                              m_volumes_global_min_value(std::numeric_limits<float>::max()), m_volumes_global_max_value(std::numeric_limits<float>::min())
 {
   m_renders.push_back(new VolumeSliceRenderer());
-  m_renders.push_back(new VolumeRaycastRenderer());
+  m_renders.push_back(new VolumeRaycastRenderer(*this));
 }
 
 VRVolumeApp::~VRVolumeApp()

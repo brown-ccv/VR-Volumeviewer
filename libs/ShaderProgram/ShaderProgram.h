@@ -43,6 +43,9 @@ public:
 
 	void setUniformi(const char* name, int value);
 	void setUniformf(const char* name, float value);
+	void setUniform(const char* name, glm::vec2& vector);
+	void setUniform(const char* name, glm::ivec2& vector);
+	void setUniform(const char* name, glm::ivec3& vector);
 	void setUniform(const char* name, glm::vec3& vector);
 	void setUniform(const char* name, glm::vec4& vector);
 	void setUniform(const char* name, glm::mat4& matrix);

@@ -94,12 +94,27 @@ void ShaderProgram::setUniformf(const char * name, float value)
 	glUniform1f(uniforms[name], value);
 }
 
+void ShaderProgram::setUniform(const char* name, glm::ivec2& vector)
+{
+	glUniform2i(uniforms[name], vector.x, vector.y);
+}
+
+void ShaderProgram::setUniform(const char* name, glm::vec2& vector)
+{
+	glUniform2f(uniforms[name], vector.x, vector.y);
+}
+
+void ShaderProgram::setUniform(const char* name, glm::ivec3& vector)
+{
+	glUniform3i(uniforms[name], vector.x, vector.y, vector.z);
+}
+
 void ShaderProgram::setUniform(const char * name, glm::vec3& vector)
 {
 	glUniform3f(uniforms[name], vector.x, vector.y, vector.z);
 }
 
-void ShaderProgram::setUniform(const char * name, glm::vec4& vector)
+void ShaderProgram::setUniform(const char* name, glm::vec4& vector)
 {
 	glUniform4f(uniforms[name], vector.x, vector.y, vector.z, vector.w);
 }

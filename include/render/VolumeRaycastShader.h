@@ -65,7 +65,7 @@ public:
   virtual ~VolumeRaycastShader();
 
   void render(glm::mat4 &MVP, glm::mat4 &clipPlane, glm::vec3 &camPos);
-  void initGL(std::string& shader_file_path);
+  void initGL(const std::string& shader_file_path);
 
   void set_stepSize(float x, float y, float z)
   {
@@ -150,7 +150,7 @@ private:
 
   GLuint m_camPos_uniform;
 
-  float m_stepSize[3];
+  glm::vec3 m_stepSize;
   GLuint m_step_size_uniform;
 
   bool m_clipping;
@@ -174,9 +174,9 @@ private:
   GLuint m_useMultiLut_uniform;
 
   unsigned int m_depth_texture;
-  unsigned int m_screen_size[2];
-  unsigned int m_buffer_size[2];
-  unsigned int m_display_scale[2];
+  glm::vec2 m_screen_size;
+  glm::vec2 m_buffer_size;
+  glm::vec2 m_display_scale;
 
   glm::mat4 m_P_inv;
   GLuint m_depth_uniform;
