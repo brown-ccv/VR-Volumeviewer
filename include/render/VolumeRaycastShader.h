@@ -55,6 +55,7 @@
 #include <glm/glm.hpp>
 #include "DepthTexture.h"
 #include <iostream>
+#include "ShaderProgram.h"
 
 class VolumeRaycastShader : public Shader
 {
@@ -64,7 +65,7 @@ public:
   virtual ~VolumeRaycastShader();
 
   void render(glm::mat4 &MVP, glm::mat4 &clipPlane, glm::vec3 &camPos);
-  void initGL();
+  void initGL(std::string& shader_file_path);
 
   void set_stepSize(float x, float y, float z)
   {
@@ -197,5 +198,7 @@ private:
   GLuint m_dim_uniform;
   glm::vec3 m_clip_min;
   glm::vec3 m_clip_max;
+
+  ShaderProgram m_shader_program;
 };
 #endif // VOLUMERAYCASTSHADER_H

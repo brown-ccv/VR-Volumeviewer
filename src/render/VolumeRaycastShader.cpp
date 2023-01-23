@@ -30,6 +30,8 @@
 #endif
 
 #include "render/VolumeRaycastShader.h"
+#include "common/common.h"
+#include "render/ShaderUniforms.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -318,32 +320,36 @@ void VolumeRaycastShader::render(glm::mat4 &MVP, glm::mat4 &clipPlane, glm::vec3
   glActiveTexture(GL_TEXTURE0 + 2);
   glBindTexture(GL_TEXTURE_2D, m_depth_texture);
 
-  bindProgram();
+  m_shader_program.setUniform("MVP", MVP);
+  m_shader_program.setUniform("clipPlane", clipPlane);
+  m_shader_program.setUniform("camPos", camPos);
+  m_shader_program.setUniform("step_size", m_stepSize);
+  //bindProgram();
 
-  ////pass the shader uniform
-  glUniformMatrix4fv(m_MVP_uniform, 1, GL_FALSE, glm::value_ptr(MVP));
-  glUniformMatrix4fv(m_clipPlane_uniform, 1, GL_FALSE, glm::value_ptr(clipPlane));
-  glUniform3f(m_camPos_uniform, camPos.x, camPos.y, camPos.z);
-  glUniform3f(m_step_size_uniform, m_stepSize[0], m_stepSize[1], m_stepSize[2]);
-  glUniform1f(m_threshold_uniform, m_threshold);
-  glUniform1f(m_multiplier_uniform, m_multiplier);
-  glUniform1i(m_clipping_uniform, m_clipping);
-  glUniform1i(m_channel_uniform, m_channel);
-  glUniform1i(m_useLut_uniform, m_useLut);
-  glUniform1i(m_useMultiLut_uniform, m_useMultiLut);
-  glUniform2f(m_viewport_uniform, m_screen_size[0], m_screen_size[1]);
-  glUniform2f(m_frambuffer_uniform, m_buffer_size[0], m_buffer_size[1]);
-  glUniform2f(m_display_scale_uniform, m_display_scale[0], m_display_scale[1]);
-  glUniformMatrix4fv(m_P_inv_uniform, 1, GL_FALSE, glm::value_ptr(m_P_inv));
-  glUniform1f(m_slices_uniform, m_slices);
-  glUniform1f(m_dim_uniform, m_dim);
-  
+  //////pass the shader uniform
+  //glUniformMatrix4fv(m_MVP_uniform, 1, GL_FALSE, glm::value_ptr(MVP));
+  //glUniformMatrix4fv(m_clipPlane_uniform, 1, GL_FALSE, glm::value_ptr(clipPlane));
+  //glUniform3f(m_camPos_uniform, camPos.x, camPos.y, camPos.z);
+  //glUniform3f(m_step_size_uniform, m_stepSize[0], m_stepSize[1], m_stepSize[2]);
+  //glUniform1f(m_threshold_uniform, m_threshold);
+  //glUniform1f(m_multiplier_uniform, m_multiplier);
+  //glUniform1i(m_clipping_uniform, m_clipping);
+  //glUniform1i(m_channel_uniform, m_channel);
+  //glUniform1i(m_useLut_uniform, m_useLut);
+  //glUniform1i(m_useMultiLut_uniform, m_useMultiLut);
+  //glUniform2f(m_viewport_uniform, m_screen_size[0], m_screen_size[1]);
+  //glUniform2f(m_frambuffer_uniform, m_buffer_size[0], m_buffer_size[1]);
+  //glUniform2f(m_display_scale_uniform, m_display_scale[0], m_display_scale[1]);
+  //glUniformMatrix4fv(m_P_inv_uniform, 1, GL_FALSE, glm::value_ptr(m_P_inv));
+  //glUniform1f(m_slices_uniform, m_slices);
+  //glUniform1f(m_dim_uniform, m_dim);
+  //
 
-  m_use_blending = false;
-  glUniform1i(m_useBlend_uniform, 0);
-  glUniform1f(m_blendAlpha_uniform, m_blending_alpha);
-  glUniform3f(m_clip_min_uniform, m_clip_min.x, m_clip_min.y, m_clip_min.z);
-  glUniform3f(m_clip_max_uniform, m_clip_max.x, m_clip_max.y, m_clip_max.z);
+  //m_use_blending = false;
+  //glUniform1i(m_useBlend_uniform, 0);
+  //glUniform1f(m_blendAlpha_uniform, m_blending_alpha);
+  //glUniform3f(m_clip_min_uniform, m_clip_min.x, m_clip_min.y, m_clip_min.z);
+  //glUniform3f(m_clip_max_uniform, m_clip_max.x, m_clip_max.y, m_clip_max.z);
 
   //////draw the triangles
   glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, 0);
@@ -358,45 +364,57 @@ void VolumeRaycastShader::render(glm::mat4 &MVP, glm::mat4 &clipPlane, glm::vec3
   }
 }
 
-void VolumeRaycastShader::initGL()
+void VolumeRaycastShader::initGL(std::string& shader_file_path)
 {
 
-  bindProgram();
+	std::string m_ray_caster_vs_shader_filepath = shader_file_path + OS_SLASH + std::string("raycast_shader.vert");
+	std::string m_ray_caster_fs_shader_filepath = shader_file_path + OS_SLASH + std::string("raycast_shader.frag");
+    m_shader_program.LoadShaders(m_ray_caster_vs_shader_filepath.c_str(), m_ray_caster_fs_shader_filepath.c_str());
+	for (std::string s : ShaderUniforms::shader_uniforms)
+	{
+        m_shader_program.addUniform(s.c_str());
+	}
 
-  // add attributes and uniforms
-  m_volume_uniform = glGetUniformLocation(m_programID, "volume");
-  m_MVP_uniform = glGetUniformLocation(m_programID, "MVP");
-  m_clipPlane_uniform = glGetUniformLocation(m_programID, "clipPlane");
-  m_vVertex_attribute = glGetAttribLocation(m_programID, "vVertex");
-  m_camPos_uniform = glGetUniformLocation(m_programID, "camPos");
-  m_step_size_uniform = glGetUniformLocation(m_programID, "step_size");
-  m_threshold_uniform = glGetUniformLocation(m_programID, "threshold");
-  m_multiplier_uniform = glGetUniformLocation(m_programID, "multiplier");
-  m_clipping_uniform = glGetUniformLocation(m_programID, "clipping");
-  m_channel_uniform = glGetUniformLocation(m_programID, "channel");
-  m_lut_uniform = glGetUniformLocation(m_programID, "lut");
-  m_useLut_uniform = glGetUniformLocation(m_programID, "useLut");
-  m_useMultiLut_uniform = glGetUniformLocation(m_programID, "useMultiLut");
-  m_viewport_uniform = glGetUniformLocation(m_programID, "viewport");
-  m_depth_uniform = glGetUniformLocation(m_programID, "depth");
-  m_P_inv_uniform = glGetUniformLocation(m_programID, "P_inv");
-  m_depth_uniform = glGetUniformLocation(m_programID, "depth");
-  m_P_inv_uniform = glGetUniformLocation(m_programID, "P_inv");
-  m_useBlend_uniform = glGetUniformLocation(m_programID, "useBlend");
-  m_blendAlpha_uniform = glGetUniformLocation(m_programID, "blendAlpha");
-  m_blendVolume_uniform = glGetUniformLocation(m_programID, "blendVolume");
-  m_clip_min_uniform = glGetUniformLocation(m_programID, "clip_min");
-  m_clip_max_uniform = glGetUniformLocation(m_programID, "clip_max");
-  m_frambuffer_uniform = glGetUniformLocation(m_programID,"framebuffer_size");
-  m_display_scale_uniform =  glGetUniformLocation(m_programID,"display_scale");
-  m_slices_uniform =  glGetUniformLocation(m_programID,"slices");
-  m_dim_uniform = glGetUniformLocation(m_programID,"dim");
+    m_shader_program.setUniformi("volume", 0);
+    m_shader_program.setUniformi("lut", 1);
+    m_shader_program.setUniformi("depth", 2);
+    m_shader_program.setUniformi("blendVolume", 3);
 
-  ////pass constant uniforms at initialization
-  glUniform1i(m_volume_uniform, 0);
-  glUniform1i(m_lut_uniform, 1);
-  glUniform1i(m_depth_uniform, 2);
-  glUniform1i(m_blendVolume_uniform, 3);
+  //bindProgram();
 
-  unbindProgram();
+  //// add attributes and uniforms
+  //m_volume_uniform = glGetUniformLocation(m_programID, "volume");
+  //m_MVP_uniform = glGetUniformLocation(m_programID, "MVP");
+  //m_clipPlane_uniform = glGetUniformLocation(m_programID, "clipPlane");
+  //m_vVertex_attribute = glGetAttribLocation(m_programID, "vVertex");
+  //m_camPos_uniform = glGetUniformLocation(m_programID, "camPos");
+  //m_step_size_uniform = glGetUniformLocation(m_programID, "step_size");
+  //m_threshold_uniform = glGetUniformLocation(m_programID, "threshold");
+  //m_multiplier_uniform = glGetUniformLocation(m_programID, "multiplier");
+  //m_clipping_uniform = glGetUniformLocation(m_programID, "clipping");
+  //m_channel_uniform = glGetUniformLocation(m_programID, "channel");
+  //m_lut_uniform = glGetUniformLocation(m_programID, "lut");
+  //m_useLut_uniform = glGetUniformLocation(m_programID, "useLut");
+  //m_useMultiLut_uniform = glGetUniformLocation(m_programID, "useMultiLut");
+  //m_viewport_uniform = glGetUniformLocation(m_programID, "viewport");
+  //m_depth_uniform = glGetUniformLocation(m_programID, "depth");
+  //m_P_inv_uniform = glGetUniformLocation(m_programID, "P_inv");
+  //m_depth_uniform = glGetUniformLocation(m_programID, "depth");
+  //m_useBlend_uniform = glGetUniformLocation(m_programID, "useBlend");
+  //m_blendAlpha_uniform = glGetUniformLocation(m_programID, "blendAlpha");
+  //m_blendVolume_uniform = glGetUniformLocation(m_programID, "blendVolume");
+  //m_clip_min_uniform = glGetUniformLocation(m_programID, "clip_min");
+  //m_clip_max_uniform = glGetUniformLocation(m_programID, "clip_max");
+  //m_frambuffer_uniform = glGetUniformLocation(m_programID,"framebuffer_size");
+  //m_display_scale_uniform =  glGetUniformLocation(m_programID,"display_scale");
+  //m_slices_uniform =  glGetUniformLocation(m_programID,"slices");
+  //m_dim_uniform = glGetUniformLocation(m_programID,"dim");
+
+  //////pass constant uniforms at initialization
+  //glUniform1i(m_volume_uniform, 0);
+  //glUniform1i(m_lut_uniform, 1);
+  //glUniform1i(m_depth_uniform, 2);
+  //glUniform1i(m_blendVolume_uniform, 3);
+
+  //unbindProgram();
 }

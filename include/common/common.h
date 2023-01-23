@@ -11,3 +11,7 @@
 #define OS_SLASH "//"
 #include <dirent.h>
 #endif
+
+#include <string>
+#include <unordered_map>
+#include <set>

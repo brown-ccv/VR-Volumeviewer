@@ -50,13 +50,16 @@
 #endif
 
 #include <glm/glm.hpp>
-#include "VolumeRaycastShader.h"
 #include "VolumeRenderer.h"
+#include "render/VolumeRaycastShader.h"
 
+
+
+class VRVolumeApp;
 class VolumeRaycastRenderer : public VolumeRenderer
 {
 public:
-  VolumeRaycastRenderer();
+  VolumeRaycastRenderer(VRVolumeApp& volume_app);
   ~VolumeRaycastRenderer();
 
   virtual void initGL() override;
@@ -86,5 +89,65 @@ private:
 
   // 3D texture slicing shader
   VolumeRaycastShader shader;
+  VRVolumeApp& m_volume_app;
+
+  GLuint m_volume_uniform;
+  GLuint m_vVertex_attribute;
+  GLuint m_MVP_uniform;
+
+  GLuint m_camPos_uniform;
+
+  float m_stepSize[3];
+  GLuint m_step_size_uniform;
+
+  bool m_clipping;
+  GLuint m_clipping_uniform;
+  GLuint m_clipPlane_uniform;
+
+  float m_threshold;
+  float m_multiplier;
+  int m_channel;
+  float m_slices;
+  float m_dim;
+
+  GLuint m_threshold_uniform;
+  GLuint m_multiplier_uniform;
+  GLuint m_channel_uniform;
+
+  bool m_useLut;
+  bool m_useMultiLut;
+  GLuint m_lut_uniform;
+  GLint m_useLut_uniform;
+  GLuint m_useMultiLut_uniform;
+
+  unsigned int m_depth_texture;
+  unsigned int m_screen_size[2];
+  unsigned int m_buffer_size[2];
+  unsigned int m_display_scale[2];
+
+  glm::mat4 m_P_inv;
+  GLuint m_depth_uniform;
+  GLuint m_viewport_uniform;
+  GLuint m_P_inv_uniform;
+
+  glm::mat4 m_P_inv;
+  GLuint m_depth_uniform;
+  GLuint m_viewport_uniform;
+  GLuint m_P_inv_uniform;
+
+  bool m_use_blending;
+  unsigned int m_blend_volume;
+  float m_blending_alpha;
+  GLuint m_useBlend_uniform;
+  GLuint m_blendAlpha_uniform;
+  GLuint m_blendVolume_uniform;
+  GLuint m_clip_min_uniform;
+  GLuint m_clip_max_uniform;
+  GLuint m_frambuffer_uniform;
+  GLuint m_display_scale_uniform;
+  GLuint m_slices_uniform;
+  GLuint m_dim_uniform;
+  glm::vec3 m_clip_min;
+  glm::vec3 m_clip_max;
 };
 #endif // VOLUMESLICERCASTRENDER_H

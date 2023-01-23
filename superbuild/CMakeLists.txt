@@ -475,6 +475,7 @@ message(STATUS "MYCOMPILER IS ${CMAKE_CXX_COMPILER}")
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/VolumeRaycastRenderer.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/VolumeRaycastShader.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/Mesh.cpp
+ ${CMAKE_CURRENT_BINARY_DIR}/../src/render/ShaderUniforms.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/UI/UIView.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/glm.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/FrameBufferObject.cpp
@@ -508,6 +509,7 @@ set(header_files
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeRaycastShader.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/Mesh.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/UI/UIView.h
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/render/ShaderUniforms.h
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/glm.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/FrameBufferObject.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/DepthTexture.h

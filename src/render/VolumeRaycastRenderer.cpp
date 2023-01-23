@@ -31,226 +31,230 @@
 
 #include "render/VolumeRaycastRenderer.h"
 #include <glm/gtc/matrix_transform.hpp>
+#include "common/common.h"
+#include "render/ShaderUniforms.h"
+#include "vrapp/VRVolumeApp.h"
 
-VolumeRaycastRenderer::VolumeRaycastRenderer() //: num_slices{ MAX_SLICES }
+VolumeRaycastRenderer::VolumeRaycastRenderer(VRVolumeApp& volume_app):m_volume_app(volume_app) //: num_slices{ MAX_SLICES }
 {
 }
 
 VolumeRaycastRenderer::~VolumeRaycastRenderer()
 {
-  glDeleteVertexArrays(1, &cubeVAOID);
-  glDeleteBuffers(1, &cubeVBOID);
-  glDeleteBuffers(1, &cubeIndicesID);
+	glDeleteVertexArrays(1, &cubeVAOID);
+	glDeleteBuffers(1, &cubeVBOID);
+	glDeleteBuffers(1, &cubeIndicesID);
 }
 
 void VolumeRaycastRenderer::initGL()
 {
-  ////Load and init the texture slicing shader
-  shader.initGL();
+	////Load and init the texture slicing shader
+	std::string shader_file_path = m_volume_app.get_directory_path() + OS_SLASH + "shaders";
+	shader.initGL(shader_file_path);
+	
 
-  glGenVertexArrays(1, &cubeVAOID);
-  glGenBuffers(1, &cubeVBOID);
-  glGenBuffers(1, &cubeIndicesID);
+	glGenVertexArrays(1, &cubeVAOID);
+	glGenBuffers(1, &cubeVBOID);
+	glGenBuffers(1, &cubeIndicesID);
 
-  // unit cube vertices
-  glm::vec3 vertices[8] = {glm::vec3(-0.5f, -0.5f, -0.5f), // 0
-                           glm::vec3(0.5f, -0.5f, -0.5f),  // 1
-                           glm::vec3(0.5f, 0.5f, -0.5f),   // 2
-                           glm::vec3(-0.5f, 0.5f, -0.5f),  // 3
-                           glm::vec3(-0.5f, -0.5f, 0.5f),  // 4
-                           glm::vec3(0.5f, -0.5f, 0.5f),   // 5
-                           glm::vec3(0.5f, 0.5f, 0.5f),    // 6
-                           glm::vec3(-0.5f, 0.5f, 0.5f)};  // 7
+	// unit cube vertices
+	glm::vec3 vertices[8] = { glm::vec3(-0.5f, -0.5f, -0.5f), // 0
+							 glm::vec3(0.5f, -0.5f, -0.5f),  // 1
+							 glm::vec3(0.5f, 0.5f, -0.5f),   // 2
+							 glm::vec3(-0.5f, 0.5f, -0.5f),  // 3
+							 glm::vec3(-0.5f, -0.5f, 0.5f),  // 4
+							 glm::vec3(0.5f, -0.5f, 0.5f),   // 5
+							 glm::vec3(0.5f, 0.5f, 0.5f),    // 6
+							 glm::vec3(-0.5f, 0.5f, 0.5f) };  // 7
 
-  // unit cube indices
-  // GLushort cubeIndices[36] = {0, 5, 4,
-  //                             5, 0, 1,
-  //                             3, 7, 6,
-  //                             3, 6, 2,
+	GLushort cubeIndices[36] = { 3, 6, 7,
+								6, 3, 2,
+								0, 4, 5,
+								0, 5, 1,
 
-  //                             7, 4, 6,
-  //                             6, 4, 5,
-  //                             2, 1, 3,
-  //                             3, 1, 0,
-  //                             3, 0, 7,
-  //                             7, 0, 4,
-  //                             6, 5, 2,
-  //                             2, 5, 1};
+								7, 4, 6,
+								6, 4, 5,
+								2, 1, 3,
+								3, 1, 0,
+								3, 0, 7,
+								7, 0, 4,
+								6, 5, 2,
+								2, 5, 1 };
+	glBindVertexArray(cubeVAOID);
+	glBindBuffer(GL_ARRAY_BUFFER, cubeVBOID);
+	// pass cube vertices to buffer object memory
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &(vertices[0].x), GL_STATIC_DRAW);
 
-  GLushort cubeIndices[36] = {3, 6, 7,
-                              6, 3, 2,
-                              0, 4, 5,
-                              0, 5, 1,
-                              
-                              7, 4, 6,
-                              6, 4, 5,
-                              2, 1, 3,
-                              3, 1, 0,
-                              3, 0, 7,
-                              7, 0, 4,
-                              6, 5, 2,
-                              2, 5, 1};
-  glBindVertexArray(cubeVAOID);
-  glBindBuffer(GL_ARRAY_BUFFER, cubeVBOID);
-  // pass cube vertices to buffer object memory
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &(vertices[0].x), GL_STATIC_DRAW);
+	// enable vertex attributre array for position
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-  // enable vertex attributre array for position
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	// pass indices to element array  buffer
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cubeIndicesID);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cubeIndices), &cubeIndices[0], GL_STATIC_DRAW);
 
-  // pass indices to element array  buffer
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cubeIndicesID);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cubeIndices), &cubeIndices[0], GL_STATIC_DRAW);
-
-  glBindVertexArray(0);
+	glBindVertexArray(0);
 }
 
-void VolumeRaycastRenderer::render(Volume *volume, const glm::mat4 &MV, glm::mat4 &P, float z_scale, GLint colormap, int renderChannel)
+void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4& MV, glm::mat4& P, float z_scale, GLint colormap, int renderChannel)
 {
-  glDepthMask(GL_FALSE);
-  glDisable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);
+	glDisable(GL_DEPTH_TEST);
 
-  bool enableCulling = glIsEnabled(GL_CULL_FACE);
-  GLint cull_mode;
-  glGetIntegerv(GL_CULL_FACE_MODE, &cull_mode);
-  glEnable(GL_CULL_FACE);
-  glCullFace(GL_FRONT);
+	bool enableCulling = glIsEnabled(GL_CULL_FACE);
+	GLint cull_mode;
+	glGetIntegerv(GL_CULL_FACE_MODE, &cull_mode);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
 
-  
-  glActiveTexture(GL_TEXTURE0 + 0);
-  glBindTexture(GL_TEXTURE_2D, volume->get_texture_id());
-  //std::cout << "PPPPPPPPPP get_texture_id " << volume->get_texture_id() << std::endl;
 
-  ////enable alpha blending (use over operator)
-  bool enableBlend = glIsEnabled(GL_BLEND);
-  glEnable(GL_BLEND);
-  // todo: we should also undo the blending func later
-  // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR);
-  glBlendEquation(GL_FUNC_ADD);
+	glActiveTexture(GL_TEXTURE0 + 0);
+	glBindTexture(GL_TEXTURE_2D, volume->get_texture_id());
+	//std::cout << "PPPPPPPPPP get_texture_id " << volume->get_texture_id() << std::endl;
 
-  if (colormap >= 0)
-  {
-    glActiveTexture(GL_TEXTURE0 + 1);
-    glBindTexture(GL_TEXTURE_2D, colormap);
-    shader.set_useLut(true);
-  }
-  else
-  {
-    shader.set_useLut(false);
-  }
+	////enable alpha blending (use over operator)
+	bool enableBlend = glIsEnabled(GL_BLEND);
+	glEnable(GL_BLEND);
+	// todo: we should also undo the blending func later
+	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR);
+	glBlendEquation(GL_FUNC_ADD);
 
-  ////now do the z_scaling
-  glm::mat4 MV_tmp = glm::scale(MV, glm::vec3(1, 1, z_scale));
+	if (colormap >= 0)
+	{
+		glActiveTexture(GL_TEXTURE0 + 1);
+		glBindTexture(GL_TEXTURE_2D, colormap);
+		m_ray_caster_shader.setUniformi("useLut", true);
+	}
+	else
+	{
+		m_ray_caster_shader.setUniformi("useLut", false);
+	}
 
-  ////get the combined modelview projection matrix
-  glm::mat4 MVP = P * MV_tmp;
+	////now do the z_scaling
+	glm::mat4 MV_tmp = glm::scale(MV, glm::vec3(1, 1, z_scale));
 
-  glm::mat4 clipPlane;
-  if (m_clipping)
-  {
-    clipPlane = glm::translate(m_clip_plane * MV_tmp, glm::vec3(-0.5f));
-    shader.set_clipping(true);
-  }
-  else
-  {
-    shader.set_clipping(false);
-  }
+	////get the combined modelview projection matrix
+	glm::mat4 MVP = P * MV_tmp;
 
-  glm::vec3 camPos = glm::vec4(glm::inverse(MV_tmp) * glm::vec4(0, 0, 0, 1));
-  camPos += glm::vec3(0.5f);
-  glm::mat4 P_inv = glm::inverse(MV_tmp) * glm::inverse(P);
+	glm::mat4 clipPlane;
+	if (m_clipping)
+	{
+		clipPlane = glm::translate(m_clip_plane * MV_tmp, glm::vec3(-0.5f));
+		m_ray_caster_shader.setUniformi("clipping", true);
+	}
+	else
+	{
+		m_ray_caster_shader.setUniformi("clipping", false);
+	}
 
-  if (renderChannel == 0)
-    setChannel(volume);
-  else
-    shader.set_channel(renderChannel);
+	glm::vec3 camPos = glm::vec4(glm::inverse(MV_tmp) * glm::vec4(0, 0, 0, 1));
+	camPos += glm::vec3(0.5f);
+	glm::mat4 P_inv = glm::inverse(MV_tmp) * glm::inverse(P);
 
-  glBindVertexArray(cubeVAOID);
-  ////use the volume shader
-  shader.set_P_inv(P_inv);
-  // shader.set_stepSize(1.0f / volume->get_width(), 1.0f / volume->get_height(), 1.0f / volume->get_depth());
-  shader.setNumSlices(volume->get_depth());
-  shader.setNumDim(volume->get_dim());
+	if (renderChannel == 0)
+		setChannel(volume);
+	else
+		//shader.set_channel(renderChannel);
+		m_ray_caster_shader.setUniformi("channel", renderChannel);
 
-  shader.render(MVP, clipPlane, camPos);
+	glBindVertexArray(cubeVAOID);
+	////use the volume shader
+	//shader.set_P_inv(P_inv);
+	m_ray_caster_shader.setUniform("P_inv", P_inv);
+	// shader.set_stepSize(1.0f / volume->get_width(), 1.0f / volume->get_height(), 1.0f / volume->get_depth());
 
-  ////disable blending
-  glBindVertexArray(0);
+	//shader.setNumSlices(volume->get_depth());
+	m_ray_caster_shader.setUniformi("slices", volume->get_depth());
+	//shader.setNumDim(volume->get_dim());
+	m_ray_caster_shader.setUniformf("dim", volume->get_dim());
 
-  if (colormap >= 0)
-  {
-    glActiveTexture(GL_TEXTURE0 + 1);
-    glBindTexture(GL_TEXTURE_2D, 0);
-  }
+	//draw call
+	//shader.render(MVP, clipPlane, camPos);
+	if (false)
+	{
+		glActiveTexture(GL_TEXTURE0 + 3);
+		glBindTexture(GL_TEXTURE_3D, m_blend_volume);
+	}
 
-  glActiveTexture(GL_TEXTURE0 + 0);
-  glBindTexture(GL_TEXTURE_3D, 0);
+	glActiveTexture(GL_TEXTURE0 + 2);
+	glBindTexture(GL_TEXTURE_2D, m_depth_texture);
 
-  if (!enableBlend)
-    glDisable(GL_BLEND);
+	////disable blending
+	glBindVertexArray(0);
 
-  if (!enableCulling)
-    glDisable(GL_CULL_FACE);
-  glCullFace(cull_mode);
+	if (colormap >= 0)
+	{
+		glActiveTexture(GL_TEXTURE0 + 1);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
 
-  glEnable(GL_DEPTH_TEST);
-  glDepthMask(GL_TRUE);
+	glActiveTexture(GL_TEXTURE0 + 0);
+	glBindTexture(GL_TEXTURE_3D, 0);
+
+	if (!enableBlend)
+		glDisable(GL_BLEND);
+
+	if (!enableCulling)
+		glDisable(GL_CULL_FACE);
+	glCullFace(cull_mode);
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
 }
 
 void VolumeRaycastRenderer::set_threshold(float threshold)
 {
-  shader.set_threshold(threshold);
+	shader.set_threshold(threshold);
 }
 
 void VolumeRaycastRenderer::set_multiplier(float multiplier)
 {
-  shader.set_multiplier(multiplier);
+	shader.set_multiplier(multiplier);
 }
 
 void VolumeRaycastRenderer::set_num_slices(int slices)
 {
-  shader.set_stepSize(0.01, 0.01, 0.01);
-  // TODO:  Camilo Thinks this is not necessary for ray casting volume rendering.
-  // we only need step size.
-  // shader.set_stepSize(1.0f / slices, 1.0f / slices, 1.0f / slices);
+	shader.set_stepSize(0.01, 0.01, 0.01);
+	// TODO:  Camilo Thinks this is not necessary for ray casting volume rendering.
+	// we only need step size.
+	// shader.set_stepSize(1.0f / slices, 1.0f / slices, 1.0f / slices);
 }
 
-void VolumeRaycastRenderer::set_blending(bool useBlending, float alpha, Volume *volume)
+void VolumeRaycastRenderer::set_blending(bool useBlending, float alpha, Volume* volume)
 {
-  shader.set_blending(useBlending, alpha, volume->get_texture_id());
+	shader.set_blending(useBlending, alpha, volume->get_texture_id());
 }
 
 void VolumeRaycastRenderer::useMultichannelColormap(bool useMulti)
 {
-  shader.useMultichannelColormap(useMulti);
+	shader.useMultichannelColormap(useMulti);
 }
 
-void VolumeRaycastRenderer::setChannel(Volume *volume)
+void VolumeRaycastRenderer::setChannel(Volume* volume)
 {
-  if (volume->render_channel() == -1)
-  {
-    if (volume->get_channels() == 1)
-    {
-      shader.set_channel(1);
-    }
-    else if (volume->get_channels() == 3)
-    {
-      shader.set_channel(-1);
-    }
-    else if (volume->get_channels() == 4)
-    {
-      shader.set_channel(5);
-    }
-  }
-  else
-  {
-    shader.set_channel(volume->render_channel());
-  }
+	if (volume->render_channel() == -1)
+	{
+		if (volume->get_channels() == 1)
+		{
+			shader.set_channel(1);
+		}
+		else if (volume->get_channels() == 3)
+		{
+			shader.set_channel(-1);
+		}
+		else if (volume->get_channels() == 4)
+		{
+			shader.set_channel(5);
+		}
+	}
+	else
+	{
+		shader.set_channel(volume->render_channel());
+	}
 }
 
 void VolumeRaycastRenderer::set_clip_min_max(glm::vec3 min_clip, glm::vec3 max_clip)
 {
-  shader.setClipping(min_clip, max_clip);
+	shader.setClipping(min_clip, max_clip);
 }
