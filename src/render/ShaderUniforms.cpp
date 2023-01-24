@@ -11,18 +11,20 @@ std::vector<std::string> create_uniform_set() {
 	temp.push_back("lut");
 	temp.push_back("MVP");
 	temp.push_back("texture_atlas");
+	temp.push_back("clipPlane");
+	temp.push_back("clipping");
 
 	/*
 	temp.push_back("projection_matrix");
 	temp.push_back("model_view_matrix");
 	
-	temp.push_back("clipPlane");
-	temp.push_back("vVertex");
+	
+
 	
 	temp.push_back("step_size");
 	temp.push_back("threshold");
 	temp.push_back("multiplier");
-	temp.push_back("clipping");
+	
 	temp.push_back("channel");
 	
 	temp.push_back("useLut");
