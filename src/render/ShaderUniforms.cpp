@@ -10,6 +10,7 @@ std::vector<std::string> create_uniform_set() {
 	temp.push_back("slices");
 	temp.push_back("lut");
 	temp.push_back("MVP");
+	temp.push_back("texture_atlas");
 
 	/*
 	temp.push_back("projection_matrix");

@@ -338,6 +338,7 @@ void VolumeRaycastShader::render(glm::mat4 &MVP, glm::mat4 &clipPlane, glm::vec3
  // m_shader_program.setUniform("P_inv", m_P_inv);
   m_shader_program.setUniformf("slices", m_slices);
   m_shader_program.setUniformf("dimension", m_dim);
+  m_shader_program.setUniformi("texture_atlas", m_texture_atlas_render);
   //m_shader_program.setUniformi("useBlend", 0);
   m_shader_program.setUniform("clip_min", m_clip_min);
   m_shader_program.setUniform("clip_max", m_clip_max);

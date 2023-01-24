@@ -143,6 +143,11 @@ public:
 		m_dim = dim;
 	}
 
+	void setTextureAtlasRender(bool is_texture_atlas)
+	{
+		m_texture_atlas_render = is_texture_atlas;
+	}
+
 private:
 	GLuint m_volume_uniform;
 	GLuint m_vVertex_attribute;
@@ -200,5 +205,6 @@ private:
 	glm::vec3 m_clip_max;
   
 	ShaderProgram m_shader_program;
+	bool m_texture_atlas_render;
 };
 #endif // VOLUMERAYCASTSHADER_H

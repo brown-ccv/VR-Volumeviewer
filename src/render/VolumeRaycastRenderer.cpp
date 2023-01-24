@@ -161,7 +161,7 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4& MV, glm::mat
 
 	shader.setNumSlices(volume->get_depth());
 	shader.setNumDim(volume->get_dim());
-	
+	shader.setTextureAtlasRender(volume->get_volume_texture_atlas());
 
 	//draw call
 	shader.render(MVP, clipPlane, camPos, cubeVAOID);

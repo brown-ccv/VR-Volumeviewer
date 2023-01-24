@@ -7,7 +7,11 @@ uniform bool texture_atlas;
 void main()
 {
 	// get the clipspace position
-	vec3 p_vVertex =  vVertex * vec3(1,-1.0,1);
+	vec3 p_vVertex = vVertex;
+	if(texture_atlas)
+	{
+		p_vVertex *=  vec3(1,-1.0,1);
+	}
 	gl_Position = MVP*vec4(p_vVertex, 1);
 	// get the 3D texture coordinates by adding (0.5,0.5,0.5) to the object space
 	// vertex position. Since the unit cube is at origin (min: (-0.5,-0.5,-0.5) and max: (0.5,0.5,0.5))

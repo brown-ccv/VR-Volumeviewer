@@ -5,6 +5,8 @@ uniform float dimension;
 uniform sampler2D lut;// transferfunction
 uniform sampler2D volume_2D;// volume dataset
 uniform sampler3D volume_3D;// volume dataset
+uniform sampler2D depth;
+uniform sampler3D blendVolume;// volume dataset
 vec4 vFragColor=vec4(0);
 out vec4 fragColor; // Final output color
 smooth in vec3 vUV; // 3D texture coordinates form vertex shader interpolated by rasterizer
@@ -13,6 +15,9 @@ uniform vec3 camPos;
 uniform vec3 clip_min;
 uniform vec3 clip_max;
 uniform bool texture_atlas;
+uniform int channel;
+uniform bool useLut;
+
 
 vec2 intersect_box(vec3 orig, vec3 dir, vec3 clip_min, vec3 clip_max) { 
 	//"dir += vec3(0.0001); 

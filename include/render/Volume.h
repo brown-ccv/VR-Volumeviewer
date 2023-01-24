@@ -209,6 +209,12 @@ public:
   }
 
 
+  float get_volume_texture_atlas()
+  {
+	  return m_volume_texture_atlas;
+  }
+
+
 private:
   unsigned int m_width;
   unsigned int m_height;
