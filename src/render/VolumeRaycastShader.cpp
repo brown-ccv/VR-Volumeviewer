@@ -309,7 +309,7 @@ VolumeRaycastShader::~VolumeRaycastShader()
 {
 }
 
-void VolumeRaycastShader::render(glm::mat4 &MVP, glm::mat4 &clipPlane, glm::vec3 &camPos, unsigned int cubeVAOID)
+void VolumeRaycastShader::render(glm::mat4 &MVP, glm::mat4 &clipPlane, glm::vec3 &camPos)
 {
    m_shader_program.start();
   if (false)
@@ -321,25 +321,34 @@ void VolumeRaycastShader::render(glm::mat4 &MVP, glm::mat4 &clipPlane, glm::vec3
   glActiveTexture(GL_TEXTURE0 + 2);
   glBindTexture(GL_TEXTURE_2D, m_depth_texture);
 
- 
+  if (m_texture_atlas_render)
+  {
+      m_shader_program.setUniformi("volume_2D", 0);
+  }
+  else
+  {
+      m_shader_program.setUniformi("volume_3D", 0);
+  }
+  
+
   m_shader_program.setUniform("MVP", MVP);
-  //m_shader_program.setUniform("clipPlane", clipPlane);
+  m_shader_program.setUniform("clipPlane", clipPlane);
   m_shader_program.setUniform("camPos", camPos);
-  //m_shader_program.setUniform("step_size", m_stepSize);
-  //m_shader_program.setUniformf("threshold", m_threshold);
-  //m_shader_program.setUniformf("multiplier", m_multiplier);
-  //m_shader_program.setUniformi("clipping", m_clipping);
-  //m_shader_program.setUniformi("channel", m_channel);
-  //m_shader_program.setUniformi("useLut", m_useLut);
-  //m_shader_program.setUniformi("useMultiLut", m_useMultiLut);
-  //m_shader_program.setUniform("viewport", m_screen_size);
-  //m_shader_program.setUniform("framebuffer_size", m_buffer_size);
- // m_shader_program.setUniform("display_scale", m_display_scale);
- // m_shader_program.setUniform("P_inv", m_P_inv);
+  m_shader_program.setUniform("step_size", m_stepSize);
+  m_shader_program.setUniformf("threshold", m_threshold);
+  m_shader_program.setUniformf("multiplier", m_multiplier);
+  m_shader_program.setUniformi("clipping", m_clipping);
+  m_shader_program.setUniformi("channel", m_channel);
+  m_shader_program.setUniformi("useLut", m_useLut);
+  m_shader_program.setUniformi("useMultiLut", m_useMultiLut);
+  m_shader_program.setUniform("viewport", m_screen_size);
+  m_shader_program.setUniform("framebuffer_size", m_buffer_size);
+  m_shader_program.setUniform("display_scale", m_display_scale);
+  m_shader_program.setUniform("P_inv", m_P_inv);
   m_shader_program.setUniformf("slices", m_slices);
   m_shader_program.setUniformf("dimension", m_dim);
   m_shader_program.setUniformi("texture_atlas", m_texture_atlas_render);
-  //m_shader_program.setUniformi("useBlend", 0);
+  m_shader_program.setUniformi("useBlend", false);
   m_shader_program.setUniform("clip_min", m_clip_min);
   m_shader_program.setUniform("clip_max", m_clip_max);
 
@@ -396,9 +405,9 @@ void VolumeRaycastShader::initGL(const std::string& shader_file_path)
         std::cout << uniform << std::endl;
         m_shader_program.addUniform(uniform.c_str());
 	}
-    //m_shader_program.addUniform("dimension");
     
-    m_shader_program.setUniformi("volume_2D", 0);
+    
+   
     m_shader_program.setUniformi("lut", 1);
     //m_shader_program.setUniformi("depth", 2);
     //m_shader_program.setUniformi("blendVolume", 3);

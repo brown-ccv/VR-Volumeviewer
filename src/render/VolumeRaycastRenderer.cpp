@@ -109,7 +109,16 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4& MV, glm::mat
 
 
 	glActiveTexture(GL_TEXTURE0 + 0);
-	glBindTexture(GL_TEXTURE_2D, volume->get_texture_id());
+	if (volume->get_volume_texture_atlas())
+	{
+		glBindTexture(GL_TEXTURE_2D, volume->get_texture_id());
+	}
+	else
+	{
+		glBindTexture(GL_TEXTURE_3D, volume->get_texture_id());
+	}
+
+	
 	//std::cout << "PPPPPPPPPP get_texture_id " << volume->get_texture_id() << std::endl;
 
 	////enable alpha blending (use over operator)
@@ -164,7 +173,7 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4& MV, glm::mat
 	shader.setTextureAtlasRender(volume->get_volume_texture_atlas());
 
 	//draw call
-	shader.render(MVP, clipPlane, camPos, cubeVAOID);
+	shader.render(MVP, clipPlane, camPos);
 	/*if (false)
 	{
 		glActiveTexture(GL_TEXTURE0 + 3);
