@@ -60,6 +60,7 @@ private:
 	bool InUse();
 	GLuint LoadShader(const char* vertex_filenname, int type);
 	std::unordered_map<std::string, GLint> uniforms;
+	bool checkUniform(const char*);
 };
 
 #endif

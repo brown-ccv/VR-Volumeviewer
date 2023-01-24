@@ -6,7 +6,7 @@ class ShaderUniforms {
 
 public:
 	
-	static std::set<std::string> shader_uniforms;
+	static std::vector<std::string> shader_uniforms;
 	
 };
 

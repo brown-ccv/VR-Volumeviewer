@@ -1,37 +1,45 @@
 ﻿#include "render/ShaderUniforms.h"
 
-std::set<std::string> create_uniform_set() {
-	std::set<std::string> temp;
-	temp.insert("projection_matrix");
-	temp.insert("model_view_matrix");
-	temp.insert("volume");
-	temp.insert("MVP");
-	temp.insert("clipPlane");
-	temp.insert("vVertex");
-	temp.insert("camPos");
-	temp.insert("step_size");
-	temp.insert("threshold");
-	temp.insert("multiplier");
-	temp.insert("clipping");
-	temp.insert("channel");
-	temp.insert("lut");
-	temp.insert("useLut");
-	temp.insert("useMultiLut");
-	temp.insert("viewport");
-	temp.insert("depth");
-	temp.insert("P_inv");
-	temp.insert("depth");
-	temp.insert("P_inv");
-	temp.insert("useBlend");
-	temp.insert("blendAlpha");
-	temp.insert("blendVolume");
-	temp.insert("clip_min");
-	temp.insert("clip_max");
-	temp.insert("framebuffer_size");
-	temp.insert("display_scale");
-	temp.insert("slices");
-	temp.insert("dim");
+std::vector<std::string> create_uniform_set() {
+	std::vector<std::string> temp;
+	temp.push_back("dimension");
+	temp.push_back("volume_2D");
+	temp.push_back("camPos");
+	temp.push_back("clip_min");
+	temp.push_back("clip_max");
+	temp.push_back("slices");
+	temp.push_back("lut");
+	temp.push_back("MVP");
+
+	/*
+	temp.push_back("projection_matrix");
+	temp.push_back("model_view_matrix");
+	
+	temp.push_back("clipPlane");
+	temp.push_back("vVertex");
+	
+	temp.push_back("step_size");
+	temp.push_back("threshold");
+	temp.push_back("multiplier");
+	temp.push_back("clipping");
+	temp.push_back("channel");
+	
+	temp.push_back("useLut");
+	temp.push_back("useMultiLut");
+	temp.push_back("viewport");
+	temp.push_back("depth");
+	temp.push_back("P_inv");
+	temp.push_back("depth");
+	temp.push_back("P_inv");
+	temp.push_back("useBlend");
+	temp.push_back("blendAlpha");
+	temp.push_back("blendVolume");
+	
+	temp.push_back("framebuffer_size");
+	temp.push_back("display_scale");
+	*/
+	
 	return temp;
 }
 
-std::set<std::string> ShaderUniforms::shader_uniforms(create_uniform_set());
+std::vector<std::string> ShaderUniforms::shader_uniforms(create_uniform_set());

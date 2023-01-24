@@ -1,8 +1,9 @@
-#version 410 
+#version 330 
 layout(location = 0) in vec3 vVertex;
 
 uniform mat4 MVP;
 smooth out vec3 vUV;
+uniform bool texture_atlas;
 void main()
 {
 	// get the clipspace position

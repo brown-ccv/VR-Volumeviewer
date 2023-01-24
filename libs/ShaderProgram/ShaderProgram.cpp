@@ -25,10 +25,10 @@ void ShaderProgram::LoadShaders(const std::string& vertex_filenname, const std::
 	glAttachShader(m_progarm_id, vertexShaderID);
 	glAttachShader(m_progarm_id, fragmentShaderID);
 
-
 	glBindAttribLocation(m_progarm_id, 0, "vertexPosition");
+	/*glBindAttribLocation(m_progarm_id, 0, "vertexPosition");
 	glBindAttribLocation(m_progarm_id, 1, "texCoord");
-	glBindAttribLocation(m_progarm_id, 2, "normals");
+	glBindAttribLocation(m_progarm_id, 2, "normals");*/
 
 	glLinkProgram(m_progarm_id);
 
@@ -86,41 +86,49 @@ void ShaderProgram::addUniform(const char * name)
 
 void ShaderProgram::setUniformi(const char * name, int value)
 {
+	checkUniform(name);
 	glUniform1i(uniforms[name], value);
 }
 
 void ShaderProgram::setUniformf(const char * name, float value)
 {
+	checkUniform(name);
 	glUniform1f(uniforms[name], value);
 }
 
 void ShaderProgram::setUniform(const char* name, glm::ivec2& vector)
 {
+	checkUniform(name);
 	glUniform2i(uniforms[name], vector.x, vector.y);
 }
 
 void ShaderProgram::setUniform(const char* name, glm::vec2& vector)
 {
+	checkUniform(name);
 	glUniform2f(uniforms[name], vector.x, vector.y);
 }
 
 void ShaderProgram::setUniform(const char* name, glm::ivec3& vector)
 {
+	checkUniform(name);
 	glUniform3i(uniforms[name], vector.x, vector.y, vector.z);
 }
 
 void ShaderProgram::setUniform(const char * name, glm::vec3& vector)
 {
+	checkUniform(name);
 	glUniform3f(uniforms[name], vector.x, vector.y, vector.z);
 }
 
 void ShaderProgram::setUniform(const char* name, glm::vec4& vector)
 {
+	checkUniform(name);
 	glUniform4f(uniforms[name], vector.x, vector.y, vector.z, vector.w);
 }
 
 void ShaderProgram::setUniform(const char * name, glm::mat4& matrix)
 {
+	checkUniform(name);
 	if (!InUse())
 	{
 		start();
@@ -135,6 +143,7 @@ void ShaderProgram::setUniform(const char * name, glm::mat4& matrix)
 
 void ShaderProgram::setUniformMatrix4fv(const char* name, const GLfloat* matrix)
 {
+	checkUniform(name);
 	assert(m_progarm_id != 0 && "Shader program not initialized");
 	if (uniforms.find(name) == uniforms.end())
 	{
@@ -200,4 +209,14 @@ GLuint ShaderProgram::LoadShader(const char * filenname, int type)
 
 	VerifiProgram(shaderId);
 	return shaderId;
+}
+
+bool ShaderProgram::checkUniform(const char* name)
+{
+	if (uniforms.find(name) == uniforms.end())
+	{
+		printf("Uniform %s does not exist\n", name);
+		return false;
+	}
+	return true;
 }

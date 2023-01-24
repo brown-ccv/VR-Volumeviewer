@@ -164,7 +164,7 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4& MV, glm::mat
 	
 
 	//draw call
-	shader.render(MVP, clipPlane, camPos);
+	shader.render(MVP, clipPlane, camPos, cubeVAOID);
 	/*if (false)
 	{
 		glActiveTexture(GL_TEXTURE0 + 3);
