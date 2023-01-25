@@ -123,11 +123,11 @@ void main()
 				{
 					// fetchig data from 3D volume
 					// data fetching from the red channel of volume texture
-					
+					//m_sample = vec4(1.0,0.0,0.0,1.0);
 					if (channel == 1){ 
 						m_sample = texture(volume_3D, dataPos).rrrr; 
 					}else if (channel == 2){
-					  m_sample = texture(volume_3D, dataPos).gggg;
+					   m_sample = texture(volume_3D, dataPos).gggg;
 					}else if (channel == 3){ 
 					  m_sample = texture(volume_3D, dataPos).bbbb;
 					}else if (channel == 4){
@@ -175,7 +175,6 @@ void main()
 					
 					// assume alpha is the highest channel and gamma correction
 					m_sample.a = m_sample.a * multiplier;  /// needs changing
-
 
 				}
 				

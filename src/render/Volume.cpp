@@ -62,7 +62,7 @@ Volume::Volume(unsigned int width, unsigned int height, unsigned int depth, doub
 	if (!volume_texture_atlas)
 	{
 		// Data is in a 3D array format. Pre-Allocate block of data
-		data = new unsigned char[m_width * m_height * m_channels * m_datatypesize]();
+		data = new unsigned char[m_width * m_height * m_depth * m_channels * m_datatypesize]();
 	}
 
 }
@@ -300,23 +300,50 @@ void Volume::initGL()
 
 	switch (m_channels)
 	{
-		case 1:
+	case 1:
+	{
+		if (m_datatypesize == 1)
 		{
-			if (m_datatypesize == 1)
-			{
-				glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, get_width(), get_height(), get_depth(), 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
-			}
-			if (m_datatypesize == 2)
-			{
-				glTexImage3D(GL_TEXTURE_3D, 0, GL_R16, get_width(), get_height(), get_depth(), 0, GL_RED, GL_UNSIGNED_SHORT, NULL);
-			}
-			if (m_datatypesize == 4)
-			{
-				glTexImage3D(GL_TEXTURE_3D, 0, GL_R32F, get_width(), get_height(), get_depth(), 0, GL_RED, GL_FLOAT, NULL);
-			}
+			glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, get_width(), get_height(), get_depth(), 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
 		}
-		break;
-		case 3:
+		if (m_datatypesize == 2)
+		{
+			glTexImage3D(GL_TEXTURE_3D, 0, GL_R16, get_width(), get_height(), get_depth(), 0, GL_RED, GL_UNSIGNED_SHORT, NULL);
+		}
+		if (m_datatypesize == 4)
+		{
+			glTexImage3D(GL_TEXTURE_3D, 0, GL_R32F, get_width(), get_height(), get_depth(), 0, GL_RED, GL_FLOAT, NULL);
+		}
+	}
+	break;
+	case 3:
+	{
+		if (m_datatypesize == 1)
+		{
+			glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		}
+		if (m_datatypesize == 2)
+		{
+			glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_SHORT, NULL);
+		}
+	}
+
+	break;
+	case 4:
+	{
+		if (m_datatypesize == 1)
+		{
+			glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, get_width(), get_height(), get_depth(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		}
+		if (m_datatypesize == 2)
+		{
+			glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, get_width(), get_height(), get_depth(), 0, GL_RGBA, GL_UNSIGNED_SHORT, NULL);
+		}
+	}
+	break;
+
+	default:
+	{
 		{
 			if (m_datatypesize == 1)
 			{
@@ -327,5 +354,21 @@ void Volume::initGL()
 				glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, get_width(), get_height(), get_depth(), 0, GL_RGB, GL_UNSIGNED_SHORT, NULL);
 			}
 		}
+		break;
 	}
+	}
+
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+	glDeleteBuffers(1, &m_pbo);
+	m_pbo_upload_started = false;
+
+	glGenerateMipmap(GL_TEXTURE_3D);
+	set_volume_scale({ static_cast<float>(1.0f / (m_x_scale * m_width)),
+					  static_cast<float>(1.0f / (m_y_scale * m_height)),
+					  static_cast<float>(1.0f / (m_z_scale * m_depth)) });
+
+	delete[] data;
+	data = nullptr;
+
+	m_texture_initialized = true;
 }

@@ -109,7 +109,8 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4& MV, glm::mat
 
 
 	glActiveTexture(GL_TEXTURE0 + 0);
-	glBindTexture(GL_TEXTURE_2D, volume->get_texture_id());
+	GLenum texture_target = volume->get_volume_texture_atlas() ? GL_TEXTURE_2D : GL_TEXTURE_3D;
+	glBindTexture(texture_target, volume->get_texture_id());
 	//std::cout << "PPPPPPPPPP get_texture_id " << volume->get_texture_id() << std::endl;
 
 	////enable alpha blending (use over operator)
