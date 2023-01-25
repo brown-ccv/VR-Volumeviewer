@@ -75,6 +75,31 @@ void main()
 		t_end = t_end - t_start ;
 		t_start = 0.0;
 		
+		
+		// get t for the clipping plane and overwrite the entry point
+		if(clipping){ 
+			vec4 p_in = clipPlane * vec4(dataPos + t_hit.x * geomDir, 1);
+			vec4 p_out = clipPlane * vec4(dataPos + t_hit.y * geomDir, 1);
+			if(p_in.y * p_out.y < 0.0f ){
+				// both points lie on different sides of the plane
+				// we need to compute a new clippoint
+				vec4 c_pos = clipPlane * vec4(dataPos, 1);
+				vec4 c_dir = clipPlane * vec4(geomDir, 0);
+				float t_clip = -c_pos.y / c_dir.y  ;
+				// update either entry or exit based on which is on the clipped side
+				if (p_in.y > 0.0f){
+					t_hit.x = t_clip; 
+				}else{
+					t_hit.y = t_clip; 
+				}
+			}else{
+				// both points lie on the same side of the plane.
+				// if one of them is on the wrong side they can be clipped
+				if(p_in.y > 0.0f)
+					discard;
+			}
+		}
+		
 		// Compute occlusion point in volume coordinates
 		/* TO DO:  this part of the code needs to be tested again in VR mode.
 			float d = texture(depth, vec2(gl_FragCoord.x/viewport.x,gl_FragCoord.y/viewport.y)).r;
@@ -91,8 +116,6 @@ void main()
 				discard;
 		*/
 		
-		// compute step size as the minimum of the stepsize
-		//float dt = min(step_size.x, min(step_size.y, step_size.z)) ;
 		
 		dataPos = dataPos + t_start * geomDir;
 		float dt = 0.01 ;
@@ -189,17 +212,10 @@ void main()
 	
 			}
 				
-		 
-				
-				
 		
-		//}
-		
-		
-		//if (vFragColor.a < 0.0001f) {
-		// discard;
-		//}
+		if (vFragColor.a < 0.0001f) {
+		 discard;
+		}
 		fragColor = vFragColor;
-		
-		
+			
 }
