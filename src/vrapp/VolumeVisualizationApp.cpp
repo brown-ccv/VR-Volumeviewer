@@ -29,7 +29,7 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char **argv) : MinVR::V
   int argc_int = this->getLeftoverArgc();
   char **argv_int = this->getLeftoverArgv();
 
-  m_vrVolumeApp = new VRVolumeApp();
+  m_vrVolumeApp = std::make_unique<VRVolumeApp>();
   const std::string current_Path = std::string(argv_int[0]);
   cppfs::FilePath p_filename(current_Path);
   std::string parent_Path = p_filename.directoryPath();
@@ -77,8 +77,7 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char **argv) : MinVR::V
 
 VolumeVisualizationApp::~VolumeVisualizationApp()
 {
-
-  delete m_vrVolumeApp;
+  
 }
 
 void VolumeVisualizationApp::onCursorMove(const MinVR::VRCursorEvent &event)
