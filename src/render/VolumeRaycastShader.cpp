@@ -47,7 +47,7 @@ VolumeRaycastShader::~VolumeRaycastShader()
 {
 }
 
-void VolumeRaycastShader::render(glm::mat4 &MVP, glm::mat4 &clipPlane, glm::vec3 &camPos, unsigned int cubeVAOID)
+void VolumeRaycastShader::render(glm::mat4 &MVP, glm::mat4 &clipPlane, glm::vec3 &camPos)
 {
    m_shader_program.start();
   if (false)

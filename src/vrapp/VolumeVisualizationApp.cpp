@@ -56,7 +56,7 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char **argv) : MinVR::V
       else if (helper::ends_with_string(std::string(argv_int[i]), ".txt"))
       {
         std::string fileName = argv_int[i];
-        //VRDataLoader::load_txt_file(*m_vrVolumeApp, fileName);
+        VRDataLoader::load_txt_file(*m_vrVolumeApp, fileName);
       }
       else if (helper::ends_with_string(std::string(argv_int[i]), ".nrrd"))
       {

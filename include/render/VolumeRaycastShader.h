@@ -64,7 +64,7 @@ public:
 	VolumeRaycastShader();
 	virtual ~VolumeRaycastShader();
 
-	void render(glm::mat4& MVP, glm::mat4& clipPlane, glm::vec3& camPos, unsigned int cubeVAOID);
+	void render(glm::mat4& MVP, glm::mat4& clipPlane, glm::vec3& camPos);
 	void initGL(const std::string& shader_file_path);
 
 	void set_stepSize(float x, float y, float z)

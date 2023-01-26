@@ -35,7 +35,7 @@
 #include "render/ShaderUniforms.h"
 #include "vrapp/VRVolumeApp.h"
 
-VolumeRaycastRenderer::VolumeRaycastRenderer(VRVolumeApp& volume_app):m_volume_app(volume_app) //: num_slices{ MAX_SLICES }
+VolumeRaycastRenderer::VolumeRaycastRenderer(VRVolumeApp& volume_app) :m_volume_app(volume_app) //: num_slices{ MAX_SLICES }
 {
 }
 
@@ -51,7 +51,7 @@ void VolumeRaycastRenderer::initGL()
 	////Load and init the texture slicing shader
 	std::string shader_file_path = m_volume_app.get_directory_path() + OS_SLASH + "shaders";
 	shader.initGL(shader_file_path);
-	
+
 
 	glGenVertexArrays(1, &cubeVAOID);
 	glGenBuffers(1, &cubeVBOID);
@@ -144,7 +144,7 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4& MV, glm::mat
 	{
 		clipPlane = glm::translate(m_clip_plane * MV_tmp, glm::vec3(-0.5f));
 	}
-	
+
 	glm::vec3 camPos = glm::vec4(glm::inverse(MV_tmp) * glm::vec4(0, 0, 0, 1));
 	camPos += glm::vec3(0.5f);
 	glm::mat4 P_inv = glm::inverse(MV_tmp) * glm::inverse(P);
@@ -153,7 +153,7 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4& MV, glm::mat
 		setChannel(volume);
 	else
 		shader.set_channel(renderChannel);
-		
+
 
 	glBindVertexArray(cubeVAOID);
 	////use the volume shader
@@ -165,7 +165,7 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4& MV, glm::mat
 	shader.setTextureAtlasRender(volume->get_volume_texture_atlas());
 
 	//draw call
-	shader.render(MVP, clipPlane, camPos, cubeVAOID);
+	shader.render(MVP, clipPlane, camPos);
 	/*if (false)
 	{
 		glActiveTexture(GL_TEXTURE0 + 3);

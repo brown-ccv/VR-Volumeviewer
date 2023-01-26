@@ -26,13 +26,12 @@ void ShaderProgram::LoadShaders(const std::string& vertex_filenname, const std::
 	glAttachShader(m_progarm_id, fragmentShaderID);
 
 	glBindAttribLocation(m_progarm_id, 0, "vertexPosition");
-	/*glBindAttribLocation(m_progarm_id, 0, "vertexPosition");
 	glBindAttribLocation(m_progarm_id, 1, "texCoord");
-	glBindAttribLocation(m_progarm_id, 2, "normals");*/
+	glBindAttribLocation(m_progarm_id, 2, "normals");
 
 	glLinkProgram(m_progarm_id);
 
-	glGetProgramiv(m_progarm_id, GL_LINK_STATUS, (int *)&IsLinked);
+	glGetProgramiv(m_progarm_id, GL_LINK_STATUS, (int*)&IsLinked);
 	if (IsLinked == false)
 	{
 		int maxLength;
@@ -45,7 +44,7 @@ void ShaderProgram::LoadShaders(const std::string& vertex_filenname, const std::
 
 	glDetachShader(m_progarm_id, vertexShaderID);
 	glDetachShader(m_progarm_id, fragmentShaderID);
-	
+
 
 	glDeleteShader(vertexShaderID);
 	glDeleteShader(fragmentShaderID);
@@ -69,7 +68,7 @@ void ShaderProgram::stop()
 	glUseProgram(0);
 }
 
-void ShaderProgram::addUniform(const char * name)
+void ShaderProgram::addUniform(const char* name)
 {
 	assert(m_progarm_id != 0 && "Shader program not initialized");
 	int uniformLocation = glGetUniformLocation(m_progarm_id, name);
@@ -84,13 +83,13 @@ void ShaderProgram::addUniform(const char * name)
 	}
 }
 
-void ShaderProgram::setUniformi(const char * name, int value)
+void ShaderProgram::setUniformi(const char* name, int value)
 {
 	checkUniform(name);
 	glUniform1i(uniforms[name], value);
 }
 
-void ShaderProgram::setUniformf(const char * name, float value)
+void ShaderProgram::setUniformf(const char* name, float value)
 {
 	checkUniform(name);
 	glUniform1f(uniforms[name], value);
@@ -114,7 +113,7 @@ void ShaderProgram::setUniform(const char* name, glm::ivec3& vector)
 	glUniform3i(uniforms[name], vector.x, vector.y, vector.z);
 }
 
-void ShaderProgram::setUniform(const char * name, glm::vec3& vector)
+void ShaderProgram::setUniform(const char* name, glm::vec3& vector)
 {
 	checkUniform(name);
 	glUniform3f(uniforms[name], vector.x, vector.y, vector.z);
@@ -126,7 +125,7 @@ void ShaderProgram::setUniform(const char* name, glm::vec4& vector)
 	glUniform4f(uniforms[name], vector.x, vector.y, vector.z, vector.w);
 }
 
-void ShaderProgram::setUniform(const char * name, glm::mat4& matrix)
+void ShaderProgram::setUniform(const char* name, glm::mat4& matrix)
 {
 	checkUniform(name);
 	if (!InUse())
@@ -182,7 +181,7 @@ bool ShaderProgram::InUse()
 	return currentProgram == (GLint)m_progarm_id;
 }
 
-GLuint ShaderProgram::LoadShader(const char * filenname, int type)
+GLuint ShaderProgram::LoadShader(const char* filenname, int type)
 {
 	GLuint shaderId = glCreateShader(type);
 	// Read the Vertex Shader code from the file
@@ -203,7 +202,7 @@ GLuint ShaderProgram::LoadShader(const char * filenname, int type)
 
 	// Compile Shader
 	printf("Compiling shader : %s\n", filenname);
-	char const * SourcePointer = ShaderCode.c_str();
+	char const* SourcePointer = ShaderCode.c_str();
 	glShaderSource(shaderId, 1, &SourcePointer, NULL);
 	glCompileShader(shaderId);
 

@@ -179,7 +179,7 @@ void Volume::initGLTextureAtlas()
 	stbi_set_flip_vertically_on_load(true);
 	stbi_us* t_data = stbi_load_16(m_texture_file_path.c_str(), &width, &height, &bbp, 0);
 
-	
+
 	if (t_data)
 	{
 		unsigned short* t_prt = t_data;
@@ -247,10 +247,10 @@ void Volume::initGLTextureAtlas()
 		stbi_image_free(t_data);
 		std::cout << "END LOADING VOLUME TEXTURE" << std::endl;
 		m_dim = ceil(sqrt(m_depth));
-		set_volume_scale({ static_cast<float>(1.0f / (m_x_scale * (m_width / m_dim) )),
-						   static_cast<float>(1.0f / (m_y_scale * (m_height / m_dim) )),
+		set_volume_scale({ static_cast<float>(1.0f / (m_x_scale * (m_width / m_dim))),
+						   static_cast<float>(1.0f / (m_y_scale * (m_height / m_dim))),
 						   static_cast<float>(1.0f / (m_z_scale * m_depth)) });
-		
+
 	}
 	else
 	{

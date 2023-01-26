@@ -3,7 +3,7 @@
 #include <cassert>
 #include <iostream>
 
-Texture::Texture(GLenum TextureTarget, const std::string &filename) : m_texture_target(TextureTarget), m_file_name(filename.c_str())
+Texture::Texture(GLenum TextureTarget, const std::string& filename) : m_texture_target(TextureTarget), m_file_name(filename.c_str())
 {
 	std::cout << "READING TEXTURE " << std::endl;
 	m_texture_id = Load2DTexture();
@@ -32,17 +32,13 @@ void Texture::UnBind()
 
 int Texture::Load2DTexture()
 {
-
-	int width = 0;
-	int height = 0;
-	int bbp = 0;
-	// pointer to the image data
-	unsigned char *bits(0);
-
 	// retrieve the image data
 	// if this somehow one of these failed (they shouldn't), return failure
 	std::cout << "READING TEXTURE 2" << std::endl;
-	GLuint textureID = LoadTexture(m_file_name, width, height, &bits, bbp);
+	int width = 0;
+	int height = 0;
+	int bbp = 0;
+	GLuint textureID = LoadTexture(m_file_name, width, height, bbp);
 	if (textureID == -1)
 	{
 		assert(false && "Image failed to load ");
@@ -51,7 +47,7 @@ int Texture::Load2DTexture()
 	return textureID;
 }
 
-int Texture::Load3DTexture(const std::vector<std::string> &paths)
+int Texture::Load3DTexture(const std::vector<std::string>& paths)
 {
 #if (!defined(__APPLE__))
 	if (paths.size() == 0)
@@ -59,20 +55,25 @@ int Texture::Load3DTexture(const std::vector<std::string> &paths)
 		assert(false && "no paths to load from");
 	}
 
-	GLsizei width, height, depth = paths.size();
+	GLsizei width = 0, height = 0, depth = paths.size();
 
 	std::vector<image> formatedImages(paths.size());
 
 	// load and format each image
 	for (int i = 0; i < paths.size(); ++i)
 	{
-		unsigned char *bits(0);
+
 		int bbp = 0;
-		if (!LoadTexture(paths[i], width, height, &bits, bbp))
+		// int width, height, nrChannels;
+		stbi_set_flip_vertically_on_load(1);
+
+		unsigned char* data = stbi_load(paths[i].c_str(), &width, &height, &bbp, 0);
+
+		if (!data)
 		{
 			assert(false && "Image failed to load 2");
 		}
-		image img(width, height, bits);
+		image img(width, height, data);
 		formatedImages[i] = img;
 	}
 
@@ -81,22 +82,22 @@ int Texture::Load3DTexture(const std::vector<std::string> &paths)
 	glBindTexture(GL_TEXTURE_2D_ARRAY, textureID);
 	// Create storage for the texture. (100 layers of 1x1 texels)
 	glTexStorage3D(GL_TEXTURE_2D_ARRAY,
-				   1,			  // No mipmaps as textures are 1x1
-				   GL_RGBA8,	  // Internal format
-				   width, height, // width,height
-				   depth		  // Number of layers
+		1,			  // No mipmaps as textures are 1x1
+		GL_RGBA8,	  // Internal format
+		width, height, // width,height
+		depth		  // Number of layers
 	);
 
 	for (unsigned int i = 0; i < formatedImages.size(); ++i)
 	{
 		// Specify i-essim image
 		glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
-						0,																// Mipmap number
-						0, 0, i,														// xoffset, yoffset, zoffset
-						formatedImages[i].imageWidth, formatedImages[i].imageHeight, 1, // width, height, depth
-						GL_RGB,															// format
-						GL_UNSIGNED_BYTE,												// type
-						formatedImages[i].imageData);									// pointer to data
+			0,																// Mipmap number
+			0, 0, i,														// xoffset, yoffset, zoffset
+			formatedImages[i].imageWidth, formatedImages[i].imageHeight, 1, // width, height, depth
+			GL_RGB,															// format
+			GL_UNSIGNED_BYTE,												// type
+			formatedImages[i].imageData);									// pointer to data
 	}
 
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -114,14 +115,11 @@ int Texture::Load3DTexture(const std::vector<std::string> &paths)
 	return 0;
 }
 
-int Texture::LoadTexture(const std::string &fileName,
-						 int &width, int &height, unsigned char **data, int &bbp)
+int Texture::LoadTexture(const std::string& fileName, int& width, int& height, int& bbp)
 {
-
 	unsigned int texture;
-	std::cout << "READING TEXTURE 2.0.0" << fileName <<std::endl;
+
 	glGenTextures(1, &texture);
-	std::cout << "READING TEXTURE 2.0.1" << std::endl;
 	glBindTexture(GL_TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
 	// set the texture wrapping parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // set texture wrapping to GL_REPEAT (default wrapping method)
@@ -132,25 +130,24 @@ int Texture::LoadTexture(const std::string &fileName,
 
 	// int width, height, nrChannels;
 	stbi_set_flip_vertically_on_load(1);
-	std::cout << "READING TEXTURE 2.1" << std::endl;
-	*data = stbi_load(fileName.c_str(), &width, &height, &bbp, 0);
-	std::cout << "READING TEXTURE 2.2" << std::endl;
+
+	unsigned char* data = stbi_load(fileName.c_str(), &width, &height, &bbp, 0);
+
 	if (data)
 	{
-		std::cout << "bbp " << bbp << std::endl;
-		// if (bbp == 1)
-		// {
-		// 	glTexImage2D(GL_TEXTURE_2D, 0, GL_R16UI, width, height, 0, GL_RED, GL_UNSIGNED_SHORT, *data);
-		// }
-		// else 
-		if (bbp == 3)
+		if (bbp == 1)
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, *data);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
 		}
-		else if (bbp == 4)
-		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, *data);
-		}
+		else
+			if (bbp == 3)
+			{
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			}
+			else if (bbp == 4)
+			{
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			}
 	}
 	else
 	{
@@ -158,7 +155,7 @@ int Texture::LoadTexture(const std::string &fileName,
 		return -1;
 	}
 	glBindTexture(GL_TEXTURE_2D, 0);
-	stbi_image_free(*data);
+	stbi_image_free(data);
 
 	return texture;
 }
