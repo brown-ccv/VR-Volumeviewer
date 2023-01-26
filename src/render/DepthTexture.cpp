@@ -52,25 +52,6 @@
 #endif
 #include <iostream>
 
-// GLenum glCheckError_(const char *file, int line)
-// {
-//     GLenum errorCode;
-//     while ((errorCode = glGetError()) != GL_NO_ERROR)
-//     {
-//         std::string error;
-//         switch (errorCode)
-//         {
-//             case GL_INVALID_ENUM:                  error = "INVALID_ENUM"; break;
-//             case GL_INVALID_VALUE:                 error = "INVALID_VALUE"; break;
-//             case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
-//             case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
-//             case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
-//         }
-//         std::cout << error << " | " << file << " (" << line << ")" << std::endl;
-//     }
-//     return errorCode;
-// }
-// #define glCheckError() glCheckError_(__FILE__, __LINE__)
 
 DepthTexture::DepthTexture(int window_width, int window_height, int framebuffer_width, int framebuffer_height) : m_isInitialized{ false }
 {
@@ -127,10 +108,6 @@ void DepthTexture::create(int window_width, int window_height, int framebuffer_w
 
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-
-		// GLint actualbits;
-		// glGetIntegerv(GL_DEPTH_BITS, &actualbits);
-		// std::cerr << actualbits << std::endl;
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, m_width, m_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 		glBindTexture(GL_TEXTURE_2D, 0);

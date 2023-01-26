@@ -166,14 +166,6 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4& MV, glm::mat
 
 	//draw call
 	shader.render(MVP, clipPlane, camPos);
-	/*if (false)
-	{
-		glActiveTexture(GL_TEXTURE0 + 3);
-		glBindTexture(GL_TEXTURE_3D, m_blend_volume);
-	}
-
-	glActiveTexture(GL_TEXTURE0 + 2);
-	glBindTexture(GL_TEXTURE_2D, m_depth_texture);*/
 
 	////disable blending
 	glBindVertexArray(0);
