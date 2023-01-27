@@ -22,12 +22,8 @@
 #include <GL/gl.h>
 #endif
 
-
-
-
 #include <api/MinVR.h>
 #include "render/FrameBufferObject.h"
-
 
 #include <vector>
 

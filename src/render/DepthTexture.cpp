@@ -73,11 +73,11 @@ void DepthTexture::copyDepthbuffer()
 
 	// TODO: Does not work for multisample framebuffer
 	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 0, 0, m_framebuffer_width, m_framebuffer_height, 0);
-	//glCheckError();
+	
 	glBindTexture(GL_TEXTURE_2D, 0);
-	//glCheckError();
+	
 	glReadBuffer(m_pReadBuffer);
-	//glCheckError();
+	
 
 }
 
@@ -88,10 +88,6 @@ void DepthTexture::create(int window_width, int window_height, int framebuffer_w
 		glGetIntegerv(GL_DRAW_BUFFER, &m_pDrawBuffer);
 		glGetIntegerv(GL_READ_BUFFER, &m_pReadBuffer);
 
-		// GLint viewport[4];
-		// glGetIntegerv(GL_VIEWPORT, viewport);
-		// m_width = viewport[2];
-		// m_height = viewport[3];
 		m_width = window_width;
 		m_height = window_height;
 		m_framebuffer_width = framebuffer_width;
