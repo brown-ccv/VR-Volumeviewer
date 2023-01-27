@@ -73,8 +73,6 @@ public:
 	void computeHistogram();
 
 protected:
-	
-	float m_dim;
 
 	std::string m_texture_file_path;
 	

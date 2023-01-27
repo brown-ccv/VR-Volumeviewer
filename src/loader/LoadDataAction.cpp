@@ -398,7 +398,7 @@ void LoadDataAction::uploadDataCV_16U(std::vector<cv::Mat> image, Volume* volume
 	}
 }
 
-void LoadDataAction::uploadData_32F_raw(std::string filename, Volume* volume)
+void LoadDataAction::uploadData_32F_raw(std::string& filename, Volume* volume)
 {
 	void* data = reinterpret_cast<unsigned short*>(volume->get_data());
 

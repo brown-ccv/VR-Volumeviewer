@@ -35,7 +35,7 @@
 #include "render/ShaderUniforms.h"
 #include "vrapp/VRVolumeApp.h"
 
-VolumeRaycastRenderer::VolumeRaycastRenderer(VRVolumeApp& volume_app) :m_volume_app(volume_app) 
+VolumeRaycastRenderer::VolumeRaycastRenderer(VRVolumeApp& volume_app) :m_volume_app(volume_app)
 {
 }
 
@@ -110,13 +110,14 @@ void VolumeRaycastRenderer::render(Volume* volume, const glm::mat4& MV, glm::mat
 
 	glActiveTexture(GL_TEXTURE0 + 0);
 	GLenum texture_target = volume->get_volume_texture_atlas() ? GL_TEXTURE_2D : GL_TEXTURE_3D;
+
 	glBindTexture(texture_target, volume->get_texture_id());
-	//std::cout << "PPPPPPPPPP get_texture_id " << volume->get_texture_id() << std::endl;
+
 
 	////enable alpha blending (use over operator)
 	bool enableBlend = glIsEnabled(GL_BLEND);
 	glEnable(GL_BLEND);
-	// todo: we should also undo the blending func later
+	// TODO: we should also undo the blending func later
 	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR);
 	glBlendEquation(GL_FUNC_ADD);

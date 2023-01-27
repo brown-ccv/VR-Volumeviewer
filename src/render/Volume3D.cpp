@@ -129,9 +129,8 @@ void Volume3D::computeHistogram()
 
 	for (int c = 0; c < m_channels; c++)
 	{
-		//unsigned int non_black_voxels = get_depth() * get_width() * get_height() - m_histogram_tmp[c][0];
-		unsigned int non_black_voxels = get_depth() * get_width() - m_histogram_tmp[c][0];
-
+		unsigned int non_black_voxels = get_depth() * get_width() * get_height() - m_histogram_tmp[c][0];
+		
 		m_histogram.push_back(std::vector<float>(m_histogram_tmp[c].size()));
 		m_histogram[c][0] = 0;
 		for (int i = 1; i < m_histogram_tmp[c].size(); i++)
