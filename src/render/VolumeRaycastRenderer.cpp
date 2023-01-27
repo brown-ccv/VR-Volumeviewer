@@ -35,7 +35,7 @@
 #include "render/ShaderUniforms.h"
 #include "vrapp/VRVolumeApp.h"
 
-VolumeRaycastRenderer::VolumeRaycastRenderer(VRVolumeApp& volume_app) :m_volume_app(volume_app) //: num_slices{ MAX_SLICES }
+VolumeRaycastRenderer::VolumeRaycastRenderer(VRVolumeApp& volume_app) :m_volume_app(volume_app) 
 {
 }
 

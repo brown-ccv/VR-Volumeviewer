@@ -1,5 +1,5 @@
 ﻿//  ----------------------------------
-//  Copyright © 2015, Brown University, Providence, RI.
+//  Copyright © 2017, Brown University, Providence, RI.
 //
 //  All Rights Reserved
 //
@@ -20,36 +20,64 @@
 //  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //  ----------------------------------
 //
-///\file LoadDataAction.h
+///\file Volume.h
 ///\author Benjamin Knorlein
-///\date 11/28/2017
+///\editor Camilo Diaz
+///\date 11/6/2017
 
-#ifndef LOADDATAACTION_H
-#define LOADDATAACTION_H
-#include <string>
+#ifndef VOLUME_2D_H
+#define VOLUME_2D_H
+
+#ifdef _WIN32
+#include "GL/glew.h"
+#include "GL/wglew.h"
+#elif (!defined(__APPLE__))
+#include "GL/glxew.h"
+#endif
+
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#include <windows.h>
+#include <GL/gl.h>
+#include <gl/GLU.h>
+#define M_PI 3.14159265358979323846
+#elif defined(__APPLE__)
+#include <OpenGL/OpenGL.h>
+#include <OpenGL/glu.h>
+#else
+#define GL_GLEXT_PROTOTYPES
+#include <GL/gl.h>
+#include <GL/glu.h>
+#endif
+
+#include <cmath>
+#include <glm/gtc/matrix_transform.hpp>
 #include <vector>
-#include <opencv2/core/mat.hpp>
-#include "common/common.h"
+#include <string>
+#include <render/Volume.h>
 
 
-class Volume;
-class LoadDataAction
+class Volume2D:public Volume
 {
-
 public:
-	LoadDataAction(std::string folder, float* res);
-	Volume* run(bool convert = false);
+	Volume2D(unsigned int width, unsigned int height,
+		   unsigned int depth, double x_scale, double y_scale,
+		   double z_scale, unsigned int datatypesize, unsigned int channel,
+		   std::string texture_file_path);
 
-private:
-	std::vector<std::string> readTiffs(std::string foldername);
+	Volume2D(const Volume2D& other);
+	
+	~Volume2D();
 
-	std::string m_folder;
-	float* m_res;
+	void initGL();
+	void computeHistogram();
 
-	void mergeRGB(std::vector<cv::Mat>& image_r, std::vector<cv::Mat>& image_g, std::vector<cv::Mat>& image_b, std::vector<cv::Mat>& image);
-	static void uploadDataCV_8U(std::vector<cv::Mat> image, Volume* volume);
-	static void uploadDataCV_16U(std::vector<cv::Mat> image, Volume* volume);
-	static void uploadData_32F_raw(std::string filename, Volume* volume);
+protected:
+	
+	float m_dim;
+
+	std::string m_texture_file_path;
+	
 };
 
-#endif // LOADDATAACTION_H
+#endif // VOLUME_H

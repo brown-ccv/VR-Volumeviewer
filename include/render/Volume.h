@@ -54,7 +54,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 #include <string>
-#include <memory>
 
 struct pt
 {
@@ -63,16 +62,17 @@ struct pt
 	float z;
 };
 
-class Texture;
 class Volume
 {
 public:
 	Volume(unsigned int width, unsigned int height,
-		   unsigned int depth, double x_scale, double y_scale,
-		   double z_scale, unsigned int datatypesize, unsigned int channel,
-		   std::string texture_file_path = "", bool volume_texture_atlas = false);
+		unsigned int depth, double x_scale, double y_scale,
+		double z_scale, unsigned int datatypesize, unsigned int channel
+		);
 
-	~Volume();
+	Volume(const Volume& other);
+
+	virtual ~Volume();
 
 	unsigned get_width() const
 	{
@@ -109,9 +109,9 @@ public:
 		return m_z_scale;
 	}
 
-	unsigned &get_texture_id()
+	unsigned& get_texture_id()
 	{
-		return m_texture_2_id;
+		return m_texture_id;
 	}
 
 	void set_texture_id(const unsigned texture_id)
@@ -119,7 +119,7 @@ public:
 		m_texture_id = texture_id;
 	}
 
-	const pt &get_volume_position() const
+	const pt& get_volume_position() const
 	{
 		return m_volume_position;
 	}
@@ -129,7 +129,7 @@ public:
 		m_volume_position = pt;
 	}
 
-	const pt &get_volume_scale() const
+	const pt& get_volume_scale() const
 	{
 		return m_volume_scale;
 	}
@@ -165,7 +165,7 @@ public:
 		return m_max;
 	}
 
-	const glm::mat4 &get_volume_mv() const
+	const glm::mat4& get_volume_mv() const
 	{
 		return m_volume_MV;
 	}
@@ -175,12 +175,12 @@ public:
 		m_volume_MV = highp_mat4_x4;
 	}
 
-	unsigned char *get_data()
+	unsigned char* get_data()
 	{
-		return data;
+		return (unsigned char*)m_data;
 	}
 
-	const int &render_channel() const
+	const int& render_channel() const
 	{
 		return m_render_channel;
 	}
@@ -190,18 +190,16 @@ public:
 		m_render_channel = render_channel;
 	}
 
-	void computeHistogram();
+	virtual void computeHistogram() {};
+	virtual void initGL() {};
+	virtual void uploadtoPBO() {};
 
-	void initGLTextureAtlas();
-	void initGL();
-	void uploadtoPBO();
-
-	bool &texture_initialized()
+	bool& texture_initialized()
 	{
 		return m_texture_initialized;
 	}
 
-	std::vector<float> &getHistogram(int channel)
+	std::vector<float>& getHistogram(int channel)
 	{
 		return m_histogram[channel];
 	}
@@ -213,12 +211,12 @@ public:
 
 	float get_volume_texture_atlas()
 	{
-		return m_volume_texture_atlas;
+		return m_is_texture_atlas;
 	}
 
-private:
-	unsigned int m_width;
-	unsigned int m_height;
+protected:
+	int m_width;
+	int m_height;
 	unsigned int m_depth;
 	float m_dim;
 
@@ -234,7 +232,6 @@ private:
 
 	bool m_texture_initialized;
 	unsigned int m_texture_id;
-	unsigned int m_texture_2_id;
 
 	pt m_volume_position;
 	pt m_volume_scale;
@@ -243,16 +240,13 @@ private:
 	unsigned int m_pbo;
 	bool m_pbo_upload_started;
 	unsigned int m_datatypesize;
-	unsigned char *data;
+	void* m_data;
 
 	int m_render_channel;
 
-	std::unique_ptr<Texture> m_texture;
 
 	std::vector<std::vector<float>> m_histogram;
-
-	std::string m_texture_file_path;
-	bool m_volume_texture_atlas;
+	bool m_is_texture_atlas;
 };
 
 #endif // VOLUME_H

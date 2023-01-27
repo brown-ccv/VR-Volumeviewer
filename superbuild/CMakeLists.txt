@@ -470,6 +470,8 @@ message(STATUS "MYCOMPILER IS ${CMAKE_CXX_COMPILER}")
  ${CMAKE_CURRENT_BINARY_DIR}/../src/loader/LoadDataAction.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/Shader.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/Volume.cpp
+ ${CMAKE_CURRENT_BINARY_DIR}/../src/render/Volume2D.cpp
+ ${CMAKE_CURRENT_BINARY_DIR}/../src/render/Volume3D.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/VolumeSliceRenderer.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/VolumeSliceShader.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/VolumeRaycastRenderer.cpp
@@ -502,6 +504,8 @@ set(header_files
  ${CMAKE_CURRENT_BINARY_DIR}/../include/loader/MeshData.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/Shader.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/Volume.h
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/render/Volume2D.h
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/render/Volume3D.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeRenderer.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeSliceRenderer.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/VolumeSliceShader.h
