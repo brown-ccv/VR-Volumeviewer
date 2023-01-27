@@ -156,8 +156,7 @@ Volume* LoadDataAction::run(bool convert)
 		std::vector<cv::Mat> images;
 
 		Volume* volume = new Volume2D(w, h, d, m_res[0], m_res[1], m_res[2], 2, channels, m_folder);
-		minval[0] = std::numeric_limits<unsigned int>::min();
-		minval[1] = std::numeric_limits<unsigned int>::max();
+		
 		volume->setMinMax(minval[0], minval[1]);
 		volume->setTime(posix_time);
 		return volume;
@@ -402,7 +401,7 @@ void LoadDataAction::uploadDataCV_16U(std::vector<cv::Mat> image, Volume* volume
 
 void LoadDataAction::uploadData_32F_raw(std::string& filename, Volume* volume)
 {
-	void* data = reinterpret_cast<unsigned short*>(volume->get_data());
+	unsigned char* data = reinterpret_cast<unsigned char*>(volume->get_data());
 
 	FILE* file = fopen(filename.c_str(), "rb");
 

@@ -72,7 +72,13 @@ Volume::Volume(const Volume& other) :m_width(other.m_width), m_height(other.m_he
 
 Volume::~Volume()
 {
-	delete m_data;
+	// In the 2D case, the data array was release by stbi library.
+	// In the 3D case, the allocation is made manually.
+	if (!m_is_texture_atlas)
+	{
+		delete m_data;
+	}
+	
 	if (m_texture_id != 0)
 		glDeleteTextures(1, &m_texture_id);
 }

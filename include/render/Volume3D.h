@@ -76,11 +76,6 @@ public:
 
 protected:
 	
-	
-	unsigned int m_pbo;
-	bool m_pbo_upload_started;
-	unsigned int m_datatypesize;
-	unsigned char *data;
 
 };
 
