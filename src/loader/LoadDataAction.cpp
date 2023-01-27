@@ -247,8 +247,10 @@ Volume* LoadDataAction::run(bool convert)
 		uploadDataCV_16U(images, volume);
 		break;
 	case CV_32F:
-		volume = new Volume3D(w, h, d, m_res[0], m_res[1], m_res[2], 4, channels);
-		uploadData_32F_raw(m_folder, volume);
+		{
+			volume = new Volume3D(w, h, d, m_res[0], m_res[1], m_res[2], 4, channels);
+			uploadData_32F_raw(m_folder, volume);
+		}
 		break;
 	}
 	volume->computeHistogram();
