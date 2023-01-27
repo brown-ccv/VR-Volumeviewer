@@ -22,18 +22,8 @@
 #include <GL/gl.h>
 #endif
 
-#include "VRMenuHandler.h"
-#include "UIHelpers/transfer_function_multichannel_widget.h"
-#include "UIHelpers/transfer_function_widget.h"
 #include <api/MinVR.h>
 #include "render/FrameBufferObject.h"
-#include "render/Volume.h"
-#include "interaction/LabelsManager.h"
-#include "render/VolumeRaycastRenderer.h"
-#include "render/DepthTexture.h"
-#include <future>
-
-using namespace MinVR;
 
 #include <vector>
 
@@ -44,20 +34,11 @@ using namespace MinVR;
 #include <gl/GLU.h>
 #define M_PI 3.14159265358979323846
 #endif
+#include <chrono>
 
-#include "../render/VolumeSliceRenderer.h"
-#include "../interaction/CreateMovieAction.h"
-
-#include "ShaderProgram.h"
-
-#include "VRVolumeApp.h"
-
-class Model;
-class Texture;
-class UIView;
 class VRVolumeApp;
 
-class VolumeVisualizationApp : public VRApp
+class VolumeVisualizationApp : public MinVR::VRApp
 {
 public:
   /** The constructor passes argc, argv, and a MinVR config file on to VRApp.
@@ -67,23 +48,23 @@ public:
 
   /** USER INTERFACE CALLBACKS **/
 
-  virtual void onCursorMove(const VRCursorEvent &state);
+  virtual void onCursorMove(const MinVR::VRCursorEvent &state);
 
-  virtual void onAnalogChange(const VRAnalogEvent &state);
+  virtual void onAnalogChange(const MinVR::VRAnalogEvent &state);
 
-  virtual void onButtonDown(const VRButtonEvent &state);
+  virtual void onButtonDown(const MinVR::VRButtonEvent &state);
 
-  virtual void onButtonUp(const VRButtonEvent &state);
+  virtual void onButtonUp(const MinVR::VRButtonEvent &state);
 
-  virtual void onTrackerMove(const VRTrackerEvent &state);
+  virtual void onTrackerMove(const MinVR::VRTrackerEvent &state);
 
-  virtual void onGenericEvent(const VRDataIndex &index);
+  virtual void onGenericEvent(const MinVR::VRDataIndex &index);
 
   /** RENDERING CALLBACKS **/
 
-  virtual void onRenderGraphicsScene(const VRGraphicsState &state);
+  virtual void onRenderGraphicsScene(const MinVR::VRGraphicsState &state);
 
-  virtual void onRenderGraphicsContext(const VRGraphicsState &state);
+  virtual void onRenderGraphicsContext(const MinVR::VRGraphicsState &state);
 
 private:
   int width;

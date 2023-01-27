@@ -15,7 +15,9 @@ list(APPEND CMAKE_MODULE_PATH  ${ROOT_CMAKE_MODULE_PATH} )
 set(EXTERNAL_DIR_LOCATION ${CMAKE_BINARY_DIR})  
 set(EXTERNAL_DIR_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/../install/)  
 
-
+cmake_policy(SET CMP0072 NEW)
+set(OpenGL_GL_PREFERENCE GLVND)
+find_package(OpenGL REQUIRED)
 build_git_subproject(
   NAME vr-imgui 
   URL https://github.com/brown-ccv/VR-imgui.git

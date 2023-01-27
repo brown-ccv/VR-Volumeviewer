@@ -208,7 +208,6 @@ void ArcBallCamera::Zoom(float distance)
     m_current_poi.radius = 0.000001;
   }
 
-  std::cout << m_current_poi.radius << std::endl;
 }
 
 void ArcBallCamera::Pan(float dx, float dy)

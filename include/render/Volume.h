@@ -53,181 +53,206 @@
 #include <cmath>
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
+#include <string>
+#include <memory>
 
 struct pt
 {
-  float x;
-  float y;
-  float z;
+	float x;
+	float y;
+	float z;
 };
 
+class Texture;
 class Volume
 {
 public:
-  Volume(unsigned int width, unsigned int height, unsigned int depth, double x_scale, double y_scale, double z_scale, unsigned int datatypesize, unsigned int channel = 1);
+	Volume(unsigned int width, unsigned int height,
+		   unsigned int depth, double x_scale, double y_scale,
+		   double z_scale, unsigned int datatypesize, unsigned int channel,
+		   std::string texture_file_path = "", bool volume_texture_atlas = false);
 
-  ~Volume();
+	~Volume();
 
-  unsigned get_width() const
-  {
-    return m_width;
-  }
+	unsigned get_width() const
+	{
+		return m_width;
+	}
 
-  unsigned get_height() const
-  {
-    return m_height;
-  }
+	unsigned get_height() const
+	{
+		return m_height;
+	}
 
-  unsigned get_depth() const
-  {
-    return m_depth;
-  }
+	unsigned get_depth() const
+	{
+		return m_depth;
+	}
 
-  unsigned get_channels() const
-  {
-    return m_channels;
-  }
+	unsigned get_channels() const
+	{
+		return m_channels;
+	}
 
-  double get_x_scale() const
-  {
-    return m_x_scale;
-  }
+	double get_x_scale() const
+	{
+		return m_x_scale;
+	}
 
-  double get_y_scale() const
-  {
-    return m_y_scale;
-  }
+	double get_y_scale() const
+	{
+		return m_y_scale;
+	}
 
-  double get_z_scale() const
-  {
-    return m_z_scale;
-  }
+	double get_z_scale() const
+	{
+		return m_z_scale;
+	}
 
-  unsigned &get_texture_id()
-  {
-    return m_texture_id;
-  }
+	unsigned &get_texture_id()
+	{
+		return m_texture_2_id;
+	}
 
-  void set_texture_id(const unsigned texture_id)
-  {
-    m_texture_id = texture_id;
-  }
+	void set_texture_id(const unsigned texture_id)
+	{
+		m_texture_id = texture_id;
+	}
 
-  const pt &get_volume_position() const
-  {
-    return m_volume_position;
-  }
+	const pt &get_volume_position() const
+	{
+		return m_volume_position;
+	}
 
-  void set_volume_position(const pt pt)
-  {
-    m_volume_position = pt;
-  }
+	void set_volume_position(const pt pt)
+	{
+		m_volume_position = pt;
+	}
 
-  const pt &get_volume_scale() const
-  {
-    return m_volume_scale;
-  }
+	const pt &get_volume_scale() const
+	{
+		return m_volume_scale;
+	}
 
-  void set_volume_scale(const pt pt)
-  {
-    m_volume_scale = pt;
-  }
+	void set_volume_scale(const pt pt)
+	{
+		m_volume_scale = pt;
+	}
 
-  void setMinMax(float min, float max)
-  {
-    m_min = min;
-    m_max = max;
-  }
+	void setMinMax(float min, float max)
+	{
+		m_min = min;
+		m_max = max;
+	}
 
-  void setTime(time_t tp)
-  {
-    m_time = tp;
-  }
+	void setTime(time_t tp)
+	{
+		m_time = tp;
+	}
 
-  time_t getTime()
-  {
-    return m_time;
-  }
+	time_t getTime()
+	{
+		return m_time;
+	}
 
-  const float getMin()
-  {
-    return m_min;
-  }
+	const float getMin()
+	{
+		return m_min;
+	}
 
-  const float getMax()
-  {
-    return m_max;
-  }
+	const float getMax()
+	{
+		return m_max;
+	}
 
-  const glm::mat4 &get_volume_mv() const
-  {
-    return m_volume_MV;
-  }
+	const glm::mat4 &get_volume_mv() const
+	{
+		return m_volume_MV;
+	}
 
-  void set_volume_mv(const glm::mat4 highp_mat4_x4)
-  {
-    m_volume_MV = highp_mat4_x4;
-  }
+	void set_volume_mv(const glm::mat4 highp_mat4_x4)
+	{
+		m_volume_MV = highp_mat4_x4;
+	}
 
-  unsigned char *get_data()
-  {
-    return data;
-  }
+	unsigned char *get_data()
+	{
+		return data;
+	}
 
-  const int &render_channel() const
-  {
-    return m_render_channel;
-  }
+	const int &render_channel() const
+	{
+		return m_render_channel;
+	}
 
-  void set_render_channel(const int render_channel)
-  {
-    m_render_channel = render_channel;
-  }
+	void set_render_channel(const int render_channel)
+	{
+		m_render_channel = render_channel;
+	}
 
-  void computeHistogram();
+	void computeHistogram();
 
-  void initGL();
-  void uploadtoPBO();
+	void initGLTextureAtlas();
+	void initGL();
+	void uploadtoPBO();
 
-  bool &texture_initialized()
-  {
-    return m_texture_initialized;
-  }
+	bool &texture_initialized()
+	{
+		return m_texture_initialized;
+	}
 
-  std::vector<float> &getHistogram(int channel)
-  {
-    return m_histogram[channel];
-  }
+	std::vector<float> &getHistogram(int channel)
+	{
+		return m_histogram[channel];
+	}
+
+	float get_dim()
+	{
+		return m_dim;
+	}
+
+	float get_volume_texture_atlas()
+	{
+		return m_volume_texture_atlas;
+	}
 
 private:
-  unsigned int m_width;
-  unsigned int m_height;
-  unsigned int m_depth;
-  float m_min;
-  float m_max;
-  time_t m_time;
+	unsigned int m_width;
+	unsigned int m_height;
+	unsigned int m_depth;
+	float m_dim;
 
-  unsigned int m_channels;
+	float m_min;
+	float m_max;
+	time_t m_time;
 
-  double m_x_scale;
-  double m_y_scale;
-  double m_z_scale;
+	unsigned int m_channels;
 
-  bool m_texture_initialized;
-  unsigned int m_texture_id;
+	double m_x_scale;
+	double m_y_scale;
+	double m_z_scale;
 
-  pt m_volume_position;
-  pt m_volume_scale;
-  glm::mat4 m_volume_MV;
+	bool m_texture_initialized;
+	unsigned int m_texture_id;
+	unsigned int m_texture_2_id;
 
-  unsigned int m_pbo;
-  bool m_pbo_upload_started;
-  unsigned int m_datatypesize;
-  unsigned char *data;
+	pt m_volume_position;
+	pt m_volume_scale;
+	glm::mat4 m_volume_MV;
 
-  int m_render_channel;
+	unsigned int m_pbo;
+	bool m_pbo_upload_started;
+	unsigned int m_datatypesize;
+	unsigned char *data;
 
-  std::vector<std::vector<float>> m_histogram;
+	int m_render_channel;
+
+	std::unique_ptr<Texture> m_texture;
+
+	std::vector<std::vector<float>> m_histogram;
+
+	std::string m_texture_file_path;
+	bool m_volume_texture_atlas;
 };
 
 #endif // VOLUME_H

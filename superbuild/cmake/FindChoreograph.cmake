@@ -7,7 +7,7 @@ find_path(CHOREOGRAPH_INCLUDE_DIR
         NAMES
 		Choreograph.h
 		HINTS
-        ${CMAKE_INSTALL_PREFIX}/include/Choreograph
+        ${CMAKE_INSTALL_PREFIX}/include/choreograph
 )
 
 message(STATUS "CHOREOGRAPH_INCLUDE_DIR  ${CHOREOGRAPH_INCLUDE_DIR}")

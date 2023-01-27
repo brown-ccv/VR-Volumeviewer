@@ -50,13 +50,14 @@
 #endif
 
 #include <glm/glm.hpp>
-#include "VolumeRaycastShader.h"
 #include "VolumeRenderer.h"
+#include "render/VolumeRaycastShader.h"
 
+class VRVolumeApp;
 class VolumeRaycastRenderer : public VolumeRenderer
 {
 public:
-  VolumeRaycastRenderer();
+  VolumeRaycastRenderer(VRVolumeApp& volume_app);
   ~VolumeRaycastRenderer();
 
   virtual void initGL() override;
@@ -86,5 +87,6 @@ private:
 
   // 3D texture slicing shader
   VolumeRaycastShader shader;
+  VRVolumeApp& m_volume_app;
 };
 #endif // VOLUMESLICERCASTRENDER_H

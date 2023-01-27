@@ -35,7 +35,7 @@ public:
 	GLuint GetTextureId();
 	void UnBind();
 
-	int LoadTexture(const std::string& fileName, int& width, int& height, unsigned char ** data, int& bbp);
+	int LoadTexture(const std::string& fileName, int& width, int& height, int& bbp);
 
 private:
 
@@ -51,7 +51,7 @@ private:
 
 	int Load2DTexture();
 	int Load3DTexture(const std::vector<std::string>& paths);
-	
+
 
 	GLuint m_texture_id;
 	GLenum m_texture_target;

@@ -55,124 +55,156 @@
 #include <glm/glm.hpp>
 #include "DepthTexture.h"
 #include <iostream>
+#include "ShaderProgram.h"
 
 class VolumeRaycastShader : public Shader
 {
 
 public:
-  VolumeRaycastShader();
-  virtual ~VolumeRaycastShader();
+	VolumeRaycastShader();
+	virtual ~VolumeRaycastShader();
 
-  void render(glm::mat4 &MVP, glm::mat4 &clipPlane, glm::vec3 &camPos);
-  void initGL();
+	void render(glm::mat4& MVP, glm::mat4& clipPlane, glm::vec3& camPos);
+	void initGL(const std::string& shader_file_path);
 
-  void set_stepSize(float x, float y, float z)
-  {
-    m_stepSize[0] = x;
-    m_stepSize[1] = y;
-    m_stepSize[2] = z;
-  }
+	void set_stepSize(float x, float y, float z)
+	{
+		m_stepSize[0] = x;
+		m_stepSize[1] = y;
+		m_stepSize[2] = z;
+	}
 
-  void set_threshold(float threshold)
-  {
-    m_threshold = threshold;
-  }
+	void set_threshold(float threshold)
+	{
+		m_threshold = threshold;
+	}
 
-  void set_multiplier(float multiplier)
-  {
-    m_multiplier = multiplier;
-  }
+	void set_multiplier(float multiplier)
+	{
+		m_multiplier = multiplier;
+	}
 
-  void set_clipping(bool clipping)
-  {
-    m_clipping = clipping;
-  }
+	void set_clipping(bool clipping)
+	{
+		m_clipping = clipping;
+	}
 
-  void set_channel(int channel)
-  {
-    m_channel = channel;
-  }
+	void set_channel(int channel)
+	{
+		m_channel = channel;
+	}
 
-  void set_useLut(bool useLUT)
-  {
-    m_useLut = useLUT;
-  }
+	void set_useLut(bool useLUT)
+	{
+		m_useLut = useLUT;
+	}
 
-  void setDepthTexture(DepthTexture *depth_texture)
-  {
-    m_depth_texture = depth_texture->depth_texture();
-    m_screen_size[0] = depth_texture->width();
-    m_screen_size[1] = depth_texture->height();
-  }
+	void setDepthTexture(DepthTexture* depth_texture)
+	{
+		m_depth_texture = depth_texture->depth_texture();
+		m_screen_size[0] = depth_texture->width();
+		m_screen_size[1] = depth_texture->height();
+		m_buffer_size[0] = depth_texture->frame_buffer_width();
+		m_buffer_size[1] = depth_texture->frame_buffer_height();
+		m_display_scale[0] = depth_texture->display_scale_x();
+		m_display_scale[1] = depth_texture->display_scale_y();
+	}
 
-  void set_P_inv(glm::mat4 &P_inv)
-  {
-    m_P_inv = P_inv;
-  }
+	void set_P_inv(glm::mat4& P_inv)
+	{
+		m_P_inv = P_inv;
+	}
 
-  void set_blending(bool useBlending, float alpha, unsigned int texID)
-  {
-    m_use_blending = useBlending;
-    m_blend_volume = texID;
-    m_blending_alpha = alpha;
-  }
+	void set_blending(bool useBlending, float alpha, unsigned int texID)
+	{
+		m_use_blending = useBlending;
+		m_blend_volume = texID;
+		m_blending_alpha = alpha;
+	}
 
-  void useMultichannelColormap(bool useMultiLut)
-  {
-    m_useMultiLut = useMultiLut;
-  }
+	void useMultichannelColormap(bool useMultiLut)
+	{
+		m_useMultiLut = useMultiLut;
+	}
 
-  void setClipping(glm::vec3 min_clip, glm::vec3 max_clip)
-  {
-    m_clip_min = min_clip;
-    m_clip_max = max_clip;
-  }
+	void setClipping(glm::vec3 min_clip, glm::vec3 max_clip)
+	{
+		m_clip_min = min_clip;
+		m_clip_max = max_clip;
+	}
+
+	void setNumSlices(float slices)
+	{
+		m_slices = slices;
+	}
+
+	void setNumDim(float dim)
+	{
+		m_dim = dim;
+	}
+
+	void setTextureAtlasRender(bool is_texture_atlas)
+	{
+		m_texture_atlas_render = is_texture_atlas;
+	}
 
 private:
-  GLuint m_volume_uniform;
-  GLuint m_vVertex_attribute;
-  GLuint m_MVP_uniform;
+	GLuint m_volume_uniform;
+	GLuint m_vVertex_attribute;
+	GLuint m_MVP_uniform;
 
-  GLuint m_camPos_uniform;
+	GLuint m_camPos_uniform;
 
-  float m_stepSize[3];
-  GLuint m_step_size_uniform;
+	glm::vec3 m_stepSize;
+	GLuint m_step_size_uniform;
 
-  bool m_clipping;
-  GLuint m_clipping_uniform;
-  GLuint m_clipPlane_uniform;
+	bool m_clipping;
+	GLuint m_clipping_uniform;
+	GLuint m_clipPlane_uniform;
 
-  float m_threshold;
-  float m_multiplier;
-  int m_channel;
+	float m_threshold;
+	float m_multiplier;
+	int m_channel;
+	float m_slices;
+	float m_dim;
 
-  GLuint m_threshold_uniform;
-  GLuint m_multiplier_uniform;
-  GLuint m_channel_uniform;
+	GLuint m_threshold_uniform;
+	GLuint m_multiplier_uniform;
+	GLuint m_channel_uniform;
 
-  bool m_useLut;
-  bool m_useMultiLut;
-  GLuint m_lut_uniform;
-  GLint m_useLut_uniform;
-  GLuint m_useMultiLut_uniform;
+	bool m_useLut;
+	bool m_useMultiLut;
+	GLuint m_lut_uniform;
+	GLint m_useLut_uniform;
+	GLuint m_useMultiLut_uniform;
 
-  unsigned int m_depth_texture;
-  unsigned int m_screen_size[2];
-  glm::mat4 m_P_inv;
-  GLuint m_depth_uniform;
-  GLuint m_viewport_uniform;
-  GLuint m_P_inv_uniform;
+	unsigned int m_depth_texture;
+	glm::ivec2 m_screen_size;
+	glm::ivec2 m_buffer_size;
+	glm::ivec2 m_display_scale;
 
-  bool m_use_blending;
-  unsigned int m_blend_volume;
-  float m_blending_alpha;
-  GLuint m_useBlend_uniform;
-  GLuint m_blendAlpha_uniform;
-  GLuint m_blendVolume_uniform;
+	glm::mat4 m_P_inv;
+	GLuint m_depth_uniform;
+	GLuint m_viewport_uniform;
+	GLuint m_P_inv_uniform;
 
-  GLuint m_clip_min_uniform;
-  GLuint m_clip_max_uniform;
-  glm::vec3 m_clip_min;
-  glm::vec3 m_clip_max;
+	bool m_use_blending;
+	unsigned int m_blend_volume;
+	float m_blending_alpha;
+	GLuint m_useBlend_uniform;
+	GLuint m_blendAlpha_uniform;
+	GLuint m_blendVolume_uniform;
+
+	GLuint m_clip_min_uniform;
+	GLuint m_clip_max_uniform;
+	GLuint m_frambuffer_uniform;
+	GLuint m_display_scale_uniform;
+	GLuint m_slices_uniform;
+	GLuint m_dim_uniform;
+	glm::vec3 m_clip_min;
+	glm::vec3 m_clip_max;
+  
+	ShaderProgram m_shader_program;
+	bool m_texture_atlas_render;
 };
 #endif // VOLUMERAYCASTSHADER_H

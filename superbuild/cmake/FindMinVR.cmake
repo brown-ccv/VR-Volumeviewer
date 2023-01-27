@@ -15,6 +15,7 @@ find_library(MinVR_LIBRARY
        NAMES
 	   MinVR
 	   MinVRd
+           MinVRrd
 	   HINTS
         ${CMAKE_INSTALL_PREFIX}/lib/MinVR-2.0/
 )  
