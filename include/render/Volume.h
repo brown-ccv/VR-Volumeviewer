@@ -234,7 +234,6 @@ private:
 
 	bool m_texture_initialized;
 	unsigned int m_texture_id;
-	
 
 	pt m_volume_position;
 	pt m_volume_scale;
