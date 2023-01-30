@@ -1,4 +1,4 @@
-﻿//  ----------------------------------
+//  ----------------------------------
 //  Copyright © 2017, Brown University, Providence, RI.
 //
 //  All Rights Reserved

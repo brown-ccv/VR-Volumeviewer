@@ -76,6 +76,7 @@ void UIView::draw_ui_callback()
       if (ImGui::Button("Clear all", ImVec2(ImGui::GetWindowSize().x * 0.5f - 1.5 * ImGui::GetStyle().ItemSpacing.x, 0.0f)))
       {
         m_controller_app.clear_data();
+        m_tfns.clear();
       }
 
       ImGui::SliderFloat("alpha multiplier", &m_multiplier, 0.0f, 1.0f, "%.3f");

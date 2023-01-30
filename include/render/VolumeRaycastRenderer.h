@@ -53,8 +53,6 @@
 #include "VolumeRenderer.h"
 #include "render/VolumeRaycastShader.h"
 
-
-
 class VRVolumeApp;
 class VolumeRaycastRenderer : public VolumeRenderer
 {
@@ -90,8 +88,5 @@ private:
   // 3D texture slicing shader
   VolumeRaycastShader shader;
   VRVolumeApp& m_volume_app;
-
-  
-
 };
 #endif // VOLUMESLICERCASTRENDER_H

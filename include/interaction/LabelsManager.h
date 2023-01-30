@@ -30,6 +30,7 @@
 #include <glm/mat4x4.hpp>
 #include <string>
 #include <map>
+#include <memory>
 
 class Model;
 class Texture;
@@ -38,9 +39,9 @@ class ShaderProgram;
 
 struct LabelBillboard
 {
+	~LabelBillboard();
   unsigned int line_vba;
-  Texture *label_texture;
-  Model *label_model;
+  std::shared_ptr<Texture> label_texture;
   glm::vec3 position;
   unsigned int volume_id;
 };
@@ -76,7 +77,7 @@ private:
   bool m_init_plane_model;
   Model *m_plane_model;
 
-  std::map<std::string, Texture *> m_texture_cache;
+  std::map<std::string, std::shared_ptr<Texture> > m_texture_cache;
   std::string m_parent_directory;
 
   ShaderProgram &m_lines_shader_program;

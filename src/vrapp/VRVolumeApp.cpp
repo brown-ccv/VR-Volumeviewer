@@ -569,27 +569,29 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& render_state)
 	// setup Modelview for meshes
 	for (Mesh* mesh : m_mesh_models)
 	{
+		if (!m_volumes.empty())
+		{
+			Volume* volume = m_volumes[mesh->get_volume_id()][0];
+			glm::mat4 volume_mv = volume->get_volume_mv();
+			float px = volume->get_volume_scale().x;
+			float py = volume->get_volume_scale().y;
+			float pz = volume->get_volume_scale().z;
 
-		Volume* volume = m_volumes[mesh->get_volume_id()][0];
-		glm::mat4 volume_mv = volume->get_volume_mv();
-		float px = volume->get_volume_scale().x;
-		float py = volume->get_volume_scale().y;
-		float pz = volume->get_volume_scale().z;
+			/*
+			* TO DO #60 : Fix parent child relationship to not affect the mesh with z-scale
+			 glm::vec3 volume_position = volume_mv[3];
+			 glm::mat4 mesh_model_matrix =  glm::translate(general_model_view, volume_position);
+			 volume_mv = glm::translate(general_model_view, volume_position);
+			 glm::mat4 mesh_model_matrix = glm::translate(volume_mv, glm::vec3(-0.5f, -0.5f, -0.5f * px / pz));
+			 mesh_model_matrix = glm::scale(mesh_model_matrix, glm::vec3(px, py, px));
+			**/
 
-		/*
-		* TO DO #60 : Fix parent child relationship to not affect the mesh with z-scale
-		 glm::vec3 volume_position = volume_mv[3];
-		 glm::mat4 mesh_model_matrix =  glm::translate(general_model_view, volume_position);
-		 volume_mv = glm::translate(general_model_view, volume_position);
-		 glm::mat4 mesh_model_matrix = glm::translate(volume_mv, glm::vec3(-0.5f, -0.5f, -0.5f * px / pz));
-		 mesh_model_matrix = glm::scale(mesh_model_matrix, glm::vec3(px, py, px));
-		**/
+			//volume_mv = glm::rotate(volume_mv, glm::radians(180.0f), glm::vec3(1.0f,0.f,0.f));
+			volume_mv = glm::translate(volume_mv, glm::vec3(-0.5f, -0.5f, -0.5f * px / pz));
+			volume_mv = glm::scale(volume_mv, glm::vec3(px, py, px));
 
-		//volume_mv = glm::rotate(volume_mv, glm::radians(180.0f), glm::vec3(1.0f,0.f,0.f));
-		volume_mv = glm::translate(volume_mv, glm::vec3(-0.5f, -0.5f, -0.5f * px / pz));
-		volume_mv = glm::scale(volume_mv, glm::vec3(px, py, px));
-
-		mesh->get_model().setMVMatrix(volume_mv);
+			mesh->get_model().setMVMatrix(volume_mv);
+		}
 	}
 
 	if (m_clipping || m_ui_view->is_use_custom_clip_plane())
@@ -901,6 +903,7 @@ void VRVolumeApp::clear_data()
 		}
 	}
 	m_volumes.clear();
+	m_numVolumes = 0;
 	m_description.clear();
 	if (m_label_manager)
 	{
