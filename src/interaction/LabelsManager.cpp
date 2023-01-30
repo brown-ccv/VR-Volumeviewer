@@ -30,6 +30,11 @@
 #include "../../include/render/Mesh.h"
 #include <ShaderProgram.h>
 
+LabelBillboard::~LabelBillboard()
+{
+    glDeleteVertexArrays(1, &line_vba);
+}
+
 LabelsManager::LabelsManager(VRVolumeApp &vrapp, ShaderProgram &lines_shader, ShaderProgram &plane_shader) : m_controller_app(vrapp), m_init_plane_model(false), m_lines_shader_program(lines_shader), m_plane_shader_program(plane_shader), m_plane_model(nullptr)
 {
 }
@@ -37,11 +42,6 @@ LabelsManager::LabelsManager(VRVolumeApp &vrapp, ShaderProgram &lines_shader, Sh
 LabelsManager::~LabelsManager()
 {
   clear();
-  std::map<std::string, Texture *>::iterator it;
-  for (it = m_texture_cache.begin(); it != m_texture_cache.end(); it++)
-  {
-    delete it->second;
-  }
   delete m_plane_model;
 }
 
@@ -52,6 +52,7 @@ void LabelsManager::clear()
   m_position2.clear();
   m_size.clear();
   m_volume.clear();
+  m_billboard_labels.clear();
 }
 
 void LabelsManager::set_parent_directory(std::string &directory)
@@ -98,7 +99,7 @@ void LabelsManager::add(std::string &texture_path, float x, float y, float z, fl
   if (m_texture_cache.find(texture_path) == m_texture_cache.end())
   {
 
-    Texture *texture = new Texture(GL_TEXTURE_2D, texture_path);
+      std::shared_ptr<Texture> texture = std::make_shared< Texture>(GL_TEXTURE_2D, texture_path);
     m_texture_cache[texture_path] = texture;
   }
 
@@ -106,7 +107,7 @@ void LabelsManager::add(std::string &texture_path, float x, float y, float z, fl
   glm::vec3 line_end(x, y, textPosZ + 200);
   unsigned int line_vba = create_line_vba(line_start, line_end);
 
-  LabelBillboard billboard = {line_vba, m_texture_cache[texture_path], m_plane_model, glm::vec3(x, y, textPosZ + offset), (unsigned int)volume};
+  LabelBillboard billboard = {line_vba, m_texture_cache[texture_path], glm::vec3(x, y, textPosZ + offset), (unsigned int)volume};
   m_billboard_labels.push_back(billboard);
 
   m_position.push_back(glm::vec3(x, y, z));
@@ -154,10 +155,10 @@ void LabelsManager::draw_labels(glm::mat4 &projection_matrix, glm::mat4 &headpos
     label_mv = glm::rotate(label_mv, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     m_plane_model->setMVMatrix(label_mv);
-    m_billboard_labels[i].label_model->setTexture(m_billboard_labels[i].label_texture);
-    m_billboard_labels[i].label_model->render(m_plane_shader_program);
+    m_plane_model->setTexture(m_billboard_labels[i].label_texture.get());
+    m_plane_model->render(m_plane_shader_program);
     // unset texture unit on object (LabelsManager is the owner of the textures)
-    m_billboard_labels[i].label_model->setTexture(nullptr);
+    m_plane_model->setTexture(nullptr);
   }
   m_plane_shader_program.stop();
 }

@@ -88,9 +88,9 @@ void Volume::uploadtoPBO()
 
 void Volume::computeHistogram()
 {
-	std::vector<std::vector<unsigned int>> m_histogram_tmp;
+	std::vector<std::vector<unsigned int>> histogram_tmp;
 	for (int i = 0; i < m_channels; i++)
-		m_histogram_tmp.push_back(std::vector<unsigned int>(256, 0));
+		histogram_tmp.push_back(std::vector<unsigned int>(256, 0));
 
 	if (m_datatypesize == 1)
 	{
@@ -99,7 +99,7 @@ void Volume::computeHistogram()
 		{
 			for (int c = 0; c < get_channels(); c++)
 			{
-				m_histogram_tmp[c][*ptr]++;
+				histogram_tmp[c][*ptr]++;
 				ptr++;
 			}
 		}
@@ -111,7 +111,7 @@ void Volume::computeHistogram()
 		{
 			for (int c = 0; c < get_channels(); c++)
 			{
-				m_histogram_tmp[c][*ptr / 256]++;
+				histogram_tmp[c][*ptr / 256]++;
 				ptr++;
 			}
 		}
@@ -139,11 +139,11 @@ void Volume::computeHistogram()
 			{
 				if ((*ptr) * 255 > 255)
 				{
-					m_histogram_tmp[c][255]++;
+					histogram_tmp[c][255]++;
 				}
 				else
 				{
-					m_histogram_tmp[c][(*ptr) * 255]++;
+					histogram_tmp[c][(*ptr) * 255]++;
 				}
 				ptr++;
 			}
@@ -156,14 +156,13 @@ void Volume::computeHistogram()
 
 	for (int c = 0; c < m_channels; c++)
 	{
-		//unsigned int non_black_voxels = get_depth() * get_width() * get_height() - m_histogram_tmp[c][0];
-		unsigned int non_black_voxels = get_depth() * get_width() - m_histogram_tmp[c][0];
+		unsigned int non_black_voxels = m_depth * m_width * m_height - histogram_tmp[c][0];
 
-		m_histogram.push_back(std::vector<float>(m_histogram_tmp[c].size()));
+		m_histogram.push_back(std::vector<float>(histogram_tmp[c].size()));
 		m_histogram[c][0] = 0;
-		for (int i = 1; i < m_histogram_tmp[c].size(); i++)
+		for (int i = 1; i < histogram_tmp[c].size(); i++)
 		{
-			m_histogram[c][i] = ((float)m_histogram_tmp[c][i]) / non_black_voxels * 40;
+			m_histogram[c][i] = ((float)histogram_tmp[c][i]) / non_black_voxels * 40;
 		}
 	}
 }
@@ -185,29 +184,29 @@ void Volume::initGLTextureAtlas()
 		unsigned short* t_prt = t_data;
 		unsigned short m_max = std::numeric_limits<unsigned short>::min();
 		unsigned short m_min = std::numeric_limits<unsigned short>::max();
-		std::vector<std::vector<unsigned int>> m_histogram_tmp;
-		m_histogram_tmp.push_back(std::vector<unsigned int>(256, 0));
+		std::vector<std::vector<unsigned int>> histogram_tmp;
+		histogram_tmp.push_back(std::vector<unsigned int>(256, 0));
 		for (int i = 0; i < width * height; i++)
 		{
 			unsigned int index = ((float)*t_prt / (float)(std::numeric_limits<unsigned short>::max() - 1)) * 255;
-			m_histogram_tmp[0][index]++;
+			histogram_tmp[0][index]++;
 			m_min = std::min(m_min, (*t_prt));
 			m_max = std::max(m_max, (*t_prt));
 			t_prt++;
 		}
 
-		unsigned int non_black_voxels = get_depth() * get_width() - m_histogram_tmp[0][0];
+		unsigned int non_black_voxels = m_height * m_width - histogram_tmp[0][0];
 		for (int i = 0; i < m_histogram.size(); i++)
 			m_histogram[i].clear();
 
 		m_histogram.clear();
-		m_histogram.push_back(std::vector<float>(m_histogram_tmp[0].size()));
+		m_histogram.push_back(std::vector<float>(histogram_tmp[0].size()));
 		m_histogram[0][0] = 0;
 		//std::cout << 0 <<": "<< m_histogram_tmp[0][0] <<std::endl;
-		for (int i = 1; i < m_histogram_tmp[0].size(); i++)
+		for (int i = 1; i < histogram_tmp[0].size(); i++)
 		{
 			//std::cout << i <<": "<< m_histogram_tmp[0][i] <<std::endl;
-			m_histogram[0][i] = (((float)m_histogram_tmp[0][i]) / non_black_voxels) * 32000;
+			m_histogram[0][i] = ((float)histogram_tmp[0][i]) / non_black_voxels * 40;
 		}
 
 		std::cout << "VOLUME DATA MIN " << m_min << std::endl;
@@ -219,14 +218,14 @@ void Volume::initGLTextureAtlas()
 		glCheckError();
 		if (get_texture_id() != 0)
 		{
-			glDeleteTextures(1, &m_texture_2_id);
+			glDeleteTextures(1, &m_texture_id);
 		}
 		glCheckError();
 
 
-		glGenTextures(1, &m_texture_2_id);
+		glGenTextures(1, &m_texture_id);
 		glCheckError();
-		glBindTexture(GL_TEXTURE_2D, m_texture_2_id);
+		glBindTexture(GL_TEXTURE_2D, m_texture_id);
 		glCheckError();
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
 			GL_REPEAT);

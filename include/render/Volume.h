@@ -111,7 +111,7 @@ public:
 
 	unsigned &get_texture_id()
 	{
-		return m_texture_2_id;
+		return m_texture_id;
 	}
 
 	void set_texture_id(const unsigned texture_id)
@@ -234,7 +234,6 @@ private:
 
 	bool m_texture_initialized;
 	unsigned int m_texture_id;
-	unsigned int m_texture_2_id;
 
 	pt m_volume_position;
 	pt m_volume_scale;
