@@ -22,12 +22,8 @@
 #include <GL/gl.h>
 #endif
 
-
-
-
 #include <api/MinVR.h>
 #include "render/FrameBufferObject.h"
-
 
 #include <vector>
 
@@ -80,7 +76,7 @@ private:
 
   std::chrono::steady_clock::time_point m_lastTime;
 
-  VRVolumeApp *m_vrVolumeApp;
+  std::unique_ptr<VRVolumeApp> m_vrVolumeApp;
 
   int m_num_frames;
 
