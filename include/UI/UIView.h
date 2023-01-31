@@ -142,6 +142,10 @@ public:
 
   void set_show_movie_saved_pop_up(bool val) { m_show_movie_saved_pop_up = val; }
 
+  bool get_render_mesh();
+
+  bool get_render_labels();
+
 private:
   struct MyTransFerFunctions
   {
@@ -291,6 +295,9 @@ private:
   bool m_time_frame_edited;
 
   bool m_show_movie_saved_pop_up;
+
+  bool m_render_mesh;
+  bool m_render_labels;
 };
 
 #endif
