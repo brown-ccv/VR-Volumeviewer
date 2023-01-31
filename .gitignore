@@ -2,6 +2,7 @@
 build/*
 build*/*
 share/scripts/OSOM/*
+share/osom-data-*
 */.DS_Store
 .DS_Store
 Executable/
@@ -55,3 +56,8 @@ superbuild/*.ttf
 superbuild/*.zip
 include/interaction/LabelManager.h
 src/interaction/LabelManager.cpp
+imgui.ini
+superbuild/Choreograph/*.vcxproj*
+superbuild/Choreograph/*.sln
+superbuild/Choreograph/cmake_install.cmake
+superbuild/Choreograph/Choreograph/
