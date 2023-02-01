@@ -631,7 +631,7 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& render_state)
 	
 
 	// render labels
-	if (m_ui_view->get_render_mesh())
+	if (m_ui_view->get_render_labels())
 	{
 		render_labels(render_state);
 	}
