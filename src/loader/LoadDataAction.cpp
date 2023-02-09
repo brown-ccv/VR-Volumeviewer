@@ -35,6 +35,8 @@
 #include <fstream>
 #include <algorithm>
 #include "Texture.h"
+#include <render/Volume2D.h>
+#include <render/Volume3D.h>
 
 LoadDataAction::LoadDataAction(std::string folder, float* res) : m_folder(folder), m_res(res)
 {
@@ -153,9 +155,8 @@ Volume* LoadDataAction::run(bool convert)
 		helper::replace(m_folder, ".png.desc", ".png");
 		std::vector<cv::Mat> images;
 
-		Volume* volume = new Volume(w, h, d, m_res[0], m_res[1], m_res[2], 2, channels, m_folder, true);
-		minval[0] = std::numeric_limits<unsigned int>::min();
-		minval[1] = std::numeric_limits<unsigned int>::max();
+		Volume* volume = new Volume2D(w, h, d, m_res[0], m_res[1], m_res[2], 2, channels, m_folder);
+		
 		volume->setMinMax(minval[0], minval[1]);
 		volume->setTime(posix_time);
 		return volume;
@@ -237,16 +238,18 @@ Volume* LoadDataAction::run(bool convert)
 	switch (depth)
 	{
 	case CV_8U:
-		volume = new Volume(w, h, d, m_res[0], m_res[1], m_res[2], 1, channels);
+		volume = new Volume3D(w, h, d, m_res[0], m_res[1], m_res[2], 1, channels);
 		uploadDataCV_8U(images, volume);
 		break;
 	case CV_16U:
-		volume = new Volume(w, h, d, m_res[0], m_res[1], m_res[2], 2, channels);
+		volume = new Volume3D(w, h, d, m_res[0], m_res[1], m_res[2], 2, channels);
 		uploadDataCV_16U(images, volume);
 		break;
 	case CV_32F:
-		volume = new Volume(w, h, d, m_res[0], m_res[1], m_res[2], 4, channels);
-		uploadData_32F_raw(m_folder, volume);
+		{
+			volume = new Volume3D(w, h, d, m_res[0], m_res[1], m_res[2], 4, channels);
+			uploadData_32F_raw(m_folder, volume);
+		}
 		break;
 	}
 	volume->computeHistogram();
@@ -396,9 +399,9 @@ void LoadDataAction::uploadDataCV_16U(std::vector<cv::Mat> image, Volume* volume
 	}
 }
 
-void LoadDataAction::uploadData_32F_raw(std::string filename, Volume* volume)
+void LoadDataAction::uploadData_32F_raw(std::string& filename, Volume* volume)
 {
-	void* data = reinterpret_cast<unsigned short*>(volume->get_data());
+	unsigned char* data = reinterpret_cast<unsigned char*>(volume->get_data());
 
 	FILE* file = fopen(filename.c_str(), "rb");
 

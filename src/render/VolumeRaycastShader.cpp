@@ -105,7 +105,6 @@ void VolumeRaycastShader::initGL(const std::string& shader_file_path)
 	m_shader_program.start();
 	for (std::string uniform : ShaderUniforms::shader_uniforms)
 	{
-		std::cout << uniform << std::endl;
 		m_shader_program.addUniform(uniform.c_str());
 	}
 
