@@ -105,24 +105,19 @@ void Simulation::set_animation_state()
 
 ANIMATION_STATE Simulation::get_animation_state()
 {
-  switch (m_timeline.isFinished())
-  {
-  case true:
-    return STOP;
-  case false:
-  {
+    if (m_timeline.isFinished())
+    {
+        return STOP;
+    }
+  
     if (m_animation_state == STOP)
     {
       return PAUSE;
     }
-    else
-    {
-      return PLAYING;
-    }
-  }
-  default:
-    return STOP;
-  }
+    
+    return PLAYING;
+    
+  
 }
 
 std::string Simulation::get_camera_animation_state()
