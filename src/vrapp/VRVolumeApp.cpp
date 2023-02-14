@@ -79,11 +79,6 @@ VRVolumeApp::~VRVolumeApp()
 		delete mesh;
 	}
 
-	if (m_ui_view)
-	{
-		delete m_ui_view;
-	}
-
 	delete m_window_properties;
 
 	delete m_simulation;
@@ -102,7 +97,7 @@ void VRVolumeApp::initialize()
 		if (!m_ui_view)
 		{
 			std::cout << "initialize UI " << std::endl;
-			m_ui_view = new UIView(*this);
+			m_ui_view = std::make_unique<UIView>(*this);
 			m_ui_view->init_ui(m_is2d, m_lookingGlass);
 		}
 		m_window_properties = new Window_Properties();
@@ -622,22 +617,28 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& render_state)
 		}
 	}
 
-	for (Mesh* mesh : m_mesh_models)
+	//render mesh/terrain
+	if (m_ui_view->get_render_mesh())
 	{
-		m_simple_texture_shader.start();
-		m_simple_texture_shader.setUniform("projection_matrix", m_projection_mtrx);
-		mesh->get_model().render(m_simple_texture_shader);
-		m_simple_texture_shader.stop();
+		for (Mesh* mesh : m_mesh_models)
+		{
+			m_simple_texture_shader.start();
+			m_simple_texture_shader.setUniform("projection_matrix", m_projection_mtrx);
+			mesh->get_model().render(m_simple_texture_shader);
+			m_simple_texture_shader.stop();
+		}
 	}
+	
 
 	// render labels
-	render_labels(render_state);
+	if (m_ui_view->get_render_labels())
+	{
+		render_labels(render_state);
+	}
+	
 
 	m_depthTextures[m_rendercount]->copyDepthbuffer();
-	//m_depth_texture = m_depthTextures[m_rendercount]->depth_texture();
-	// int screen_w = m_depthTextures[m_rendercount]->width();
-	// int screen_h = m_depthTextures[m_rendercount]->height();
-	// std::cout << "screen_w: " << screen_w <<","<<" screen_h: " << screen_h << std::endl;
+	
 	(static_cast<VolumeRaycastRenderer*>(m_renders[1]))->setDepthTexture(m_depthTextures[m_rendercount]);
 
 	// drawTime

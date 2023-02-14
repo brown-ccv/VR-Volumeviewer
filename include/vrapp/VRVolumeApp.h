@@ -242,7 +242,7 @@ protected:
   size_t m_numVolumes;
   std::vector<std::string> m_data_labels;
 
-  UIView *m_ui_view;
+  std::unique_ptr<UIView> m_ui_view;
 
   bool m_convert;
   bool m_is2d;
