@@ -1,4 +1,4 @@
-name: release-vr-volumeviewer
+name: new-release-vr-volumeviewer
 
 on:  workflow_dispatch
 #  push:
