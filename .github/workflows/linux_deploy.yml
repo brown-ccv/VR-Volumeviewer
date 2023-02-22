@@ -13,10 +13,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     
-    - name: Install OpenGL support
-      uses: openrndr/setup-opengl@v1.1
-    - name: Test OpenGL
-      run: xvfb-run glxinfo
+    #- name: Install OpenGL support
+    #  uses: openrndr/setup-opengl@v1.1
+    #- name: Test OpenGL
+    #  run: xvfb-run glxinfo
+    - name: Run build script
+      run: sudo apt-get install libglfw3-dev libgl1-mesa-dev libglu1-mesa-dev
+      shell: bash
     
     - name: Setup cmake
       uses: jwlawson/actions-setup-cmake@v1.9
@@ -45,14 +48,14 @@ jobs:
            make
     - uses: papeloto/action-zip@v1
       with:
-        files: superbuild\install_Linux\bin
+        files: superbuild/install_Linux/bin
         recursive: false
-        dest: superbuild\install_Linux\vr-volumeviewer-exec.zip
+        dest: superbuild/install_Linux/vr-volumeviewer-linux.zip
     - name: Upload app to release - MacOS
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: ${{github.workspace}}\superbuild\install_Linux\vr-volumeviewer-exec.zip
+        file: ${{github.workspace}}/superbuild/install_Linux/vr-volumeviewer-linux.zip
         tag: ${{ github.ref }}
     - name: Test
       working-directory: ${{github.workspace}}/superbuild/install_Linux/bin
