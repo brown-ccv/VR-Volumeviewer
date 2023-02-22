@@ -115,14 +115,14 @@ jobs:
            make
     - uses: papeloto/action-zip@v1
       with:
-        files: superbuild\install_Darwin\bin
+        files: superbuild/install_Darwin/bin
         recursive: false
-        dest: superbuild\install_Darwin\vr-volumeviewer-macos.zip
+        dest: superbuild/install_Darwin/vr-volumeviewer-macos.zip
     - name: Upload app to release
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: ${{github.workspace}}\superbuild\install_Darwin\vr-volumeviewer-macos.zip
+        file: ${{github.workspace}}/superbuild/install_Darwin/vr-volumeviewer-macos.zip
         tag: ${{ github.ref }}
     - name: Test
       working-directory: ${{github.workspace}}/superbuild/install_Darwin/bin
