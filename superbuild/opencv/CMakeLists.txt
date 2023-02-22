@@ -32,5 +32,6 @@ build_git_subproject(
    -DBUILD_opencv_highgui=ON
    -DBUILD_WEBP=OFF
    -DWITH_WEBP=OFF
+   -DBUILD_ZLIB=OFF
    
 )
