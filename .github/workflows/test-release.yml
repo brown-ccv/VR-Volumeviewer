@@ -56,7 +56,7 @@ jobs:
       with:
         files: superbuild\install_Windows\bin
         recursive: false
-        dest: superbuild\install_Windows\vr-volumeviewer-exec.zip
+        dest: superbuild\install_Windows\vr-volumeviewer-windows.zip
     # - name: Download artifact
     #  uses: dawidd6/action-download-artifact@v2
     #  with:
@@ -76,11 +76,11 @@ jobs:
     #    repo_token: ${{ secrets.GITHUB_TOKEN }}
     #    file: ${{github.workspace}}\superbuild\install_Windows\bin\CCV_VR_VWR.exe
     #    tag: ${{ github.ref }}
-    - name: Upload app to release - windows
+    - name: Upload app to release
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: ${{github.workspace}}\superbuild\install_Windows\vr-volumeviewer-exec.zip
+        file: ${{github.workspace}}\superbuild\install_Windows\vr-volumeviewer-windows.zip
         tag: ${{ github.ref }}
     # - name: Upload app to release - windows - installer
     #  uses: svenstaro/upload-release-action@v2
@@ -113,6 +113,17 @@ jobs:
       run: |
            cd superbuild
            make
+    - uses: papeloto/action-zip@v1
+      with:
+        files: superbuild\install_Darwin\bin
+        recursive: false
+        dest: superbuild\install_Darwin\vr-volumeviewer-macos.zip
+    - name: Upload app to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{github.workspace}}\superbuild\install_Darwin\vr-volumeviewer-macos.zip
+        tag: ${{ github.ref }}
     - name: Test
       working-directory: ${{github.workspace}}/superbuild/install_Darwin/bin
       run:  ctest
