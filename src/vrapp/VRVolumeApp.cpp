@@ -35,9 +35,7 @@
 #include <GL/gl.h>
 #endif
 
-#if (!defined(__APPLE__))
-#include <filesystem>
-#endif
+
 
 #include <fstream>
 #include <sstream>
