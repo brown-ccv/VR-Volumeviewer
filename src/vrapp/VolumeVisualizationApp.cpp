@@ -17,7 +17,7 @@
 #include "vrapp/VRVolumeApp.h"
 
 #include "loader/VRDataLoader.h"
-#include "render/FontHandler.h"
+
 
 #include <cppfs/cppfs.h>
 #include <cppfs/FilePath.h>
@@ -34,8 +34,7 @@ VolumeVisualizationApp::VolumeVisualizationApp(int argc, char **argv) : MinVR::V
   cppfs::FilePath p_filename(current_Path);
   std::string parent_Path = p_filename.directoryPath();
   m_vrVolumeApp->set_directory_path(parent_Path);
-  FontHandler::setParentPath(parent_Path);
-
+  
   if (argc_int >= 2)
   {
     for (int i = 1; i < argc_int; i++)

@@ -8,7 +8,7 @@
 #include "loader/LoadDataAction.h"
 #include "UI/UIView.h"
 #include "interaction/HelperFunctions.h"
-#include "render/FontHandler.h"
+
 #include "interaction/CreateMovieAction.h"
 #include "interaction/Simulation.h"
 #include "interaction/LabelsManager.h"
