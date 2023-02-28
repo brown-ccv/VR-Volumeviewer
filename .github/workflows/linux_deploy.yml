@@ -3,7 +3,7 @@ name: build-vr-volumeviewer-linux
 on:  workflow_dispatch
 
 env:
-  BUILD_TYPE: Debug
+  BUILD_TYPE: Release
 
 jobs:
   build_linux:
