@@ -34,60 +34,18 @@ jobs:
       run: |
            cd superbuild
            ninja
-    # - name: clone bat2exe
-    #  run: |
-    #       cd superbuild
-    #       git clone https://github.com/islamadel/bat2exe.git
-      
-    # - name: Copy bat2exec script to create .exe
-    #  shell: cmd
-    #  run: copy superbuild\scripts\CCV_VR_VWR.bat superbuild\install_Windows\bin
-    # - name: List files on bin folder
-    #  run: |
-    #       cd superbuild\install_Windows\bin
-    #       dir   
-    # - name: Copy MinVR plugins to root folder
-    #  shell: cmd
-    #  run: copy superbuild\install_Windows\bin\MinVR-2.0 superbuild\install_Windows\bin
-    # - name: run bat2exec in the background and create vr-volumeviewer executable 
-    #  shell: cmd
-    #  run: superbuild\scripts\execute_bat2exe_background.bat ${{github.workspace}}
     - uses: papeloto/action-zip@v1
       with:
         files: superbuild\install_Windows\bin
         recursive: false
         dest: superbuild\install_Windows\vr-volumeviewer-windows.zip
-    # - name: Download artifact
-    #  uses: dawidd6/action-download-artifact@v2
-    #  with:
-    #     workflow: download_vcresdristr.yml
-    #     name: vc_redist.x64.exe
-    #     # Optional, directory where to extract artifact. Defaults to the artifact name (see `name` input)
-    #     path: ${{github.workspace}}\superbuild\install_Windows\bin
-    
-    # - name: Building the installer
-    #  run: |
-    #    "%programfiles(x86)%\Inno Setup 6\iscc.exe" "superbuild\scripts\VolumeViewerInnoScript.iss"
-    #  shell: cmd
-      
-    # - name: Upload app to release - windows
-    #  uses: svenstaro/upload-release-action@v2
-    #  with:
-    #    repo_token: ${{ secrets.GITHUB_TOKEN }}
-    #    file: ${{github.workspace}}\superbuild\install_Windows\bin\CCV_VR_VWR.exe
-    #    tag: ${{ github.ref }}
     - name: Upload app to release
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{github.workspace}}\superbuild\install_Windows\vr-volumeviewer-windows.zip
         tag: ${{ github.ref }}
-    # - name: Upload app to release - windows - installer
-    #  uses: svenstaro/upload-release-action@v2
-    #  with:
-    #    repo_token: ${{ secrets.GITHUB_TOKEN }}
-    #    file: ${{github.workspace}}\superbuild\install_Windows\bin\vvw-setup.exe
-    #    tag: ${{ github.ref }}
+
   build_mac:
    
     runs-on: macos-12
@@ -127,3 +85,52 @@ jobs:
     - name: Test
       working-directory: ${{github.workspace}}/superbuild/install_Darwin/bin
       run:  ctest
+  
+  build_linux:
+   
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install OpenGL support
+      run: sudo apt-get install libglfw3-dev libgl1-mesa-dev libglu1-mesa-dev
+      shell: bash
+    
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v1.9
+      with:
+        cmake-version: '3.20.3'
+    
+    - name: Clean superbuild folder
+      run: python3 superbuild/clean/clean.py
+      
+    - name: Open superbuild folder
+      run: cd superbuild
+    
+    - name: Install Mesa Packages
+      run: |
+          sudo apt-get install build-essential libxmu-dev libxi-dev libgl-dev
+
+
+    - name: Configure CMake
+      run: |
+           cd superbuild 
+           cmake -S . -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+    - name: Build
+      run: |
+           cd superbuild
+           make
+    - uses: papeloto/action-zip@v1
+      with:
+        files: superbuild/install_Linux/bin
+        recursive: false
+        dest: superbuild/install_Linux/vr-volumeviewer-linux.zip
+    - name: Upload app to release - MacOS
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{github.workspace}}/superbuild/install_Linux/vr-volumeviewer-linux.zip
+        tag: ${{ github.ref }}
+
