@@ -34,7 +34,7 @@ If you want to run the application from Visual Studio:
 2. Right click on the VR-VolumeViewer project and select `properties`
 3. On the output folder section delete the last trail of the path so it points to the `bin` folder.
    i.e: Change `VR-Volumeviewer\bin\Debug`  to `VR-Volumeviewer\bin`
-4. Set the VR-VolumeViewer project as the default running application
+4. Right click on the VR-VolumeViewer project and select  `Set as Startup project`
 5. You can run the application from the Visual Studio debugger.
 
 ## How to use it ?
@@ -47,5 +47,7 @@ If you want to run the application from Visual Studio:
 4. Follow the steps to produce and download the volume viewer package
 5. Open the volume viewer application
     In the volume viewer root folder execute the file `bin/VR-VolumeViewer`
-    
+
    <img src="imgs/volume-viewer-1.png"  width="60%" height="30%">
+
+6. Click the `load file` button and locate the osom data folder you downloaded in step 4.
