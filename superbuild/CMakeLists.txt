@@ -326,33 +326,6 @@ ENDIF()
 
 message(STATUS "CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
 
-#FTGL
-# Configure external project
-#IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/FTGL/FTGL)
-execute_process(
-    COMMAND ${CMAKE_COMMAND} 
-    -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
-    -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} 
-    -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} 
-    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-    ${CMAKE_SOURCE_DIR}/FTGL
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/FTGL
-)
-
-# Build external project
-execute_process(
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/FTGL --config ${CMAKE_BUILD_TYPE}
-)
-#ENDIF()
-
-# find_package(OpenGL REQUIRED)
-FIND_PACKAGE(FTGL REQUIRED )
-if(FTGL_FOUND)
-  message(STATUS "FTGL found")
-  message(STATUS "FTGL_INCLUDE_DIR ${FTGL_INCLUDE_DIR}")
- else()
-  message(STATUS "FTGL NOT found" )
-endif()
 
 #opencv
 # Configure external project
@@ -391,15 +364,6 @@ if(IMGUIVR_FOUND)
   message(STATUS "IMGUIVR_INCLUDE_DIR ${IMGUIVR_INCLUDE_DIR}")
  else()
   message(STATUS "IMGUIVR NOT found" )
-endif()
-
-# find_package(OpenGL REQUIRED)
-FIND_PACKAGE(FTGL REQUIRED )
-if(FTGL_FOUND)
-  message(STATUS "FTGL found")
-  message(STATUS "FTGL_INCLUDE_DIR ${FTGL_INCLUDE_DIR}")
- else()
-  message(STATUS "FTGL NOT found" )
 endif()
 
 # find_package(OpenGL REQUIRED)
@@ -483,7 +447,6 @@ message(STATUS "MYCOMPILER IS ${CMAKE_CXX_COMPILER}")
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/FrameBufferObject.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/render/DepthTexture.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/interaction/LabelsManager.cpp
- ${CMAKE_CURRENT_BINARY_DIR}/../src/render/FontHandler.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/transfer_function_widget.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/transfer_function_multichannel_widget.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/histogram.cpp
@@ -518,7 +481,6 @@ set(header_files
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/FrameBufferObject.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/render/DepthTexture.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/LabelsManager.h
- ${CMAKE_CURRENT_BINARY_DIR}/../include/render/FontHandler.h
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/transfer_function_widget.h
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/transfer_function_multichannel_widget.h
  ${CMAKE_CURRENT_BINARY_DIR}/../libs/UIHelpers/embedded_colormaps.h

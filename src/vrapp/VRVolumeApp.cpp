@@ -8,7 +8,7 @@
 #include "loader/LoadDataAction.h"
 #include "UI/UIView.h"
 #include "interaction/HelperFunctions.h"
-#include "render/FontHandler.h"
+
 #include "interaction/CreateMovieAction.h"
 #include "interaction/Simulation.h"
 #include "interaction/LabelsManager.h"
@@ -35,9 +35,7 @@
 #include <GL/gl.h>
 #endif
 
-#if (!defined(__APPLE__))
-#include <filesystem>
-#endif
+
 
 #include <fstream>
 #include <sstream>
