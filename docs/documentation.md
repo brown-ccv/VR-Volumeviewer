@@ -48,6 +48,19 @@ If you want to run the application from Visual Studio:
 5. Open the volume viewer application
     In the volume viewer root folder execute the file `bin/VR-VolumeViewer`
 
-   <img src="imgs/volume-viewer-1.png"  width="60%" height="30%">
+   <img src="imgs/volume-viewer-1.png"  width="30%" height="30%">
 
-6. Click the `load file` button and locate the osom data folder you downloaded in step 4.
+6. Click the `load file` button and locate the osom data folder you downloaded in step 4. Locate the `osom-loader.txt` file, and click `Open` (Or double click on the file)
+
+   <img src="imgs/vvw-osom-root.png"  width="40%" height="30%">
+   <img src="imgs/vvw-osom-loader.png"  width="40%" height="30%">
+
+7. Your RIDDC data has been loaded if you see the following image  
+
+    <img src="imgs/vvw-osom-ri.png"  width="45%" height="30%">
+
+8. To visualize the volume, check the Transfer function to map on the volume data
+
+  <img src="imgs/vvw-osom-tf.png"  width="60%" height="30%">
+
+9. The legend at the bottom left shows the minimum and maximun values of the dataset.
