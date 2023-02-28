@@ -13,8 +13,8 @@ The most recent release can be found at [https://github.com/brown-ccv/VR-Volumev
 
 ## Installation for devs
 
-1. Clone the repo at [https://github.com/brown-ccv/VR-Volumeviewer]
-2. In a temrinal go to the `superbuild` folder
+1. Clone the [VolumeViewer](https://github.com/brown-ccv/VR-Volumeviewer) repo
+2. In a temrinal go to `VolumeViewer/superbuild` folder
 3. For `debug` build type:
     `cmake -S . -B .`
    For `release` build type:
@@ -45,6 +45,7 @@ If you want to run the application from Visual Studio:
 2. At the left side index, select `Visualize OSOM data using OSOM 3D volume viewer`
 3. At the top use the link to open the notebook on `Google Collab`
 4. Follow the steps to produce and download the volume viewer package
-
-Once you have the data in your machine, open the volume viewer application.
-
+5. Open the volume viewer application
+    In the volume viewer root folder execute the file `bin/VR-VolumeViewer`
+    
+   <img src="imgs/volume-viewer-1.png"  width="60%" height="30%">
