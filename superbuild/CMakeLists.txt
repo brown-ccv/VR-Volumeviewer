@@ -562,7 +562,7 @@ file(COPY "${CMAKE_SOURCE_DIR}/../observers/desktop.minvr" DESTINATION "${INSTAL
 file(COPY "${CMAKE_SOURCE_DIR}/../colormaps" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
 message(STATUS "COPY RESOURCES FOLDER")
 file(COPY "${CMAKE_SOURCE_DIR}/../Resources" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
-file(COPY "${CMAKE_SOURCE_DIR}/../docs/documentation.pdf" DESTINATION "${INSTALL_DIR_ABSOLUTE}/docs")
+file(COPY "${CMAKE_SOURCE_DIR}/../docs/volume-viewer-documentation.pdf" DESTINATION "${INSTALL_DIR_ABSOLUTE}/docs")
 
 enable_testing()
 
