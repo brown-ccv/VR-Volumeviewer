@@ -1,0 +1,47 @@
+name: release-vr-volumeviewer
+
+on:  
+  push:
+    tags:
+      - '*'
+
+env:
+  BUILD_TYPE: Release
+jobs:
+  build_windows:
+    
+    runs-on: windows-2019
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ilammy/msvc-dev-cmd@v1
+    - uses: seanmiddleditch/gha-setup-ninja@master
+    - uses: jwlawson/actions-setup-cmake@v1.12
+      with:
+        cmake-version: '3.21.2'
+
+    - name: Clean superbuild folder
+      run: superbuild/clean/clean.bat
+      
+    - name: Open superbuild folder
+      run: cd superbuild
+
+    - name: Configure CMake
+      run: |
+           cd superbuild 
+           cmake -S . -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G Ninja
+    - name: Build
+      run: |
+           cd superbuild
+           ninja
+    - uses: papeloto/action-zip@v1
+      with:
+        files: superbuild\install_Windows\bin
+        recursive: false
+        dest: superbuild\install_Windows\vr-volumeviewer-windows.zip
+    - name: Upload app to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{github.workspace}}\superbuild\install_Windows\vr-volumeviewer-windows.zip
+        tag: ${{ github.ref }}
