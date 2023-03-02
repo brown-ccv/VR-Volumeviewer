@@ -34,11 +34,11 @@ jobs:
       run: |
            cd superbuild
            ninja
-    - uses: papeloto/action-zip@v1
-      with:
-        files: superbuild\install_Windows\bin
-        recursive: false
-        dest: superbuild\install_Windows\vr-volumeviewer-windows.zip
+    - name: Zip bin folder
+      run: |
+           cd superbuild\install_Windows
+           mv bin vr-volumeviewer
+           tar -a -c  -f vr-volumeviewer-windows.zip .\vr-volumeviewer
     - name: Upload app to release
       uses: svenstaro/upload-release-action@v2
       with:
