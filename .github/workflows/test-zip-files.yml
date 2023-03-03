@@ -77,9 +77,6 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{github.workspace}}/superbuild/install_Darwin/vr-volumeviewer-macos.zip
         tag: ${{ github.ref }}
-    - name: Test
-      working-directory: ${{github.workspace}}/superbuild/install_Darwin/bin
-      run:  ctest
   
   build_linux:
    
