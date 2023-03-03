@@ -42,3 +42,86 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: ${{github.workspace}}\superbuild\install_Windows\vr-volumeviewer-windows.zip
         tag: ${{ github.ref }}
+  build_mac:
+   
+    runs-on: macos-12
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v1.9
+      with:
+       cmake-version: '3.20.3'
+    
+    - name: Clean superbuild folder
+      run: python3 superbuild/clean/clean.py
+      
+    - name: Open superbuild folder
+      run: cd superbuild
+
+    - name: Configure CMake
+      run: |
+           cd superbuild 
+           cmake -S . -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+    - name: Build
+      run: |
+           cd superbuild
+           make
+    - name: Zip bin folder
+      run: |
+           cd superbuild/install_Darwin
+           mv bin vr-volumeviewer
+           tar -a -c  -f vr-volumeviewer-macos.zip ./vr-volumeviewer
+    - name: Upload app to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{github.workspace}}/superbuild/install_Darwin/vr-volumeviewer-macos.zip
+        tag: ${{ github.ref }}
+    - name: Test
+      working-directory: ${{github.workspace}}/superbuild/install_Darwin/bin
+      run:  ctest
+  
+  build_linux:
+   
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install OpenGL support
+      run: sudo apt-get install libglfw3-dev libgl1-mesa-dev libglu1-mesa-dev
+      shell: bash
+    
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v1.9
+      with:
+        cmake-version: '3.20.3'
+    
+    - name: Clean superbuild folder
+      run: python3 superbuild/clean/clean.py
+      
+    - name: Open superbuild folder
+      run: cd superbuild
+    
+    - name: Install Mesa Packages
+      run: |
+          sudo apt-get install build-essential libxmu-dev libxi-dev libgl-dev
+    - name: Configure CMake
+      run: |
+           cd superbuild 
+           cmake -S . -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+    - name: Build
+      run: |
+           cd superbuild
+           make
+    - name: Zip bin folder
+      run: |
+           cd superbuild/install_Linux
+           mv bin vr-volumeviewer
+           tar -a -c  -f vr-volumeviewer-linux.zip ./vr-volumeviewer
+    - name: Upload app to release - MacOS
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{github.workspace}}/superbuild/install_Linux/vr-volumeviewer-linux.zip
+        tag: ${{ github.ref }}
