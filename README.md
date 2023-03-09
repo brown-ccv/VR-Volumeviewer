@@ -1,35 +1,42 @@
 
-![example workflow](https://github.com/brown-ccv/VR-Volumeviewer/actions/workflows/build.yml/badge.svg)
+[![release-vr-volumeviewer](https://github.com/brown-ccv/VR-Volumeviewer/actions/workflows/release.yml/badge.svg)](https://github.com/brown-ccv/VR-Volumeviewer/actions/workflows/release.yml)
 
 # VR-Volumeviewer
 A simple viewer for visualizing volumetric datasets. It supports color mapping using transfer functions to map specific values of data to a scalar color. The view camera is fully interactive, and it works on multiple systems (Windows and Linux).
 This tool is fully integrated with [MinVR](https://github.com/MinVR/MinVR), a software that facilitates the data visualization on multiple displays devices (desktop, VR HMDs,cave-systems).
+Nowadays it works as simple tool to visualize data for the [Rhode Island Discovery Center](https://riddc.brown.edu/).
+Currently it works on multiple platforms:
 
-### Requirements
+- Windows (Desktop and VR)
+- Macos (Desktop)
+- LInux (Desktop)
 
-* [Cmake 3.9 or greater ](https://cmake.org/)
-* [VR-Imgui](https://github.com/brown-ccv/VR-imgui)
-* [OpenCV](https://github.com/opencv/opencv)
-* [MinVR](https://github.com/MinVR/MinVR)
-* Support for OpenGL 3.3 or greater.
-* [Teem](http://teem.sourceforge.net/download/index.html) *Make sure to build it with gzip support*
+## Installation for devs
 
-:warning: VR mode ONLY supported on Windows (You might need to download and install [steam](https://store.steampowered.com/steamvr)  )
+1. Clone the [VolumeViewer](https://github.com/brown-ccv/VR-Volumeviewer) repo
+2. In a temrinal go to `VolumeViewer/superbuild` folder
+3. For `debug` build type:
+    `cmake -S . -B .`
+   For `release` build type:
+    `cmake -S . -B . -DCMAKE_BUILD_TYPE=Release`
+   `RelWithDebInfo` can be used on Windows.
+4. Once all the dependencies have been downloaded and installed:
+    On Windows go to the `superbuild` folder and open the Visual studio `VR-VolumeViewer.sln` solution. Right click on the VR-VolumeViewer project and select `build`
+    On Macos and Linix type `make`
 
-### Build
+You should find inside the fodler `superbuild/bin` the `VR-VolumeViewer` executable.
 
-1. Clone this git repository on your local system.
-2. On the root folder (*cd VR-Volumeviewer*) create a folder and name it *build*
-3. On Linux: Go to the previously created folder and run the command config.sh When the process ends run the command run.sh.
-   On Windows: Execute the cmake gui tool and select visual studio as code Generator, and do click on configure. After the process ends, click on generate. (It has been tested on MSVS 2017 and 2019).
-  <img src="docs/imgs/cmake_gui_1.png" width="350" height="300">
-  
-   
-:warning: Some links to OpenCV and MinVR might have to be set manually.
+### For Windows-Visual Studio  devs
 
-### How to use it
-  
-It supports obj files for vertex mesheses, and [NRRD](http://teem.sourceforge.net/nrrd/format.html) file format for volume data.
+If you want to run the application from Visual Studio:
+
+1. Open the `VR-VolumeViewer.sln` solution
+2. Right click on the VR-VolumeViewer project and select `properties`
+3. On the output folder section delete the last trail of the path so it points to the `bin` folder.
+   i.e: Change `VR-Volumeviewer\bin\Debug`  to `VR-Volumeviewer\bin`
+4. Right click on the VR-VolumeViewer project and select  `Set as Startup project`
+5. You can run the application from the Visual Studio debugger.
+
 
 ### Loading data
 

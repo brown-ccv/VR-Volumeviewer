@@ -326,33 +326,6 @@ ENDIF()
 
 message(STATUS "CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
 
-#FTGL
-# Configure external project
-#IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/FTGL/FTGL)
-#execute_process(
-#    COMMAND ${CMAKE_COMMAND} 
-#    -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} 
-#    -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} 
-#    -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} 
-#    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-#    ${CMAKE_SOURCE_DIR}/FTGL
-#    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/FTGL
-#)
-
-## Build external project
-#execute_process(
-#    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/FTGL --config ${CMAKE_BUILD_TYPE}
-#)
-##ENDIF()
-
-# find_package(OpenGL REQUIRED)
-#FIND_PACKAGE(FTGL REQUIRED )
-#if(FTGL_FOUND)
-#  message(STATUS "FTGL found")
-#  message(STATUS "FTGL_INCLUDE_DIR ${FTGL_INCLUDE_DIR}")
-# else()
-#  message(STATUS "FTGL NOT found" )
-#endif()
 
 #opencv
 # Configure external project
@@ -392,15 +365,6 @@ if(IMGUIVR_FOUND)
  else()
   message(STATUS "IMGUIVR NOT found" )
 endif()
-
-# find_package(OpenGL REQUIRED)
-#FIND_PACKAGE(FTGL REQUIRED )
-#if(FTGL_FOUND)
-#  message(STATUS "FTGL found")
-#  message(STATUS "FTGL_INCLUDE_DIR ${FTGL_INCLUDE_DIR}")
-# else()
-#  message(STATUS "FTGL NOT found" )
-#endif()
 
 # find_package(OpenGL REQUIRED)
 FIND_PACKAGE(Freetype REQUIRED )
@@ -622,6 +586,7 @@ file(COPY "${CMAKE_SOURCE_DIR}/../observers/desktop.minvr" DESTINATION "${INSTAL
 file(COPY "${CMAKE_SOURCE_DIR}/../colormaps" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
 message(STATUS "COPY RESOURCES FOLDER")
 file(COPY "${CMAKE_SOURCE_DIR}/../Resources" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
+file(COPY "${CMAKE_SOURCE_DIR}/../docs/volume-viewer-documentation.pdf" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin/docs")
 
 enable_testing()
 
