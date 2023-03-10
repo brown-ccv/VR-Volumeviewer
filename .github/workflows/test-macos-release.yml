@@ -1,0 +1,58 @@
+name: release-vr-volumeviewer
+
+on:  workflow_dispatch
+
+env:
+  BUILD_TYPE: Release
+jobs:
+
+  build_mac:
+   
+    runs-on: macos-12
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v1.9
+      with:
+       cmake-version: '3.20.3'
+    
+    - name: Clean superbuild folder
+      run: python3 superbuild/clean/clean.py
+      
+    - name: Open superbuild folder
+      run: cd superbuild
+
+    - name: Configure CMake
+      run: |
+           cd superbuild 
+           cmake -S . -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+    - name: Build
+      run: |
+           cd superbuild
+           make
+    - name: Set path to dynamic libs
+      run: |
+           cd cd superbuild/install_Darwin/bin
+           install_name_tool -change @rpath/libGLEW.2.2.dylib @executable_path/libGLEW.2.2.dylib VR-Volumeviewer 
+           install_name_tool -change @rpath/libopencv_highgui.405.dylib @executable_path/libopencv_highgui.405.dylib
+           install_name_tool -change @rpath/libopencv_highgui.405.dylib @executable_path/libopencv_highgui.405.dylib VR-Volumeviewer
+           install_name_tool -change @rpath/libopencv_ml.405.dylib @executable_path/libopencv_ml.405.dylib VR-Volumeviewer
+           install_name_tool -change @rpath/libopencv_photo.405.dylib @executable_path/libopencv_photo.405.dylib VR-Volumeviewer
+           install_name_tool -change @rpath/libopencv_video.405.dylib  @executable_path/libopencv_video.405.dylib  VR-Volumeviewer
+           install_name_tool -change @rpath/libopencv_videoio.405.dylib  @executable_path/libopencv_videoio.405.dylib  VR-Volumeviewer
+           install_name_tool -change libz.1.dylib  @executable_path/libz.1.dylib  VR-Volumeviewer
+           install_name_tool -change @rpath/libopencv_imgcodecs.405.dylib  @executable_path/libopencv_imgcodecs.405.dylib  VR-Volumeviewer 
+           install_name_tool -change @rpath/libopencv_imgproc.405.dylib  @executable_path/libopencv_imgproc.405.dylib  VR-Volumeviewer
+           install_name_tool -change @rpath/libopencv_core.405.dylib  @executable_path/libopencv_core.405.dylib  VR-Volumeviewer
+
+    - name: Zip bin folder
+      run: |
+           cd superbuild/install_Darwin
+           mv bin vr-volumeviewer
+           tar -a -c  -f vr-volumeviewer-macos.zip ./vr-volumeviewer
+    - name: Upload app to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{github.workspace}}/superbuild/install_Darwin/vr-volumeviewer-macos.zip
+        tag: ${{ github.ref }}
