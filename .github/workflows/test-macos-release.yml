@@ -1,4 +1,4 @@
-name: release-vr-volumeviewer
+name: test-macos-release
 
 on:  workflow_dispatch
 
