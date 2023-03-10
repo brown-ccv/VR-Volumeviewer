@@ -1,6 +1,6 @@
 name: test-macos-release
 
-on:  workflow_dispatch
+on:  pull_request
 
 env:
   BUILD_TYPE: Release
