@@ -33,8 +33,7 @@ jobs:
     - name: Set path to dynamic libs
       run: |
            cd superbuild/install_Darwin/bin
-           install_name_tool -change @rpath/libGLEW.2.2.dylib @executable_path/libGLEW.2.2.dylib VR-Volumeviewer 
-           install_name_tool -change @rpath/libopencv_highgui.405.dylib @executable_path/libopencv_highgui.405.dylib
+           install_name_tool -change @rpath/libGLEW.2.2.dylib @executable_path/libGLEW.2.2.dylib VR-Volumeviewer
            install_name_tool -change @rpath/libopencv_highgui.405.dylib @executable_path/libopencv_highgui.405.dylib VR-Volumeviewer
            install_name_tool -change @rpath/libopencv_ml.405.dylib @executable_path/libopencv_ml.405.dylib VR-Volumeviewer
            install_name_tool -change @rpath/libopencv_photo.405.dylib @executable_path/libopencv_photo.405.dylib VR-Volumeviewer
