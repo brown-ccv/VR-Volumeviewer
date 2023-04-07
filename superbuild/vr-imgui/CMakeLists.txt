@@ -22,7 +22,7 @@ find_package(OpenGL REQUIRED)
 build_git_subproject(
   NAME vr-imgui 
   URL https://github.com/brown-ccv/VR-imgui.git
-  TAG v2.0.1
+  TAG v3.0.0
   BUILD_ARGS
    -DBUILD_WITH_VIRTUALKEYBOARD=OFF 
    -DBUILD_WITH_FILEBROWSER=ON 

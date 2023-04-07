@@ -19,6 +19,7 @@ int main(int argc, char **argv)
 
     int num_parameters = 4;
     char *arguments[] = {argv[0], "-c", "desktop_observer.minvr", "use2DUI"};
+    //char* arguments[] = { argv[0], "-c", "HTC_Vive.minvr" };
 
     VolumeVisualizationApp app(num_parameters, arguments);
 

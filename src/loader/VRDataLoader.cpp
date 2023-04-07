@@ -1,7 +1,7 @@
 #include "loader/VRDataLoader.h"
 #include <fstream>
 
-//#include <filesystem>
+
 #include <cppfs/fs.h>
 #include <cppfs/FilePath.h>
 
@@ -93,14 +93,13 @@ void VRDataLoader::load_txt_file(VRVolumeApp &vrVolumeApp, std::string &filename
           std::promise<Volume *> *pm = new std::promise<Volume *>();
           v.push_back(pm);
 
-          std::vector<std::future<Volume *>> *fut;
+         
           if (!vrVolumeApp.get_future(volumeIndex))
           {
             vrVolumeApp.set_future(volumeIndex, new std::vector<std::future<Volume *>>);
           }
-
+          std::vector<std::future<Volume*>>* fut;
           fut = vrVolumeApp.get_future(volumeIndex);
-
           fut->push_back(pm->get_future());
 
           vrVolumeApp.set_future(volumeIndex, fut);
@@ -112,4 +111,26 @@ void VRDataLoader::load_txt_file(VRVolumeApp &vrVolumeApp, std::string &filename
   }
   inFile.close();
   vrVolumeApp.set_loaded_file(filename);
+}
+
+
+void VRDataLoader::load_nrrd_file(VRVolumeApp& vrVolumeApp, std::string& filename)
+{
+    std::vector<std::string> vals;
+    vals.push_back(filename);
+    vrVolumeApp.init_num_volumes(1);
+    std::vector<std::promise<Volume*>*>& promises = vrVolumeApp.get_promise(1);
+    std::promise<Volume*>* pm = new std::promise<Volume*>();
+    promises.push_back(pm);
+    
+    if (!vrVolumeApp.get_future(1))
+    {
+        vrVolumeApp.set_future(1, new std::vector<std::future<Volume*>>);
+    }
+    std::vector<std::future<Volume*>>* fut;
+    fut = vrVolumeApp.get_future(1);
+
+    fut->push_back(pm->get_future());
+    vrVolumeApp.set_future(1, fut);
+    vrVolumeApp.init_volume_loading(1, vals);
 }

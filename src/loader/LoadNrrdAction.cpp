@@ -31,9 +31,11 @@
 
 #include "../../include/loader/LoadNrrdAction.h"
 #include <iostream>
-#include "teem/nrrd.h"
+#include <teem/nrrd.h>
+#include <teem/biff.h>
+#include <render/Volume3D.h>
 
-LoadNrrdAction::LoadNrrdAction(std::string file) :m_file(file)
+LoadNrrdAction::LoadNrrdAction(std::string& file) :m_file(file)
 {
 
 }
@@ -123,9 +125,11 @@ Volume* LoadNrrdAction::run()
   std::cerr << "Loading Volume size:  " << dimension[0] << " , " << dimension[1] << " , " << dimension[2]
     << " spacing:  " << spacing[0] << " , " << spacing[1] << " , " << spacing[2] << " Channels " << channels << std::endl;
 
-  Volume* volume = new Volume(dimension[0], dimension[1], dimension[2], spacing[0], spacing[1], spacing[2], datasize, channels);
-  void* volume_data = reinterpret_cast <void*> (volume->get_data());
+  Volume* volume = new Volume3D(dimension[0], dimension[1], dimension[2], spacing[0], spacing[1], spacing[2], datasize, channels);
+  unsigned short* volume_data = reinterpret_cast <unsigned short*> (volume->get_datau16());
 
+  size_t nElements = nrrdElementNumber(nrrd);
+  size_t nElementSize = nrrdElementSize(nrrd);
   memcpy(volume_data, nrrd->data,
     nrrdElementNumber(nrrd) * nrrdElementSize(nrrd));
 

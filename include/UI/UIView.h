@@ -65,7 +65,7 @@ public:
   void init_ui(bool is2D, bool lookingGlass);
   void update_ui(int numVolumes);
   void render_2D(Window_Properties &window_properties);
-  void render_3D(glm::mat4 &space_matrix, Window_Properties &window_properties);
+  void render_3D(glm::mat4& projection_matrix,  glm::mat4 &view_matrix, Window_Properties &window_properties);
   void update_3D_ui_frame();
 
   void set_cursor_pos(glm::vec2 &);
@@ -298,6 +298,7 @@ private:
 
   bool m_render_mesh;
   bool m_render_labels;
+  bool m_is2D;
 };
 
 #endif

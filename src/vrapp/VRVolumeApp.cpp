@@ -54,7 +54,7 @@ m_lookingGlass(false), m_isInitailized(false), m_speed(0.01f), m_movieAction(nul
 m_ambient(0.2f, 0.2f, 0.2f, 1.0f), m_diffuse(0.5f, 0.5f, 0.5f, 1.0f), m_ui_view(nullptr), m_animated(false), m_numVolumes(0), m_selectedVolume(0),
 m_multiplier(1.0f), m_threshold(0.0f), m_frame_step(0.0f), m_use_multi_transfer(false), m_clipping(false), m_show_menu(true),
 m_window_properties(nullptr), m_volume_animation_scale_factor(1.0f), m_current_movie_state(MOVIE_STOP), m_app_mode(MANUAL), m_end_load(false),
-m_volumes_global_min_value(std::numeric_limits<float>::max()), m_volumes_global_max_value(std::numeric_limits<float>::min())
+m_volumes_global_min_value(std::numeric_limits<float>::max()), m_volumes_global_max_value(std::numeric_limits<float>::min()), m_is2d(false), m_grab(false)
 {
 	m_renders.push_back(new VolumeSliceRenderer());
 	m_renders.push_back(new VolumeRaycastRenderer(*this));
@@ -313,7 +313,8 @@ void VRVolumeApp::set_mesh(int volume_id, std::string& mesh_file_path, std::stri
 {
 	MeshData mesh_data = { (unsigned int)volume_id - 1, mesh_file_path, texture_file_path };
 	m_mesh_models_data.push_back(mesh_data);
-	m_models_MV.push_back(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
+	m_models_volumeID.push_back(volume_id - 1);
+	m_models_MV.push_back(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, -2, 1));
 }
 
 void VRVolumeApp::init_num_volumes(int nVolumes)
@@ -447,16 +448,17 @@ void VRVolumeApp::intialize_ui()
 
 void VRVolumeApp::load_volume(std::vector<std::string> vals, std::promise<Volume*>* promise)
 {
-	if (vals.size() == 1 && helper::ends_with_string(vals[0], ".nrrd"))
+	if (helper::ends_with_string(vals[1], ".nrrd"))
 	{
-#ifdef WITH_TEEM
-		Volume* volume = LoadNrrdAction(vals[0]).run();
+
+		Volume* volume = LoadNrrdAction(vals[1]).run();
 		volume->set_volume_position({ 0.0, 0.0, 0.0 });
-		volume->set_volume_scale({ 0.0, 0.0, 0.0 });
+		volume->set_volume_scale({ 1.0, 1.0,1.0 });
 		volume->set_volume_mv(glm::mat4());
+		volume->set_render_channel(1);
 		promise->set_value(volume);
-		;
-#endif
+		
+
 	}
 	else
 	{
@@ -549,10 +551,11 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& render_state)
 	{
 		for (int j = 0; j < m_volumes[i].size(); j++)
 		{
-			glm::mat4 volume_matrix = m_view_matrix * m_object_pose * glm::scale(general_model_matrix, glm::vec3(1.0, 1.0, m_ui_view->get_z_scale()));
+			//glm::mat4 volume_matrix = m_view_matrix * m_object_pose * glm::scale(general_model_matrix, glm::vec3(1.0, 1.0, m_ui_view->get_z_scale()));
+			glm::mat4 volume_matrix = m_view_matrix * m_object_pose * glm::scale(general_model_matrix, glm::vec3(1.0, 1.0, m_volumes[i][j]->get_volume_scale().x / m_volumes[i][j]->get_volume_scale().z));
+			
 			if (!m_animated)
 			{
-				std::cout << "IS ANIMATED" << std::endl;
 				volume_matrix = glm::translate(volume_matrix, glm::vec3(m_volumes[i][j]->get_volume_position().x, m_volumes[i][j]->get_volume_position().y, m_volumes[i][j]->get_volume_position().z));
 			}
 			m_volumes[i][j]->set_volume_mv(volume_matrix);
@@ -564,6 +567,7 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& render_state)
 	{
 		if (!m_volumes.empty())
 		{
+			int i = 0;
 			Volume* volume = m_volumes[mesh->get_volume_id()][0];
 			glm::mat4 volume_mv = volume->get_volume_mv();
 			float px = volume->get_volume_scale().x;
@@ -580,10 +584,15 @@ void VRVolumeApp::render(const MinVR::VRGraphicsState& render_state)
 			**/
 
 			//volume_mv = glm::rotate(volume_mv, glm::radians(180.0f), glm::vec3(1.0f,0.f,0.f));
-			volume_mv = glm::translate(volume_mv, glm::vec3(-0.5f, -0.5f, -0.5f * px / pz));
-			volume_mv = glm::scale(volume_mv, glm::vec3(px, py, px));
+			/*volume_mv = glm::translate(volume_mv, glm::vec3(-0.5f, -0.5f, -0.5f * m_volumes[0][m_models_volumeID[i]]->get_volume_scale().x / (m_volumes[0][m_models_volumeID[i]]->get_volume_scale().z)));
+			volume_mv = glm::scale(volume_mv, glm::vec3(m_volumes[0][m_models_volumeID[i]]->get_volume_scale().x, m_volumes[0][m_models_volumeID[i]]->get_volume_scale().y, m_volumes[0][m_models_volumeID[i]]->get_volume_scale().x));
 
-			mesh->get_model().setMVMatrix(volume_mv);
+
+			mesh->get_model().setMVMatrix(volume_mv);*/
+
+			glm::mat4 mesh_model_matrix = glm::translate(volume_mv, glm::vec3(-0.5f, -0.5f, -0.5f * px / pz));
+			mesh_model_matrix = glm::scale(mesh_model_matrix, glm::vec3(px, py, px));
+			mesh->get_model().setMVMatrix(mesh_model_matrix); 
 		}
 	}
 
@@ -800,11 +809,13 @@ void VRVolumeApp::render_ui(const MinVR::VRGraphicsState& renderState)
 		m_window_properties->window_h = renderState.index().getValue("WindowHeight");
 		m_window_properties->framebuffer_w = renderState.index().getValue("FramebufferWidth");
 		m_window_properties->framebuffer_h = renderState.index().getValue("FramebufferHeight");
+		glm::mat4 projectionMatrix = glm::make_mat4(renderState.getProjectionMatrix());
+		glm::mat4 viewMatrix = glm::make_mat4(renderState.getViewMatrix());
 
 		if (!m_is2d)
 		{
 			glm::mat4 mvMatrix = glm::make_mat4(renderState.getViewMatrix());
-			m_ui_view->render_3D(mvMatrix, *m_window_properties);
+			m_ui_view->render_3D(projectionMatrix, viewMatrix, *m_window_properties);
 		}
 		else
 		{
@@ -927,11 +938,15 @@ bool VRVolumeApp::data_is_multi_channel()
 			// renderchannel[0] = "based on data"
 			// renderchannel[5] =  "rgba"
 			// renderchannel[6] = "rgba with alpha as max rgb";
-			if (m_volumes.size() > 0 && m_volumes[i][0]->get_channels() > 1 &&
-				(renderchannel == 0 || renderchannel == 5 || renderchannel == 6))
+			if (!m_volumes[i].empty())
 			{
-				is_multi_channel |= true;
+				if (m_volumes.size() > 0 && m_volumes[i][0]->get_channels() > 1 &&
+					(renderchannel == 0 || renderchannel == 5 || renderchannel == 6))
+				{
+					is_multi_channel |= true;
+				}
 			}
+			
 		}
 	}
 

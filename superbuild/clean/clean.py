@@ -18,8 +18,8 @@ def handleRemoveReadonly(func, path, exc):
 current_dir = pathlib.Path(__file__).parent.resolve()
 parent_dir = dirname(dirname(abspath(__file__)))
 print("working directory " + parent_dir)
-folders_to_operate = ["CPPFSD","freetype","FTGL","glew","glfw","glm","MinVR","opencv","teem","vr-imgui","zlib","Choreograph"]
-files_to_exclude = ["CMakeLists.txt","macros.cmake","minvr_patch_082021.patch","build_oscar.sh","build_oscar_release.sh"]
+folders_to_operate = ["CPPFSD","freetype","FTGL","glew","glfw","glm","MinVR","opencv","OpenVR","teem","vr-imgui","zlib","Choreograph"]
+files_to_exclude = ["CMakeLists.txt","macros.cmake","minvr_patch_082021.patch","build_oscar.sh","build_oscar_release.sh","build.sh","build_release.sh"]
 folders_to_exclude = ["cmake","clean","scripts","bat2exe"]
 
 for filename in os.listdir(parent_dir):

@@ -67,8 +67,8 @@ private:
   std::vector<LabelBillboard> m_billboard_labels;
 
   std::vector<std::string> m_text;
-  std::vector<glm::vec3> m_position;
-  std::vector<glm::vec3> m_position2;
+  std::vector<glm::vec4> m_position;
+  std::vector<glm::vec4> m_position2;
   std::vector<int> m_size;
   std::vector<int> m_volume;
 

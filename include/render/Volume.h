@@ -180,6 +180,11 @@ public:
 		return (unsigned char*)m_data;
 	}
 
+	unsigned short* get_datau16()
+	{
+		return (unsigned short*)m_data;
+	}
+
 	const int& render_channel() const
 	{
 		return m_render_channel;

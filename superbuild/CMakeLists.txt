@@ -108,6 +108,30 @@ execute_process(
 execute_process(COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/glfw --config ${CMAKE_BUILD_TYPE})
 ENDIF()
 
+#IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/OpenVR/OpenVR)
+execute_process(
+    COMMAND ${CMAKE_COMMAND}
+    -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} 
+    -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} 
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    ${CMAKE_SOURCE_DIR}/OpenVR
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/OpenVR
+)
+
+# Build external project
+execute_process(COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/OpenVR --config ${CMAKE_BUILD_TYPE})
+#ENDIF()
+file(INSTALL ${CMAKE_BINARY_DIR}/OpenVR/OpenVR/source/headers/ DESTINATION ${INSTALL_DIR_ABSOLUTE}/include/openvr)
+
+find_package(OpenVR REQUIRED)
+if(OpenVR_FOUND)
+  message(STATUS "OpenVR found")
+  message(STATUS "OPENVR_INCLUDE_DIR ${OPENVR_INCLUDE_DIR}")
+  message(STATUS "OPENVR_LIBRARY ${OPENVR_LIBRARY}")
+ else()
+  message(STATUS "OpenVR NOT found" )
+endif()
+
 if (WIN32)
 # some windows systems are no sure they are win32, forced it to be aware of
  message("====== MINVR IS WIN 32")
@@ -285,7 +309,7 @@ ENDIF()
 
 #TEEM
 # Configure external project
-IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/teem/teem)
+#IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/teem/teem)
 execute_process(
     COMMAND ${CMAKE_COMMAND} 
     -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} 
@@ -301,28 +325,39 @@ execute_process(
     --build ${CMAKE_BINARY_DIR}/teem
     --config ${CMAKE_BUILD_TYPE}
 )
-ENDIF()
+#ENDIF()
 
+FIND_PACKAGE(Teem REQUIRED )
+if(Teem_FOUND)
+   message(STATUS "Teem found")
+   message(STATUS "Teem_INCLUDE_DIRS ${Teem_INCLUDE_DIRS}")
+   message(STATUS "Teem_LIBRARY_DIRS ${Teem_LIBRARY_DIRS}")
+   message(STATUS "Teem_USE_FILE ${Teem_USE_FILE}")
+  
+#   #include(${Teem_USE_FILE})
+else()
+   message(STATUS "Teem NOT found" )
+endif()
 
 #freetype
 # Configure external project
-IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/freetype/freetype)
-execute_process(
-    COMMAND ${CMAKE_COMMAND} 
-    -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} 
-    -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} 
-    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-    ${CMAKE_SOURCE_DIR}/freetype
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/freetype
-)
+# IF(NOT EXISTS ${CMAKE_SOURCE_DIR}/freetype/freetype)
+# execute_process(
+#     COMMAND ${CMAKE_COMMAND} 
+#     -DINSTALL_DIR_ABSOLUTE=${INSTALL_DIR_ABSOLUTE} 
+#     -DDEFAULT_BUILD_COMMAND=${DEFAULT_BUILD_COMMAND} 
+#     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+#     ${CMAKE_SOURCE_DIR}/freetype
+#     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/freetype
+# )
 
-# Build external project
-execute_process(
-    COMMAND ${CMAKE_COMMAND} 
-    --build ${CMAKE_BINARY_DIR}/freetype 
-    --config ${CMAKE_BUILD_TYPE}
-)
-ENDIF()
+# # Build external project
+# execute_process(
+#     COMMAND ${CMAKE_COMMAND} 
+#     --build ${CMAKE_BINARY_DIR}/freetype 
+#     --config ${CMAKE_BUILD_TYPE}
+# )
+# ENDIF()
 
 message(STATUS "CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
 
@@ -367,14 +402,14 @@ if(IMGUIVR_FOUND)
 endif()
 
 # find_package(OpenGL REQUIRED)
-FIND_PACKAGE(Freetype REQUIRED )
-if(Freetype_FOUND)
-  message(STATUS "Freetype found")
-  message(STATUS "Freetype_INCLUDE_DIR ${Freetype_INCLUDE_DIR}")
-  message(STATUS "Freetype_LIBRARY ${Freetype_LIBRARY}")
- else()
-  message(STATUS "Freetype NOT found" )
-endif()
+# FIND_PACKAGE(Freetype REQUIRED )
+# if(Freetype_FOUND)
+#   message(STATUS "Freetype found")
+#   message(STATUS "Freetype_INCLUDE_DIR ${Freetype_INCLUDE_DIR}")
+#   message(STATUS "Freetype_LIBRARY ${Freetype_LIBRARY}")
+#  else()
+#   message(STATUS "Freetype NOT found" )
+# endif()
 
 FIND_PACKAGE(CPPFS REQUIRED) 
 if(CPPFS_FOUND)
@@ -457,6 +492,7 @@ message(STATUS "MYCOMPILER IS ${CMAKE_CXX_COMPILER}")
  ${CMAKE_CURRENT_BINARY_DIR}/../src/interaction/Simulation.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/loader/LoadDescriptionAction.cpp
  ${CMAKE_CURRENT_BINARY_DIR}/../src/loader/VRDataLoader.cpp
+ ${CMAKE_CURRENT_BINARY_DIR}/../src/loader/LoadNrrdAction.cpp
 )
 
 set(header_files
@@ -493,6 +529,7 @@ set(header_files
  ${CMAKE_CURRENT_BINARY_DIR}/../include/interaction/Simulation.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/loader/LoadDescriptionAction.h
  ${CMAKE_CURRENT_BINARY_DIR}/../include/loader/VRDataLoader.h
+ ${CMAKE_CURRENT_BINARY_DIR}/../include/loader/LoadNrrdAction.h
  
 )
 
@@ -503,7 +540,7 @@ set(header_files
   ${GLM_INCLUDE_DIRS}
   ${GLEW_INCLUDE_DIR}
   ${FTGL_INCLUDE_DIR}
-  ${Freetype_INCLUDE_DIR}
+  ${Teem_INCLUDE_DIRS}
   ${ZLIB_INCLUDE_DIR}
   ${CPPFS_INCLUDE_DIR}
   ${Imgui_INCLUDE_DIR}
@@ -526,7 +563,7 @@ set(LIBRARIES
 	${OpenCV_LIBS}
 	${GLM_LIBRARIES}
 	${FTGL_LIBRARY}
-	${Freetype_LIBRARY}
+	${Teem_LIBRARY_DIRS}
 	${ZLIB_LIBRARY}
   ${IMGUIVR_LIBRARY}
   ${MinVR_LIBRARY}
@@ -563,6 +600,7 @@ file(COPY "${CMAKE_SOURCE_DIR}/../colormaps" DESTINATION "${INSTALL_DIR_ABSOLUTE
 message(STATUS "COPY RESOURCES FOLDER")
 file(COPY "${CMAKE_SOURCE_DIR}/../Resources" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
 file(COPY "${CMAKE_SOURCE_DIR}/../docs/volume-viewer-documentation.pdf" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin/docs")
+file(COPY "${INSTALL_DIR_ABSOLUTE}/lib/openvr_api64.dll" DESTINATION "${INSTALL_DIR_ABSOLUTE}/bin")
 
 enable_testing()
 

@@ -38,7 +38,19 @@ Volume3D::Volume3D(unsigned int width, unsigned int height, unsigned int depth, 
 	: Volume(width, height, depth, x_scale, y_scale, z_scale, datatypesize, channel)
 {
 	// Data is in a 3D array format. Pre-Allocate block of data
-	m_data = new unsigned char[m_width * m_height * m_depth * m_channels * m_datatypesize]();	
+	switch (datatypesize) {
+	case 1:
+		m_data = new unsigned char[m_width * m_height * m_depth * m_channels * m_datatypesize]();
+		break;
+	case 2:
+		m_data = new unsigned short[m_width * m_height * m_depth * m_channels * m_datatypesize]();
+		break;
+	default:
+		m_data = new unsigned char[m_width * m_height * m_depth * m_channels * m_datatypesize]();
+		break;
+	}
+	
+	
 }
 
 Volume3D::~Volume3D()

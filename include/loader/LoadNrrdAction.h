@@ -28,13 +28,13 @@
 #define LOADNRRDACTION_H
 
 #include <string>
-#include "render/Volume.h"
 
+class Volume;
 class LoadNrrdAction
 {
 public:
-  LoadNrrdAction(std::string file);
-  Volume *run();
+  LoadNrrdAction(std::string& file);
+  Volume* run();
 
 private:
   std::string m_file;
