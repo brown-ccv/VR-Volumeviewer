@@ -51,7 +51,7 @@ jobs:
       run: superbuild\scripts\execute_bat2exe_background.bat ${{github.workspace}}
       
     - name: Download artifact
-      uses: dawidd6/action-download-artifact@v2
+      uses: dawidd6/action-download-artifact@v6
       with:
          workflow: download_vcresdristr.yml
          name: vc_redist.x64.exe
